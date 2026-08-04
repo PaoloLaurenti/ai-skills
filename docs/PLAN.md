@@ -6,36 +6,14 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 2 carries the most value. Task 1 comes first only because it is cheap and
-doing it later means rewriting the scenarios task 2 produces.
+Task 1 carries the most value by a wide margin. Everything after it is small.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings are
 present in both languages, the skill body sits under the 500-line limit, and the
 Red flags section gives the skill its self-check list.
 
-## 1. Rename the skill to the conventional form
-
-**State:** `my-pr-reviews`. **Target:** `reviewing-pull-requests`.
-
-Anthropic recommends the gerund form for skill names; `superpowers:writing-skills`
-asks for active voice, verb first, naming what the skill does. A possessive noun
-phrase is the weakest of the three forms both guides list. Two concrete reasons
-beyond the convention: in a flat namespace shared with dozens of other skills,
-`my-` carries no information a selection decision can use, and the possessive
-reads against the impersonal rule in `AGENTS.md`.
-
-- [ ] `git mv` the skill directory
-- [ ] update `name` in the frontmatter to match the directory
-- [ ] repoint the symlink under `~/.claude/skills/`
-- [ ] update the references in `README.md` and `AGENTS.md`
-- [ ] confirm a running session lists the new name
-
-**Decision needed:** the current name was a deliberate choice, so this task is a
-proposal, not a settled item. Nothing downstream depends on it except the naming
-of the scenario files in task 2.
-
-## 2. Write evaluation scenarios for the skill
+## 1. Write evaluation scenarios for the skill
 
 The largest gap. Nothing in the repo tests whether the rules hold.
 
@@ -67,7 +45,7 @@ agent under pressure will negotiate with:
 Store the scenarios in the repo, one file per scenario, next to the skill they
 test. They are the regression suite for every later edit to the skill body.
 
-## 3. Add a LICENSE and a .gitignore
+## 2. Add a LICENSE and a .gitignore
 
 Cheap, and the first one has real consequences: a public repo without a license
 leaves the content unusable by anyone else, whatever the README invites.
@@ -75,36 +53,23 @@ leaves the content unusable by anyone else, whatever the README invites.
 - [ ] pick a license and add it at the repo root
 - [ ] add a `.gitignore` covering `.DS_Store`
 
-## 4. Validate the skills in CI
+## 3. Validate the skills in CI
 
 The rules worth enforcing mechanically should not consume attention in review.
 
 - [ ] a GitHub Actions workflow checking, for every `skills/*/SKILL.md`: the
       frontmatter parses, `name` matches the directory name, `description` is
       present and under 1024 characters, and the body is under 500 lines
-- [ ] run `claude plugin validate` against the repo once task 5 lands
+- [ ] run `claude plugin validate` in the same workflow, tolerating its expected
+      warning about the root `CLAUDE.md`
 
-## 5. Decide on packaging: symlinks or a plugin
+The `name` check is load-bearing rather than cosmetic, though not for the reason
+first assumed here. In a plain personal skill, `name` is only a display label and
+the command comes from the directory. In a plugin skill, which is what these are
+now, `name` supplies the last segment of the command, so a drifting `name` means
+the command stops matching the directory it lives in.
 
-Not a defect to fix. Symlinking into `~/.claude/skills/` is the documented
-standalone route, described as the right one for personal workflows, and it keeps
-the short invocation name.
-
-What a plugin buys, per the plugin docs: setup on a new machine becomes one
-`/plugin marketplace add` instead of an `ln -s` per skill, plus versioning and
-updates. What it costs: skills become namespaced, so the invocation turns into
-`/ai-skills:<skill>`.
-
-- [ ] decide, weighing the short name against one-command setup
-- [ ] if a plugin: add `.claude-plugin/plugin.json` at the repo root with `name`,
-      `description`, and `version`; keep the skills where they are, since
-      `skills/<name>/SKILL.md` is already the layout a plugin expects
-- [ ] if a plugin: add the marketplace manifest so the repo is installable from
-      git, and replace the symlink instructions in `README.md`
-- [ ] if symlinks: record the decision and the reason in `AGENTS.md`, so it does
-      not get revisited from scratch
-
-## 6. Tripwire: progressive disclosure
+## 4. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 392 lines against a 500-line limit, so the
 next substantial addition forces the split.
@@ -116,3 +81,23 @@ review, which is reference material rather than a rule, and reference files stay
 one level deep from `SKILL.md`.
 
 - [ ] revisit when a skill body crosses roughly 450 lines
+
+## Completed
+
+**Package the repo as a skills-directory plugin.** Originally queued last, as an
+open question between symlinks and a plugin. It moved to the front once
+recognisability became a requirement: the plugin namespace supplies it, which lets
+each skill keep a clean descriptive name instead of encoding ownership into the
+directory name. `.claude-plugin/plugin.json` names the plugin `mine`, one symlink
+of the repo root into `~/.claude/skills/` replaces one symlink per skill, and no
+marketplace is involved. The reasoning is recorded in `AGENTS.md`; the risk that
+plugin discovery would not follow a symlink was tested first and does not
+materialise.
+
+**Rename the skill to the conventional form.** `paolo-prs-review`, then
+`my-pr-reviews`, now `writing-pr-reviews`, invoked as `/mine:writing-pr-reviews`.
+Anthropic recommends the gerund form and `superpowers:writing-skills` asks for
+active voice, verb first. `writing-` rather than `reviewing-` because the skill
+states in its own opening that it holds conventions for writing and delivering a
+review, not advice on how to find defects, and a name promising review methodology
+would over-claim.

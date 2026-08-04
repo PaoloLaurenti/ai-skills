@@ -7,7 +7,7 @@ the configuration directories of the individual tools.
 
 | Skill | What it covers |
 | --- | --- |
-| [`my-pr-reviews`](skills/my-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: pending state, tone, shape of the general comment, permalinks, code suggestions. |
+| [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: pending state, tone, shape of the general comment, permalinks, code suggestions. |
 
 ## How it is wired to Claude Code
 
@@ -30,7 +30,7 @@ full when creating the symlink, because the link gets resolved from
 `~/.claude/skills/` and not from this repo.
 
 Every skill is then invoked under the plugin namespace, so
-`skills/my-pr-reviews/` becomes `/mine:my-pr-reviews`. The namespace is
+`skills/writing-pr-reviews/` becomes `/mine:writing-pr-reviews`. The namespace is
 what makes these skills recognisable in a list alongside skills from other
 sources.
 
