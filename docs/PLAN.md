@@ -6,23 +6,53 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 1 carries the most value by a wide margin. Everything after it is small.
+Task 2 carries the most value by a wide margin. Task 1 sits ahead of it only
+because it is minutes of work with a real consequence attached and nothing
+depends on it; everything after task 2 is small.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings are
 present in both languages, the skill body sits under the 500-line limit, and the
 Red flags section gives the skill its self-check list.
 
-## 1. Write evaluation scenarios for the skill
+## 1. Add a LICENSE and a .gitignore
+
+Cheap, and the first one has real consequences: a public repo without a license
+leaves the content unusable by anyone else, whatever the README invites. MIT
+covers prose as well as code, so no need to reach for a content license.
+
+- [ ] pick a license and add it at the repo root
+- [ ] add a `.gitignore` covering `.DS_Store`
+
+## 2. Write evaluation scenarios for the skill
 
 The largest gap. Nothing in the repo tests whether the rules hold.
 
 Anthropic asks for at least three evaluations per skill, plus a run against every
-model the skill is meant for, since a body that works for Opus can be too terse
-for Haiku. `superpowers:writing-skills` goes further: run the scenario against a
-subagent *without* the skill first, record the rationalisations verbatim, and only
-then write or amend the guidance, so each rule answers a failure that was actually
-observed.
+model the skill is meant for. `superpowers:writing-skills` goes further: run the
+scenario against a subagent *without* the skill first, record the rationalisations
+verbatim, and only then write or amend the guidance, so each rule answers a
+failure that was actually observed.
+
+Three decisions make the task executable at all, so they come before any
+scenario gets written:
+
+- [ ] **A fixture the scenarios run against.** Every scenario needs a real pull
+      request: a diff, a head SHA, a repo where `gh api` can create a pending
+      review. Set up a sandbox repo with one open PR per scenario, plus a reset
+      step between runs, since GitHub allows one pending review per user per PR
+      and every run leaves one behind.
+- [ ] **A run procedure and pass criteria.** Each scenario is a file carrying
+      the prompt and a checklist of observable assertions, because almost every
+      expected outcome checks mechanically: review state `PENDING` via `gh api`,
+      the finding inline rather than in the body, permalinks containing the head
+      SHA, the `suggestion` anchor covering every replaced line. A suite graded
+      by eye is not a regression suite.
+- [ ] **A clean baseline environment.** The symlink makes the skill loadable in
+      every session on this machine, and a scenario prompt is written to match
+      the skill's description. A baseline run needs the plugin genuinely absent:
+      disabled, or a session under an alternate configuration directory. Verify
+      the skill did not load before trusting the run as a baseline.
 
 The skill is 392 lines of rules, and the rules most worth testing are the ones an
 agent under pressure will negotiate with:
@@ -38,20 +68,28 @@ agent under pressure will negotiate with:
 - [ ] **Suggestion blocks.** A fix that is a concrete edit to diffed lines.
       Expected: a `suggestion` block whose anchor covers every replaced line, and
       no block at all for a pure deletion.
+- [ ] **Docs cross-check.** The skill's own text calls this step mandatory and
+      easy to skip, which is exactly what a baseline exposes. A diff that
+      contradicts a claim in the fixture repo's `README.md`. Expected: the
+      finding names the file, links it, and quotes the stale claim.
+- [ ] **Style rules as assertions on every scenario, not a scenario of their
+      own.** Em dashes, first and second person, English: the rules a model
+      violates most naturally, because they fight its default writing style, and
+      each one greps. Every review any scenario produces gets these checks.
 - [ ] Record a baseline run without the skill for each scenario, so the value of
       each rule is visible.
-- [ ] Run the set against Haiku, Sonnet, and Opus.
+- [ ] Decide the model set deliberately: the models that actually deliver these
+      reviews, not the Haiku-Sonnet-Opus trio the docs use as an example. A
+      model the skill never runs on is not worth a run.
+- [ ] Wire the suite into `AGENTS.md`: every edit to a `SKILL.md` runs that
+      skill's scenarios before the commit. Without that line a future session
+      has no way to know the suite exists, and "regression suite for every later
+      edit" stays an intention.
 
-Store the scenarios in the repo, one file per scenario, next to the skill they
-test. They are the regression suite for every later edit to the skill body.
-
-## 2. Add a LICENSE and a .gitignore
-
-Cheap, and the first one has real consequences: a public repo without a license
-leaves the content unusable by anyone else, whatever the README invites.
-
-- [ ] pick a license and add it at the repo root
-- [ ] add a `.gitignore` covering `.DS_Store`
+Store the scenarios in `evals/<skill-name>/`, one file per scenario, at the repo
+root rather than inside `skills/`. Everything under a skill directory is surface
+the plugin serves, and support files there are for tools and heavy reference,
+not tests.
 
 ## 3. Validate the skills in CI
 
@@ -60,8 +98,15 @@ The rules worth enforcing mechanically should not consume attention in review.
 - [ ] a GitHub Actions workflow checking, for every `skills/*/SKILL.md`: the
       frontmatter parses, `name` matches the directory name, `description` is
       present and under 1024 characters, and the body is under 500 lines
+- [ ] the greppable rules from `AGENTS.md`, in the same workflow: no
+      machine-local paths (`/Users/`, `/home/`) and no owner name anywhere but
+      the clone URL in `README.md`
+- [ ] a check that the README skills table carries a row for every directory
+      under `skills/`
 - [ ] run `claude plugin validate` in the same workflow, tolerating its expected
-      warning about the root `CLAUDE.md`
+      warning about the root `CLAUDE.md`. The CLI has to be installed on the
+      runner, and tolerating the warning means matching its text, which can
+      drift between CLI versions: if this job flakes anywhere, it flakes here.
 
 The `name` check is load-bearing rather than cosmetic, though not for the reason
 first assumed here. In a plain personal skill, `name` is only a display label and
