@@ -1,0 +1,16 @@
+[package]
+name = "skill-check"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Mechanical checks over the skill files this repo ships."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+# The continuation of serde_yaml, which is archived upstream and publishes
+# itself as 0.9.34+deprecated. API compatible, so the usage here reads as
+# standard serde_yaml and stays easy to move again if the ecosystem shifts.
+serde_yaml_ng = "0.10"
+
+[dev-dependencies]
+tempfile = "3"

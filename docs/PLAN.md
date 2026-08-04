@@ -22,9 +22,13 @@ The rules worth enforcing mechanically should not consume attention in review.
 Each check is an assertion that fails before it passes, so the work goes
 test-first.
 
-- [ ] a GitHub Actions workflow checking, for every `skills/*/SKILL.md`: the
-      frontmatter parses, `name` matches the directory name, `description` is
-      present and under 1024 characters, and the body is under 500 lines
+- [x] the checks themselves, for every `skills/*/SKILL.md`: the frontmatter
+      parses, `name` matches the directory name, `description` is present and
+      under 1024 characters, and the body is under 500 lines. They live in
+      `tools/skill-check/` as a cargo test suite, so the suite is both the gate
+      and the specification, and one test runs the checks over this repo's own
+      `skills/`
+- [ ] a GitHub Actions workflow running that suite
 - [ ] the greppable rules from `AGENTS.md`, in the same workflow: no
       machine-local paths (`/Users/`, `/home/`) and no owner name outside the two
       places allowed to carry it, the clone URL in `README.md` and the copyright
@@ -38,7 +42,7 @@ test-first.
       warning about the root `CLAUDE.md`. The CLI has to be installed on the
       runner, and tolerating the warning means matching its text, which can
       drift between CLI versions: if this job flakes anywhere, it flakes here.
-- [ ] update the `AGENTS.md` claim that there is "no build, and no test suite",
+- [x] update the `AGENTS.md` claim that there is "no build, and no test suite",
       which this task makes false, and add the checks to its Layout block
 
 The `name` check is load-bearing rather than cosmetic, though not for the reason

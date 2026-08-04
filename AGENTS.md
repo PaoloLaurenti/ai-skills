@@ -3,9 +3,10 @@
 ## What this repo is
 
 Personal skills for AI agents, kept under version control here instead of
-scattered across the configuration directories of the individual tools. There is
-no application code, no build, and no test suite: the deliverable is the prose in
-the skill files themselves.
+scattered across the configuration directories of the individual tools. The
+deliverable is the prose in the skill files themselves. The only code is a small
+Rust crate under `tools/`, which checks the shape of those files and never the
+quality of what they say.
 
 ## Layout
 
@@ -17,6 +18,8 @@ AGENTS.md                       this file
 CLAUDE.md                       an @AGENTS.md include, nothing else
 docs/PLAN.md                    queued work, with the reasoning behind each item
 LICENSE                         MIT, and one of the two places allowed to name the owner
+tools/skill-check/              the mechanical checks over every SKILL.md, run as cargo tests
+.tool-versions                  the Rust version asdf resolves for this repo
 ```
 
 ## Language
@@ -109,3 +112,31 @@ Italian, since those are what the description is matched against.
 
 The body is the instructions themselves. It is read by an agent that will act on
 it, so it states what to do rather than describing what the skill is about.
+
+**Quote a description that contains a `#`.** In an unquoted YAML scalar a `#`
+preceded by a space opens a comment, so everything after it is silently dropped
+from the value the loader sees. A description listing a trigger such as `PR #12`
+loses that phrase and every phrase after it. A block scalar keeps the text
+exactly as written:
+
+```yaml
+description: >-
+  Use when asked for a review, including phrasings like "review PR #12".
+```
+
+## Checking a skill mechanically
+
+Run this before committing a change to any `SKILL.md`:
+
+```bash
+cargo test --manifest-path tools/skill-check/Cargo.toml
+```
+
+The suite is both the gate and the specification: every rule is a named test, and
+one of those tests runs the checks over this repo's own `skills/`. It covers the
+shape of a skill file only, whether the frontmatter parses, whether `name`
+matches the directory, the description limit, the body length. Nothing it reports
+is about the quality of the prose.
+
+The Rust version comes from `.tool-versions`, so asdf resolves it for this
+directory with nothing installed globally.
