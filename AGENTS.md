@@ -10,9 +10,12 @@ the skill files themselves.
 ## Layout
 
 ```
+.claude-plugin/plugin.json      the plugin manifest, naming the namespace every skill loads under
 skills/<skill-name>/SKILL.md    one directory per skill, the skill body lives in SKILL.md
 README.md                       what the repo is, how it is wired up, how to add a skill
+AGENTS.md                       this file
 CLAUDE.md                       an @AGENTS.md include, nothing else
+docs/PLAN.md                    queued work, with the reasoning behind each item
 ```
 
 ## Language
@@ -25,10 +28,10 @@ preserve.
 
 ## Commit messages
 
-Imperative mood, and English like everything else here. One line is the target.
-Two or three only when a single line genuinely cannot carry the change, and never
-a body paragraph arguing for it: the reasoning belongs in the code, in the docs,
-or in a plan file.
+Imperative mood, opening in lower case, and English like everything else here.
+One line is the target. Two or three only when a single line genuinely cannot
+carry the change, and never a body paragraph arguing for it: the reasoning
+belongs in the code, in the docs, or in a plan file.
 
 Never add a `Co-Authored-By` trailer for Claude, or any other agent attribution.
 
@@ -54,26 +57,46 @@ machine or by someone else.
 
 ## How a skill reaches Claude Code
 
-Claude Code loads personal skills from `~/.claude/skills/`. Each skill directory
-in this repo is symlinked there, so only one copy of every file exists: editing a
-skill during a session edits the repo working tree directly, and all that remains
-is committing it.
+This repo is a Claude Code plugin named `mine`. A single symlink puts the whole
+repo under `~/.claude/skills/`, and Claude Code loads any folder there carrying a
+`.claude-plugin/plugin.json` as a skills-directory plugin, `mine@skills-dir`. It
+is discovered in place rather than copied into a cache, so the repo working tree
+stays the only copy of every file: editing a skill during a session edits the repo
+directly, and all that remains is committing it.
 
 ```
-<repo-path>/skills/my-pr-reviews/   the real directory
-~/.claude/skills/my-pr-reviews      symlink to the above
+<repo-path>/            the real directory, holding .claude-plugin/plugin.json
+~/.claude/skills/mine   symlink to the above
 ```
 
 The symlink target has to be an absolute path, since the link gets resolved from
-`~/.claude/skills/` rather than from this repo.
+`~/.claude/skills/` rather than from this repo. Symlinked discovery is verified,
+not assumed: `claude plugin list` reports the plugin as loaded through the link.
 
-A newly added skill needs its symlink created before any session can see it.
-Once the symlink exists, a running session picks up a new or renamed skill
-without restarting.
+Consequences worth knowing before changing any of this:
+
+- **Skills are namespaced.** `skills/<name>/` is invoked as `/mine:<name>`. The
+  namespace is deliberate: it groups these skills in a listing that also holds
+  skills from other sources.
+- **Adding a skill needs no symlink work.** The plugin already covers everything
+  under `skills/`. A running session picks up an edit to a `SKILL.md` immediately;
+  anything structural, a new or renamed skill directory included, may need
+  `/reload-plugins`.
+- **`claude plugin validate <repo-path>` warns that the root `CLAUDE.md` is not
+  loaded as plugin context.** That warning is expected and must not be "fixed":
+  `CLAUDE.md` exists for agents working *on this repo*, and is nothing the plugin
+  ships to its users.
+
+**Why a plugin rather than one symlink per skill:** the namespace, and a rename
+that no longer costs an intervention on every machine. Chosen over a marketplace
+because a skills-directory plugin needs no marketplace and no install step, which
+keeps the working tree as the single copy.
 
 ## Writing a SKILL.md
 
-The frontmatter requires `name` and `description`.
+The frontmatter requires `name` and `description`, and `name` has to match the
+directory name: for a plugin skill it supplies the last segment of the command,
+so a mismatch means the command stops matching the directory it lives in.
 
 The `description` decides when the skill gets loaded, so it describes the
 activation conditions only, never the procedure. A description that summarises
