@@ -12,15 +12,20 @@ scenarios cannot start until a fixture repo exists. Task 3 is a tripwire rather
 than work.
 
 Already in line, so absent from this plan: the `description` field states
-triggering conditions without summarising the workflow, trigger phrasings are
-present in both languages, the skill body sits under the 500-line limit, and the
-Red flags section gives the skill its self-check list.
+triggering conditions without summarising the workflow, trigger phrasings reach
+the loader in both languages, the skill body sits under the 500-line limit, and
+the Red flags section gives the skill its self-check list. That second item was
+recorded here as fine while it was not, which the entry on the truncated
+description below explains.
 
 ## 1. Validate the skills in CI
 
 The rules worth enforcing mechanically should not consume attention in review.
 Each check is an assertion that fails before it passes, so the work goes
 test-first.
+
+The checks over `SKILL.md` exist and run locally. What is left is the job that
+runs them on every push, plus the repo-wide rules that belong in that same job.
 
 - [x] the checks themselves, for every `skills/*/SKILL.md`: the frontmatter
       parses, `name` matches the directory name, `description` is present and
@@ -83,8 +88,8 @@ scenario gets written:
       disabled, or a session under an alternate configuration directory. Verify
       the skill did not load before trusting the run as a baseline.
 
-The skill is 392 lines of rules, and the rules most worth testing are the ones an
-agent under pressure will negotiate with:
+The skill runs to 388 lines of rules, and the ones most worth testing are those
+an agent under pressure will negotiate with:
 
 - [ ] **Pending state.** A scenario where the review reads as finished and the
       request is ambiguous about publishing. Expected: the review stays `PENDING`
@@ -122,7 +127,7 @@ not tests.
 
 ## 3. Tripwire: progressive disclosure
 
-No action yet. The skill body is at 392 lines against a 500-line limit, so the
+No action yet. The skill body is at 388 lines against a 500-line limit, so the
 next substantial addition forces the split.
 
 Deliberately not splitting now: moving rules out of `SKILL.md` in a skill whose
@@ -134,6 +139,18 @@ one level deep from `SKILL.md`.
 - [ ] revisit when a skill body crosses roughly 450 lines
 
 ## Completed
+
+**Recover the half of the description YAML was dropping.** The frontmatter did
+list the trigger phrasings in both languages, which is why this plan recorded
+that as already in line. The loader never saw them: an unquoted `#` in
+`"dammi un parere sulla PR #N"` opens a YAML comment, so the value arrived 147
+characters long instead of 288, and every phrasing after that point, all the
+English ones included, was silently dropped. A `>-` block scalar fixes it without
+changing a word of the text. `AGENTS.md` now carries the rule for anyone writing
+a description, and the checker reports the shape, so it cannot come back
+unnoticed. Worth remembering how it surfaced: every other check on that file
+passed, and only parsing the frontmatter as YAML rather than reading its lines
+exposed it, which is the whole argument for the checker being a real program.
 
 **Add a LICENSE and a .gitignore.** MIT, with the copyright holder named, which
 cost a second exception to the no-personal-names rule: a holder line has to
