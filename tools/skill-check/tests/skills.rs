@@ -187,6 +187,67 @@ fn one_bad_skill_among_several_is_reported_by_name() {
     assert_eq!(found[0].skill, "writing-other-things");
 }
 
+/// A `#` preceded by a space opens a comment in an unquoted YAML scalar, so the
+/// value the loader sees stops there. This repo's own skill shipped this way:
+/// its description parsed as 147 characters instead of 288, dropping 141 of them
+/// and its English trigger phrases with them, while every other check passed.
+#[test]
+fn a_description_cut_short_by_a_comment_is_reported() {
+    let tree = tree();
+    write_skill(
+        tree.path(),
+        "writing-things",
+        "---\nname: writing-things\ndescription: Use when asked about PR #12, and about all of this.\n---",
+        10,
+    );
+    let found = problems(&tree);
+    assert!(mentions(&found, "comment"), "{found:?}");
+}
+
+/// The same text quoted keeps its `#`, so nothing is dropped and nothing is
+/// reported. Without this case the rule above would flag every legitimate `#`.
+#[test]
+fn a_hash_that_survives_parsing_is_left_alone() {
+    let tree = tree();
+    write_skill(
+        tree.path(),
+        "writing-things",
+        "---\nname: writing-things\ndescription: \"Use when asked about PR #12, and about all of this.\"\n---",
+        10,
+    );
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// The shape a description with a `#` in it should take: a folded block scalar,
+/// where `#` is literal text and the lines join into one value. This is the form
+/// `AGENTS.md` asks for, so a regression here would take the repo's own skill
+/// with it.
+#[test]
+fn a_block_scalar_description_keeps_its_hash() {
+    let tree = tree();
+    let frontmatter = concat!(
+        "---\n",
+        "name: writing-things\n",
+        "description: >-\n",
+        "  Use when asked about PR #12, and about\n",
+        "  everything that follows it.\n",
+        "---"
+    );
+    write_skill(tree.path(), "writing-things", frontmatter, 10);
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// A directory under `skills/` with nothing in it is a skill that will not load.
+/// It belongs in the report next to every other broken skill, rather than
+/// aborting the run before the remaining skills are looked at.
+#[test]
+fn a_directory_without_a_skill_file_is_reported() {
+    let tree = tree();
+    fs::create_dir_all(tree.path().join("writing-things")).expect("fixture directory");
+    let found = problems(&tree);
+    assert!(mentions(&found, "SKILL.md"), "{found:?}");
+}
+
 #[test]
 fn this_repos_own_skills_pass() {
     let found = check_skills(&repo_skills()).expect("reading the repo's skills");

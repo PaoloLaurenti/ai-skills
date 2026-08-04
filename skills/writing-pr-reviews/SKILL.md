@@ -1,6 +1,10 @@
 ---
 name: writing-pr-reviews
-description: Use when asked for a review, an opinion, or feedback on a pull request in any repo or directory, including phrasings like "dammi un parere sulla PR #N", "review PR 16", "guarda questa PR", "che ne pensi di questa PR", or when preparing, posting, or editing review comments on a GitHub PR.
+description: >-
+  Use when asked for a review, an opinion, or feedback on a pull request in any
+  repo or directory, including phrasings like "dammi un parere sulla PR #N",
+  "review PR 16", "guarda questa PR", "che ne pensi di questa PR", or when
+  preparing, posting, or editing review comments on a GitHub PR.
 ---
 
 # PR Review Conventions

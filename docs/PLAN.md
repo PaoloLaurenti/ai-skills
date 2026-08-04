@@ -27,7 +27,9 @@ test-first.
       under 1024 characters, and the body is under 500 lines. They live in
       `tools/skill-check/` as a cargo test suite, so the suite is both the gate
       and the specification, and one test runs the checks over this repo's own
-      `skills/`
+      `skills/`. Two further rules came out of writing the tests: a description
+      cut short by a YAML comment, which the shipped skill was, and a directory
+      holding no `SKILL.md`
 - [ ] a GitHub Actions workflow running that suite
 - [ ] the greppable rules from `AGENTS.md`, in the same workflow: no
       machine-local paths (`/Users/`, `/home/`) and no owner name outside the two

@@ -40,8 +40,17 @@ pub struct Problem {
 pub fn check_skills(dir: &Path) -> io::Result<Vec<Problem>> {
     let mut problems = Vec::new();
     for skill in skill_directories(dir)? {
-        let content = fs::read_to_string(dir.join(&skill).join("SKILL.md"))?;
-        problems.extend(check_skill(&skill, &content));
+        match fs::read_to_string(dir.join(&skill).join("SKILL.md")) {
+            Ok(content) => problems.extend(check_skill(&skill, &content)),
+            // A directory with no SKILL.md is a skill that will not load, which
+            // is a finding to report rather than a reason to stop reading the
+            // rest of the tree. Any other read failure still surfaces as an Err.
+            Err(error) if error.kind() == io::ErrorKind::NotFound => problems.push(Problem {
+                skill: skill.clone(),
+                message: "the directory holds no SKILL.md".to_owned(),
+            }),
+            Err(error) => return Err(error),
+        }
     }
     Ok(problems)
 }
@@ -84,6 +93,14 @@ fn check_skill(skill: &str, content: &str) -> Vec<Problem> {
                     "the description is {length} characters, over the {DESCRIPTION_LIMIT} allowed"
                 )));
             }
+            if description_region(frontmatter).contains('#') && !description.contains('#') {
+                problems.push(report(
+                    "the description is cut short by a YAML comment: an unquoted # opens one, so \
+                     the loader never sees the rest of the value. A >- block scalar keeps the text \
+                     as written"
+                        .to_owned(),
+                ));
+            }
         }
     }
 
@@ -95,6 +112,24 @@ fn check_skill(skill: &str, content: &str) -> Vec<Problem> {
     }
 
     problems
+}
+
+/// The raw lines the description value is written on: the `description:` line
+/// itself and any indented continuation of it. A comment sitting on a line of
+/// its own is not part of the value, so it stays out and does not read as a
+/// truncated description.
+fn description_region(frontmatter: &str) -> String {
+    let mut region = String::new();
+    for line in frontmatter.lines() {
+        let continuation = !region.is_empty() && line.starts_with([' ', '\t']);
+        if line.starts_with("description:") || continuation {
+            region.push_str(line);
+            region.push('\n');
+        } else if !region.is_empty() {
+            break;
+        }
+    }
+    region
 }
 
 /// Splits the leading `---` fenced block from the body that follows it.
