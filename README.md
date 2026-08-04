@@ -1,47 +1,56 @@
 # ai-skills
 
-Le mie skill per gli agenti AI, tenute in versione qui invece che sparse nelle
-directory di configurazione dei tool.
+Skills for AI agents, kept under version control here instead of scattered across
+the configuration directories of the individual tools.
 
-## Skill
+## Skills
 
-| Skill | A cosa serve |
+| Skill | What it covers |
 | --- | --- |
-| [`paolo-prs-review`](skills/paolo-prs-review/SKILL.md) | Come voglio siano scritte e consegnate le review delle pull request: stato pending, tono, forma del commento generale, permalink, code suggestion. |
+| [`my-pr-reviews`](skills/my-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: pending state, tone, shape of the general comment, permalinks, code suggestions. |
 
-## Come è collegato a Claude Code
+## How it is wired to Claude Code
 
-Claude Code carica le skill personali da `~/.claude/skills/`. Ogni skill di
-questo repo è **symlinkata** lì dentro, quindi esiste una sola copia del file:
-modificarla durante una sessione modifica direttamente il working tree del repo,
-e resta solo da committare.
+Claude Code loads personal skills from `~/.claude/skills/`. Every skill in this
+repo is **symlinked** there, so only one copy of the file exists: editing it
+during a session edits the repo working tree directly, and all that remains is
+committing it.
 
 ```
-~/dev/personal/ai-skills/skills/paolo-prs-review/   <- la cartella vera
-~/.claude/skills/paolo-prs-review                   -> symlink a quella sopra
+<repo-path>/skills/my-pr-reviews/   the real directory
+~/.claude/skills/my-pr-reviews      symlink to the above
 ```
 
-## Setup su una macchina nuova
+`<repo-path>` is wherever this repo is checked out. It has to be spelled out in
+full when creating a symlink, because the link gets resolved from
+`~/.claude/skills/` and not from this repo.
+
+## Setting up a new machine
+
+Clone this repo, then link each skill into `~/.claude/skills/`:
 
 ```bash
-git clone git@github.com:PaoloLaurenti/ai-skills.git ~/dev/personal/ai-skills
-ln -s ~/dev/personal/ai-skills/skills/paolo-prs-review ~/.claude/skills/paolo-prs-review
+git clone git@github.com:PaoloLaurenti/ai-skills.git <repo-path>
+ln -s <repo-path>/skills/my-pr-reviews ~/.claude/skills/my-pr-reviews
 ```
 
-Una nuova sessione di Claude Code deve elencare la skill tra quelle disponibili.
-Se non compare, il loader non sta seguendo il symlink: in quel caso l'alternativa
-è rendere `~/.claude/skills` stessa un repo, tracciando solo le proprie skill con
-un `.gitignore` ad allowlist.
+A new Claude Code session should list the skill among the available ones. If it
+does not appear, the loader is not following the symlink: the alternative in that
+case is making `~/.claude/skills` a repo itself, tracking only your own skills
+with an allowlist `.gitignore`.
 
-## Aggiungere una skill
+## Adding a skill
 
 ```bash
-mkdir -p skills/<nome>
-$EDITOR skills/<nome>/SKILL.md
-ln -s ~/dev/personal/ai-skills/skills/<nome> ~/.claude/skills/<nome>
+mkdir -p skills/<name>
+$EDITOR skills/<name>/SKILL.md
+ln -s <repo-path>/skills/<name> ~/.claude/skills/<name>
 ```
 
-Il frontmatter richiede `name` e `description`. La `description` decide quando la
-skill viene caricata, quindi descrive solo le condizioni di attivazione e non il
-procedimento: se riassume il workflow, l'agente tende a seguire il riassunto
-invece di leggere il corpo.
+The frontmatter requires `name` and `description`. The `description` decides when
+the skill gets loaded, so it describes the activation conditions only and not the
+procedure: if it summarises the workflow, the agent tends to follow the summary
+instead of reading the body.
+
+All content in this repo is written in English, and stays free of personal names
+and machine-local paths. See [`AGENTS.md`](AGENTS.md).

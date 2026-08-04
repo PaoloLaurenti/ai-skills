@@ -1,22 +1,23 @@
 ---
-name: paolo-prs-review
-description: Use when Paolo asks for a review, an opinion, or feedback on a pull request in any repo or directory, including phrasings like "dammi un parere sulla PR #N", "review PR 16", "guarda questa PR", "che ne pensi di questa PR", or when preparing, posting, or editing review comments on a GitHub PR.
+name: my-pr-reviews
+description: Use when asked for a review, an opinion, or feedback on a pull request in any repo or directory, including phrasings like "dammi un parere sulla PR #N", "review PR 16", "guarda questa PR", "che ne pensi di questa PR", or when preparing, posting, or editing review comments on a GitHub PR.
 ---
 
-# Paolo's PR Review Conventions
+# PR Review Conventions
 
-Paolo's standing preferences for how a pull request review is written and
+Standing preferences for how a pull request review is written and
 delivered. These override default review habits. They are conventions, not
 general advice on how to find defects.
 
 ## Non-negotiables
 
 1. **ALWAYS create the review in PENDING state. Never submit it.** The general
-   comment and every inline comment stay pending, visible only to Paolo, until
-   he submits them himself. Create it pending, then tell him the command to
-   submit. The only thing that changes this is Paolo explicitly asking to submit
-   or publish the review; a request to write, prepare, add, or leave a review
-   is not that, and neither is a review that reads as ready to go.
+   comment and every inline comment stay pending, visible only to the account
+   that created the review, until it gets submitted by hand. Create it pending,
+   then state the command to submit. The only thing that changes this is an
+   explicit request to submit or publish the review; a request to write, prepare,
+   add, or leave a review is not that, and neither is a review that reads as
+   ready to go.
 2. **Write the review in English**, even when the conversation is in Italian.
 3. **Never use em dashes** (the `—` character) anywhere in the review: not in the
    general comment, not in inline comments. Restructure the sentence instead.
@@ -378,7 +379,7 @@ Any of these means the review is not ready:
 - A body that jumps straight into its first section title with no sentence
   introducing the sections.
 - An `event` field in the payload, or reaching for `gh pr review`.
-- A review that ended up submitted without Paolo explicitly asking to publish it.
+- A review that ended up submitted without an explicit request to publish it.
 - No `README.md`, `AGENTS.md`, or `CLAUDE.md` was read before writing the review.
 - A body made entirely of bold labels and terse bullets, with no prose framing
   it. Bullets themselves are fine and often better; the absence of prose is not.
