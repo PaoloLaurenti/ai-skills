@@ -16,6 +16,7 @@ README.md                       what the repo is, how it is wired up, how to add
 AGENTS.md                       this file
 CLAUDE.md                       an @AGENTS.md include, nothing else
 docs/PLAN.md                    queued work, with the reasoning behind each item
+LICENSE                         MIT, and one of the two places allowed to name the owner
 ```
 
 ## Language
@@ -44,10 +45,12 @@ included.
 - **No personal names.** A skill addresses the agent impersonally: "Use when
   asked for a review", never "Use when <name> asks". Where a sentence has to
   refer to the person making the request, an impersonal construction covers it:
-  "the requester", "an explicit request to publish", the passive voice. The one
-  exception is this repo's own clone URL in `README.md`, which carries the owner
-  name because that is the address the repo actually lives at. No other URL, path,
-  or sentence gets to name anyone.
+  "the requester", "an explicit request to publish", the passive voice. Two
+  places are exceptions, both because naming the owner is what makes them true:
+  this repo's own clone URL in `README.md`, which is the address the repo
+  actually lives at, and the copyright holder line in `LICENSE`, which has to
+  identify who holds the copyright for the grant to mean anything. No other URL,
+  path, or sentence gets to name anyone.
 - **No machine-local paths.** `~/.claude/skills/` is a Claude Code convention and
   belongs. Where this repo happens to be checked out is one machine's choice, so
   it appears as the placeholder `<repo-path>` and the reader substitutes it.

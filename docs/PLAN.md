@@ -6,23 +6,46 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 2 carries the most value by a wide margin. Task 1 sits ahead of it only
-because it is minutes of work with a real consequence attached and nothing
-depends on it; everything after task 2 is small.
+Task 2 carries the most value by a wide margin, and task 1 still runs first: the
+checks are mechanical, self-contained, and testable offline, while the evaluation
+scenarios cannot start until a fixture repo exists. Task 3 is a tripwire rather
+than work.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings are
 present in both languages, the skill body sits under the 500-line limit, and the
 Red flags section gives the skill its self-check list.
 
-## 1. Add a LICENSE and a .gitignore
+## 1. Validate the skills in CI
 
-Cheap, and the first one has real consequences: a public repo without a license
-leaves the content unusable by anyone else, whatever the README invites. MIT
-covers prose as well as code, so no need to reach for a content license.
+The rules worth enforcing mechanically should not consume attention in review.
+Each check is an assertion that fails before it passes, so the work goes
+test-first.
 
-- [ ] pick a license and add it at the repo root
-- [ ] add a `.gitignore` covering `.DS_Store`
+- [ ] a GitHub Actions workflow checking, for every `skills/*/SKILL.md`: the
+      frontmatter parses, `name` matches the directory name, `description` is
+      present and under 1024 characters, and the body is under 500 lines
+- [ ] the greppable rules from `AGENTS.md`, in the same workflow: no
+      machine-local paths (`/Users/`, `/home/`) and no owner name outside the two
+      places allowed to carry it, the clone URL in `README.md` and the copyright
+      line in `LICENSE`. This plan file spells those patterns out in order to
+      describe them, so the path check has to match an actual path, a prefix
+      followed by a directory, rather than the bare string, or the first thing it
+      flags is its own specification.
+- [ ] a check that the README skills table carries a row for every directory
+      under `skills/`
+- [ ] run `claude plugin validate` in the same workflow, tolerating its expected
+      warning about the root `CLAUDE.md`. The CLI has to be installed on the
+      runner, and tolerating the warning means matching its text, which can
+      drift between CLI versions: if this job flakes anywhere, it flakes here.
+- [ ] update the `AGENTS.md` claim that there is "no build, and no test suite",
+      which this task makes false, and add the checks to its Layout block
+
+The `name` check is load-bearing rather than cosmetic, though not for the reason
+first assumed here. In a plain personal skill, `name` is only a display label and
+the command comes from the directory. In a plugin skill, which is what these are
+now, `name` supplies the last segment of the command, so a drifting `name` means
+the command stops matching the directory it lives in.
 
 ## 2. Write evaluation scenarios for the skill
 
@@ -91,30 +114,7 @@ root rather than inside `skills/`. Everything under a skill directory is surface
 the plugin serves, and support files there are for tools and heavy reference,
 not tests.
 
-## 3. Validate the skills in CI
-
-The rules worth enforcing mechanically should not consume attention in review.
-
-- [ ] a GitHub Actions workflow checking, for every `skills/*/SKILL.md`: the
-      frontmatter parses, `name` matches the directory name, `description` is
-      present and under 1024 characters, and the body is under 500 lines
-- [ ] the greppable rules from `AGENTS.md`, in the same workflow: no
-      machine-local paths (`/Users/`, `/home/`) and no owner name anywhere but
-      the clone URL in `README.md`
-- [ ] a check that the README skills table carries a row for every directory
-      under `skills/`
-- [ ] run `claude plugin validate` in the same workflow, tolerating its expected
-      warning about the root `CLAUDE.md`. The CLI has to be installed on the
-      runner, and tolerating the warning means matching its text, which can
-      drift between CLI versions: if this job flakes anywhere, it flakes here.
-
-The `name` check is load-bearing rather than cosmetic, though not for the reason
-first assumed here. In a plain personal skill, `name` is only a display label and
-the command comes from the directory. In a plugin skill, which is what these are
-now, `name` supplies the last segment of the command, so a drifting `name` means
-the command stops matching the directory it lives in.
-
-## 4. Tripwire: progressive disclosure
+## 3. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 392 lines against a 500-line limit, so the
 next substantial addition forces the split.
@@ -128,6 +128,15 @@ one level deep from `SKILL.md`.
 - [ ] revisit when a skill body crosses roughly 450 lines
 
 ## Completed
+
+**Add a LICENSE and a .gitignore.** MIT, with the copyright holder named, which
+cost a second exception to the no-personal-names rule: a holder line has to
+identify someone for the grant to mean anything, exactly as the clone URL has to
+name the owner to be an address. Both exceptions now sit together in `AGENTS.md`.
+`.gitignore` covers `.DS_Store` and nothing speculative. The urgency this entry
+originally claimed was wrong, and the correction is worth keeping: the repo is
+private, so no content was unusable by anyone, and the license is there for
+whenever the repo opens rather than to fix a problem that exists today.
 
 **Package the repo as a skills-directory plugin.** Originally queued last, as an
 open question between symlinks and a plugin. It moved to the front once
