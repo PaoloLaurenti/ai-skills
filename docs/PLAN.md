@@ -7,9 +7,9 @@ the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
 Task 1 carries the most value by a wide margin and is the only real work left, now
-that the mechanical checks that ran ahead of it are done. It still opens with
-setting up a fixture repo, since no scenario can run without one. Task 2 is a
-tripwire rather than work.
+that the mechanical checks that ran ahead of it are done. Its scaffolding is in
+place, so what remains there is running the scenarios and recording what the runs
+say. Task 2 is a tripwire rather than work.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -28,21 +28,41 @@ scenario against a subagent *without* the skill first, record the rationalisatio
 verbatim, and only then write or amend the guidance, so each rule answers a
 failure that was actually observed.
 
+Where this stands: the procedure, the five scenario files and the fixture scripts
+are on disk under `evals/writing-pr-reviews/`, the sandbox repo exists with one open
+pull request per scenario, and the model set is decided. What is left is running
+them.
+
+Two defects surfaced before any run, both of which would have read as a skill
+failure rather than a harness one. Dry-running the fixture scripts against stubbed
+`gh` and `git push` showed that a machine can scope its git identity to a directory
+tree, leaving the fixture's temporary clone without one, so the fixture now derives
+an identity from the authenticated account. And a run has to happen from inside a
+clone of the fixture rather than from this repo, or `gh` resolves the wrong
+repository entirely.
+
+The first run settled one of the two open questions about the harness itself: a
+`claude -p` prompt does reach the skill. Nothing in the output announces the load,
+but the review carries its fingerprints, created pending rather than submitted,
+written in English out of an Italian prompt, every file mention a permalink at the
+head SHA. What a baseline still has to settle is whether a fresh
+`CLAUDE_CONFIG_DIR` carries credentials.
+
 Three decisions make the task executable at all, so they come before any
 scenario gets written:
 
-- [ ] **A fixture the scenarios run against.** Every scenario needs a real pull
+- [x] **A fixture the scenarios run against.** Every scenario needs a real pull
       request: a diff, a head SHA, a repo where `gh api` can create a pending
       review. Set up a sandbox repo with one open PR per scenario, plus a reset
       step between runs, since GitHub allows one pending review per user per PR
       and every run leaves one behind.
-- [ ] **A run procedure and pass criteria.** Each scenario is a file carrying
+- [x] **A run procedure and pass criteria.** Each scenario is a file carrying
       the prompt and a checklist of observable assertions, because almost every
       expected outcome checks mechanically: review state `PENDING` via `gh api`,
       the finding inline rather than in the body, permalinks containing the head
       SHA, the `suggestion` anchor covering every replaced line. A suite graded
       by eye is not a regression suite.
-- [ ] **A clean baseline environment.** The symlink makes the skill loadable in
+- [x] **A clean baseline environment.** The symlink makes the skill loadable in
       every session on this machine, and a scenario prompt is written to match
       the skill's description. A baseline run needs the plugin genuinely absent:
       disabled, or a session under an alternate configuration directory. Verify
@@ -51,7 +71,7 @@ scenario gets written:
 The skill runs to 388 lines of rules, and the ones most worth testing are those
 an agent under pressure will negotiate with:
 
-- [ ] **Pending state.** A scenario where the review reads as finished and the
+- [x] **Pending state.** A scenario where the review reads as finished and the
       request is ambiguous about publishing. Expected: the review stays `PENDING`
       and the submit command gets reported back.
 - [ ] **Inline versus general comment.** A finding whose file sits in the diff.
@@ -66,16 +86,25 @@ an agent under pressure will negotiate with:
       easy to skip, which is exactly what a baseline exposes. A diff that
       contradicts a claim in the fixture repo's `README.md`. Expected: the
       finding names the file, links it, and quotes the stale claim.
-- [ ] **Style rules as assertions on every scenario, not a scenario of their
+- [x] **Style rules as assertions on every scenario, not a scenario of their
       own.** Em dashes, first and second person, English: the rules a model
       violates most naturally, because they fight its default writing style, and
       each one greps. Every review any scenario produces gets these checks.
 - [ ] Record a baseline run without the skill for each scenario, so the value of
       each rule is visible.
-- [ ] Decide the model set deliberately: the models that actually deliver these
+- [ ] amend the skill body about anchor fields, once scenario 04 says whether the
+      gap bites. The first run of scenario 01 anchored its inline comment with
+      `position` rather than `line`, which was harmless there and left `line`,
+      `start_line` and `side` all `null`. `position` addresses a place in the diff
+      rather than a range, so it cannot express the multi-line anchor the skill
+      body requires of a `suggestion`. The delivery section names `{path, line,
+      side}` without saying that `position` is not an alternative. Observe the
+      failure before writing the rule, which is the order this task exists to
+      keep.
+- [x] Decide the model set deliberately: the models that actually deliver these
       reviews, not the Haiku-Sonnet-Opus trio the docs use as an example. A
       model the skill never runs on is not worth a run.
-- [ ] Wire the suite into `AGENTS.md`: every edit to a `SKILL.md` runs that
+- [x] Wire the suite into `AGENTS.md`: every edit to a `SKILL.md` runs that
       skill's scenarios before the commit. Without that line a future session
       has no way to know the suite exists, and "regression suite for every later
       edit" stays an intention.

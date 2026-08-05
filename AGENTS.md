@@ -14,6 +14,7 @@ plus the few lines of shell that run it from a hook and from CI.
 ```
 .claude-plugin/plugin.json      the plugin manifest, naming the namespace every skill loads under
 skills/<skill-name>/SKILL.md    one directory per skill, the skill body lives in SKILL.md
+evals/<skill-name>/             the scenarios that test a skill's rules, one file each
 README.md                       what the repo is, how it is wired up, how to add a skill
 AGENTS.md                       this file
 CLAUDE.md                       an @AGENTS.md include, nothing else
@@ -194,3 +195,19 @@ passes with warnings and matching their text would break on the next CLI release
 The Rust version comes from `.tool-versions`, so asdf resolves it for this
 directory with nothing installed globally, and the workflow installs the version
 that file names.
+
+## Evaluating a skill
+
+Those checks say nothing about whether a skill's rules hold. That is what
+`evals/<skill-name>/` is for: one file per scenario, each carrying the prompt
+verbatim and a checklist of assertions, most of them commands rather than
+judgement.
+
+**An edit to a `SKILL.md` runs that skill's scenarios before the change is
+offered.** A rule nobody exercised is a rule nobody knows is working, and a rule
+that used to work can stop through an edit elsewhere in the same file.
+
+They sit outside `tools/check.sh` and the hook on purpose: a run costs a model call
+per scenario and reaches GitHub, so it belongs to whoever makes the change rather
+than to a gate firing on every commit. The procedure, the fixture and the reset a
+rerun needs are in `evals/<skill-name>/README.md`.
