@@ -1,0 +1,44 @@
+# The gate for every push. tools/check.sh is the checks themselves, and the hook
+# runs the same script, so this workflow adds only what cannot live in it: the
+# toolchain, and the plugin validation that needs the Claude Code CLI.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The pinned version, read from the same file asdf reads locally, so the
+      # runner and a working copy never disagree about which Rust ran the checks.
+      # The components are named because a minimal profile ships neither, and
+      # tools/check.sh opens with both.
+      - name: Install the pinned Rust
+        run: |
+          version="$(awk '$1 == "rust" { print $2 }' .tool-versions)"
+          rustup toolchain install "$version" --profile minimal --component rustfmt,clippy
+          rustup default "$version"
+
+      # Formatting, lints, then every SKILL.md's shape and the repo-wide rules
+      # AGENTS.md states in prose. The same script the pre-commit hook runs, so
+      # this job cannot start disagreeing with a working copy about what passes.
+      - name: Run the checks
+        run: tools/check.sh
+
+      # This step reads the exit status only. Validation passes with warnings,
+      # and both warnings it reports here are expected: the manifest names no
+      # author, which it cannot do without naming the owner, and the root
+      # CLAUDE.md is not plugin context, which is the point of it. Matching the
+      # warning text instead would break on the next CLI release.
+      - name: Validate the plugin manifest
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude plugin validate .

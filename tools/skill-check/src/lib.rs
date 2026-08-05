@@ -2,7 +2,10 @@
 //!
 //! The rules come from `docs/PLAN.md` and from the frontmatter requirements in
 //! `AGENTS.md`. Everything here is about the shape of a skill file, never about
-//! the quality of the prose inside it.
+//! the quality of the prose inside it. The rules that hold over the whole tree
+//! rather than over one file live in [`repo`].
+
+pub mod repo;
 
 use std::fs;
 use std::io;
@@ -148,7 +151,7 @@ fn split_frontmatter(content: &str) -> Option<(&str, &str)> {
 
 /// The skill directory names under `dir`, sorted, so a report comes out in the
 /// same order however the filesystem happens to hand them over.
-fn skill_directories(dir: &Path) -> io::Result<Vec<String>> {
+pub(crate) fn skill_directories(dir: &Path) -> io::Result<Vec<String>> {
     let mut names = Vec::new();
     for entry in fs::read_dir(dir)? {
         let entry = entry?;

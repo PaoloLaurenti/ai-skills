@@ -6,10 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 2 carries the most value by a wide margin, and task 1 still runs first: the
-checks are mechanical, self-contained, and testable offline, while the evaluation
-scenarios cannot start until a fixture repo exists. Task 3 is a tripwire rather
-than work.
+Task 1 carries the most value by a wide margin and is the only real work left, now
+that the mechanical checks that ran ahead of it are done. It still opens with
+setting up a fixture repo, since no scenario can run without one. Task 2 is a
+tripwire rather than work.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -18,47 +18,7 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Validate the skills in CI
-
-The rules worth enforcing mechanically should not consume attention in review.
-Each check is an assertion that fails before it passes, so the work goes
-test-first.
-
-The checks over `SKILL.md` exist and run locally. What is left is the job that
-runs them on every push, plus the repo-wide rules that belong in that same job.
-
-- [x] the checks themselves, for every `skills/*/SKILL.md`: the frontmatter
-      parses, `name` matches the directory name, `description` is present and
-      under 1024 characters, and the body is under 500 lines. They live in
-      `tools/skill-check/` as a cargo test suite, so the suite is both the gate
-      and the specification, and one test runs the checks over this repo's own
-      `skills/`. Two further rules came out of writing the tests: a description
-      cut short by a YAML comment, which the shipped skill was, and a directory
-      holding no `SKILL.md`
-- [ ] a GitHub Actions workflow running that suite
-- [ ] the greppable rules from `AGENTS.md`, in the same workflow: no
-      machine-local paths (`/Users/`, `/home/`) and no owner name outside the two
-      places allowed to carry it, the clone URL in `README.md` and the copyright
-      line in `LICENSE`. This plan file spells those patterns out in order to
-      describe them, so the path check has to match an actual path, a prefix
-      followed by a directory, rather than the bare string, or the first thing it
-      flags is its own specification.
-- [ ] a check that the README skills table carries a row for every directory
-      under `skills/`
-- [ ] run `claude plugin validate` in the same workflow, tolerating its expected
-      warning about the root `CLAUDE.md`. The CLI has to be installed on the
-      runner, and tolerating the warning means matching its text, which can
-      drift between CLI versions: if this job flakes anywhere, it flakes here.
-- [x] update the `AGENTS.md` claim that there is "no build, and no test suite",
-      which this task makes false, and add the checks to its Layout block
-
-The `name` check is load-bearing rather than cosmetic, though not for the reason
-first assumed here. In a plain personal skill, `name` is only a display label and
-the command comes from the directory. In a plugin skill, which is what these are
-now, `name` supplies the last segment of the command, so a drifting `name` means
-the command stops matching the directory it lives in.
-
-## 2. Write evaluation scenarios for the skill
+## 1. Write evaluation scenarios for the skill
 
 The largest gap. Nothing in the repo tests whether the rules hold.
 
@@ -125,7 +85,7 @@ root rather than inside `skills/`. Everything under a skill directory is surface
 the plugin serves, and support files there are for tools and heavy reference,
 not tests.
 
-## 3. Tripwire: progressive disclosure
+## 2. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 388 lines against a 500-line limit, so the
 next substantial addition forces the split.
@@ -139,6 +99,63 @@ one level deep from `SKILL.md`.
 - [ ] revisit when a skill body crosses roughly 450 lines
 
 ## Completed
+
+**Rename the plugin namespace to `myai`.** A skill is invoked as
+`/myai:writing-pr-reviews`. The objection raised against the name and set aside:
+in a listing where every plugin ships skills for an AI agent, `ai` distinguishes
+nothing, since what a namespace carries is whose the skills are rather than what
+they are. What the rename cost is the answer to the question the packaging entry
+below left open, and it is smaller than that entry assumed: the namespace comes
+from the `name` field in `.claude-plugin/plugin.json` alone, so renaming the
+symlink was tidiness rather than a requirement, and the rest was eleven mentions
+in the prose.
+
+**Validate the skills in CI, and before a commit.** `tools/check.sh` is the single
+command: formatting, lints as errors, then the test suite. A commit runs it through
+`.githooks/pre-commit`, which each clone points at with `git config core.hooksPath
+.githooks`, and `.github/workflows/checks.yml` runs it on every push and pull
+request after installing the Rust version `.tool-versions` names, then adds
+`claude plugin validate`. One script rather than three copies of the same list,
+because a hook and a workflow that drift apart teach a working copy to lie.
+
+The greppable rules went into the suite rather than into shell steps in the
+workflow, for the same reason: no machine-local paths, no owner name outside its
+two allowed places, and a README skills table that matches `skills/` in both
+directions, since a row pointing at a deleted skill is the same drift as a skill
+with no row.
+
+The list this task carried, closed:
+
+- [x] the checks themselves, for every `skills/*/SKILL.md`: the frontmatter
+      parses, `name` matches the directory name, `description` is present and
+      under 1024 characters, and the body is under 500 lines, plus the two rules
+      that came out of writing the tests, a description cut short by a YAML
+      comment and a directory holding no `SKILL.md`
+- [x] a GitHub Actions workflow running that suite
+- [x] the greppable rules from `AGENTS.md`: no machine-local paths, and no owner
+      name outside the clone URL in `README.md` and the copyright line in
+      `LICENSE`
+- [x] a check that the README skills table carries a row for every directory
+      under `skills/`, and, added after the fact, no row for a skill that is gone
+- [x] run `claude plugin validate` in the same workflow, tolerating its expected
+      warnings
+- [x] update the `AGENTS.md` claim that there was "no build, and no test suite"
+      and add the checks to its Layout block
+- [x] not on the original list: formatting and lints in the same gate, and
+      `.githooks/pre-commit` running it before a commit
+
+Three things the writing taught, none of them foreseen here. The name to look for
+has to come out of the copyright line, because a check spelling it out would break
+the rule it enforces. It has to be the whole name, because a first name flags this
+plan's own record of `paolo-prs-review`. And the fixtures have to assemble
+machine-local paths at run time, since a literal one in a test file is a violation
+the suite reports against itself, which is the self-specification trap this plan
+spotted, one level deeper than it looked. The flake the plan expected did not
+materialise either: `claude plugin validate` exits 0 with its warnings, so
+tolerating them reads the exit status and matches no text. Worth carrying over
+from the original entry: the `name` check is load-bearing rather than cosmetic,
+because in a plugin skill `name` supplies the last segment of the command, so a
+drifting `name` means the command stops matching the directory it lives in.
 
 **Recover the half of the description YAML was dropping.** The frontmatter did
 list the trigger phrasings in both languages, which is why this plan recorded
@@ -165,14 +182,14 @@ whenever the repo opens rather than to fix a problem that exists today.
 open question between symlinks and a plugin. It moved to the front once
 recognisability became a requirement: the plugin namespace supplies it, which lets
 each skill keep a clean descriptive name instead of encoding ownership into the
-directory name. `.claude-plugin/plugin.json` names the plugin `mine`, one symlink
+directory name. `.claude-plugin/plugin.json` names the plugin `myai`, one symlink
 of the repo root into `~/.claude/skills/` replaces one symlink per skill, and no
 marketplace is involved. The reasoning is recorded in `AGENTS.md`; the risk that
 plugin discovery would not follow a symlink was tested first and does not
 materialise.
 
 **Rename the skill to the conventional form.** `paolo-prs-review`, then
-`my-pr-reviews`, now `writing-pr-reviews`, invoked as `/mine:writing-pr-reviews`.
+`my-pr-reviews`, now `writing-pr-reviews`, invoked as `/myai:writing-pr-reviews`.
 Anthropic recommends the gerund form and `superpowers:writing-skills` asks for
 active voice, verb first. `writing-` rather than `reviewing-` because the skill
 states in its own opening that it holds conventions for writing and delivering a

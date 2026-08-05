@@ -5,8 +5,9 @@
 Personal skills for AI agents, kept under version control here instead of
 scattered across the configuration directories of the individual tools. The
 deliverable is the prose in the skill files themselves. The only code is a small
-Rust crate under `tools/`, which checks the shape of those files and never the
-quality of what they say.
+Rust crate under `tools/`, which checks the shape of those files and the rules
+this file states about the tree they sit in, never the quality of what they say,
+plus the few lines of shell that run it from a hook and from CI.
 
 ## Layout
 
@@ -18,7 +19,10 @@ AGENTS.md                       this file
 CLAUDE.md                       an @AGENTS.md include, nothing else
 docs/PLAN.md                    queued work, with the reasoning behind each item
 LICENSE                         MIT, and one of the two places allowed to name the owner
-tools/skill-check/              the mechanical checks over every SKILL.md, run as cargo tests
+tools/skill-check/              the checks over every SKILL.md and over the tree, as cargo tests
+tools/check.sh                  formatting, lints and those tests, in one command
+.githooks/pre-commit            runs that command before a commit, once a clone points at it
+.github/workflows/checks.yml    the same command on every push, plus the plugin validation
 .tool-versions                  the Rust version asdf resolves for this repo
 .vscode/settings.json           points rust-analyzer at the crate, which is not at the root
 ```
@@ -30,6 +34,13 @@ commit messages, and documentation alike. This holds whatever language the
 conversation happens to be in, and those conversations are often in Italian. A
 file authored in another language is a defect to fix, not a style choice to
 preserve.
+
+## Committing
+
+Never commit unasked. Changes stay in the working tree until a request says to
+commit them, and what closes a piece of work is a summary of what changed rather
+than a commit. Committing on the agent's own initiative removes the reading that
+was going to happen before it.
 
 ## Commit messages
 
@@ -58,31 +69,41 @@ included.
 - **No machine-local paths.** `~/.claude/skills/` is a Claude Code convention and
   belongs. Where this repo happens to be checked out is one machine's choice, so
   it appears as the placeholder `<repo-path>` and the reader substitutes it.
+  Editor and tool configuration is no exception, which is the one place this bites
+  in practice: a setting that only works as an absolute path belongs in
+  `.gitignore` rather than in the tree, and `.vscode/settings.json` is committed
+  only because it names its target relatively.
 
 Both rules exist so the content stays true wherever it is read, on another
 machine or by someone else.
 
 ## How a skill reaches Claude Code
 
-This repo is a Claude Code plugin named `mine`. A single symlink puts the whole
+This repo is a Claude Code plugin named `myai`. A single symlink puts the whole
 repo under `~/.claude/skills/`, and Claude Code loads any folder there carrying a
-`.claude-plugin/plugin.json` as a skills-directory plugin, `mine@skills-dir`. It
+`.claude-plugin/plugin.json` as a skills-directory plugin, `myai@skills-dir`. It
 is discovered in place rather than copied into a cache, so the repo working tree
 stays the only copy of every file: editing a skill during a session edits the repo
 directly, and all that remains is committing it.
 
 ```
 <repo-path>/            the real directory, holding .claude-plugin/plugin.json
-~/.claude/skills/mine   symlink to the above
+~/.claude/skills/myai   symlink to the above
 ```
 
 The symlink target has to be an absolute path, since the link gets resolved from
 `~/.claude/skills/` rather than from this repo. Symlinked discovery is verified,
 not assumed: `claude plugin list` reports the plugin as loaded through the link.
 
+The namespace comes from the `name` field in the manifest, not from the name of
+the link, which is also verified rather than assumed: with the link renamed and
+the manifest left alone, the plugin still loaded as `myai@skills-dir`, and the
+link name appeared only as the reported path. Keeping the two equal is tidiness,
+so a rename costs that one field plus the mentions in the prose.
+
 Consequences worth knowing before changing any of this:
 
-- **Skills are namespaced.** `skills/<name>/` is invoked as `/mine:<name>`. The
+- **Skills are namespaced.** `skills/<name>/` is invoked as `/myai:<name>`. The
   namespace is deliberate: it groups these skills in a listing that also holds
   skills from other sources.
 - **Adding a skill needs no symlink work.** The plugin already covers everything
@@ -127,17 +148,49 @@ description: >-
 
 ## Checking a skill mechanically
 
-Run this before committing a change to any `SKILL.md`:
+Run this over any change to the repo, before it is offered for review:
 
 ```bash
-cargo test --manifest-path tools/skill-check/Cargo.toml
+tools/check.sh
 ```
 
+Formatting, then lints as errors, then the test suite. One script, because the
+hook and CI run it too and the three should never come to disagree about what
+passing means.
+
+A commit runs it as well, once each clone has been pointed at the hook:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`.git/hooks` is not versioned, which is why the hook lives in `.githooks/` and
+costs that one command per clone. `git commit --no-verify` skips it where there is
+a reason to. What it reads is the working tree rather than what is staged, the
+usual imprecision of a hook this shape: a fix left unstaged still counts.
+
 The suite is both the gate and the specification: every rule is a named test, and
-one of those tests runs the checks over this repo's own `skills/`. It covers the
-shape of a skill file only, whether the frontmatter parses, whether `name`
-matches the directory, the description limit, the body length. Nothing it reports
-is about the quality of the prose.
+two of those tests run the checks over this repo itself. On a skill file it covers
+the shape only, whether the frontmatter parses, whether `name` matches the
+directory, the description limit, the body length. Nothing it reports is about the
+quality of the prose.
+
+The same suite carries the rules this file states about the whole tree: no
+machine-local paths, no owner name outside the two places allowed to carry it, and
+a `README.md` skills table that matches `skills/` in both directions, so neither a
+skill with no row nor a row with no skill survives. The name to look for comes out
+of the copyright line, because a check that spelled it out would break the rule it
+enforces. Two things follow for anyone editing these
+rules. A check matching a bare `/Users/` would flag the sentence stating the rule,
+so a path only counts with a directory name after the prefix. And a fixture
+holding a literal machine-local path would be a violation in itself, so the tests
+assemble those paths at run time.
+
+`.github/workflows/checks.yml` runs that same script on every push and pull
+request, and adds the one check that cannot live inside it: `claude plugin
+validate`, which needs the CLI. That step reads the exit status, since validation
+passes with warnings and matching their text would break on the next CLI release.
 
 The Rust version comes from `.tool-versions`, so asdf resolves it for this
-directory with nothing installed globally.
+directory with nothing installed globally, and the workflow installs the version
+that file names.

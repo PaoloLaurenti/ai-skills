@@ -1,0 +1,11 @@
+#!/bin/sh
+# Runs every mechanical check before a commit is created.
+#
+# Hooks are not versioned inside .git, so this directory is pointed at once per
+# clone with
+#     git config core.hooksPath .githooks
+# and a commit that has a reason to skip the checks uses git commit --no-verify.
+#
+# What it reads is the working tree rather than what is staged, which is the
+# usual imprecision of a hook this shape: a fix left unstaged still counts here.
+exec "$(git rev-parse --show-toplevel)/tools/check.sh"
