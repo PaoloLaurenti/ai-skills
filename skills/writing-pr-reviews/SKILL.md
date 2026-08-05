@@ -349,6 +349,18 @@ gh api --method POST repos/OWNER/REPO/pulls/N/reviews --input review.json
 range. No `event` key means the whole review, general comment included, stays
 `PENDING`.
 
+Reading a pending review back shows `position` and `original_position` only, with
+`line`, `start_line` and `side` null whatever the payload sent. That is how the API
+reports a draft, not evidence the anchor was lost.
+
+State the submit command rather than leaving it to be reconstructed, since the
+review id is part of it and reconstructing it produces an endpoint that does not
+exist:
+
+```bash
+gh api --method POST repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID/events -f event=COMMENT
+```
+
 Inline comments only attach to lines inside a diff hunk. Take line numbers from
 the head version of the file, not from the diff.
 

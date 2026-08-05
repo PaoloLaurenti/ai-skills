@@ -86,6 +86,22 @@ from an endpoint of their own: a pending review's comments are not in
 `repos/$R/pulls/$N/comments`, which is why the assertion below expects that one to
 be empty.
 
+**What that endpoint does not tell you: where a comment is anchored.** A pending
+review's comments come back with `position` and `original_position` populated and
+`line`, `start_line` and `side` all `null`, no matter which of them the payload
+carried. Anything about the anchor has to be graded from the payload the run wrote,
+which sits in the clone the run happened in:
+
+```bash
+cat "$clone"/review*.json
+```
+
+This is worth stating plainly because the `null` reads like evidence. Grading it as
+evidence once produced a confident, wrong failure, and an amendment to the skill body
+answering a failure that had not happened. The rule the skill body sets for reviews
+holds for grading them too: read the thing that defines the claim, rather than the
+thing that looks conclusive.
+
 ### Assertions on every run
 
 These are the rules a model violates most naturally, because they fight its

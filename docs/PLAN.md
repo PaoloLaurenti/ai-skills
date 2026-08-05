@@ -68,7 +68,7 @@ scenario gets written:
       disabled, or a session under an alternate configuration directory. Verify
       the skill did not load before trusting the run as a baseline.
 
-The skill runs to 388 lines of rules, and the ones most worth testing are those
+The skill runs to 400 lines of rules, and the ones most worth testing are those
 an agent under pressure will negotiate with:
 
 - [x] **Pending state.** A scenario where the review reads as finished and the
@@ -79,7 +79,7 @@ an agent under pressure will negotiate with:
 - [ ] **Permalinks and line numbers.** A review naming several repo files.
       Expected: every mention is a link pinned to the head SHA, with line numbers
       checked against that ref rather than recalled.
-- [ ] **Suggestion blocks.** A fix that is a concrete edit to diffed lines.
+- [x] **Suggestion blocks.** A fix that is a concrete edit to diffed lines.
       Expected: a `suggestion` block whose anchor covers every replaced line, and
       no block at all for a pure deletion.
 - [ ] **Docs cross-check.** The skill's own text calls this step mandatory and
@@ -92,15 +92,16 @@ an agent under pressure will negotiate with:
       each one greps. Every review any scenario produces gets these checks.
 - [ ] Record a baseline run without the skill for each scenario, so the value of
       each rule is visible.
-- [ ] amend the skill body about anchor fields, once scenario 04 says whether the
-      gap bites. The first run of scenario 01 anchored its inline comment with
-      `position` rather than `line`, which was harmless there and left `line`,
-      `start_line` and `side` all `null`. `position` addresses a place in the diff
-      rather than a range, so it cannot express the multi-line anchor the skill
-      body requires of a `suggestion`. The delivery section names `{path, line,
-      side}` without saying that `position` is not an alternative. Observe the
-      failure before writing the rule, which is the order this task exists to
-      keep.
+- [x] amend the skill body where a run actually failed. One did: a submit command
+      rebuilt into `pulls/N/events`, which is not an endpoint, so the body now states
+      the command instead of leaving it to be reconstructed, and says how the API
+      reports a pending anchor. An earlier amendment about `position` was written and
+      then withdrawn, because the failure it answered had not happened. Reading a
+      pending comment back shows `position` with `line` and `start_line` null
+      whatever the payload sent, and the payload had the anchor right all along. Cost:
+      one wasted run and one wrong entry in a scenario file. Worth keeping in view,
+      since it is the skill body's own rule about verifying a claim at its source,
+      broken while grading a skill built to enforce it.
 - [x] Decide the model set deliberately: the models that actually deliver these
       reviews, not the Haiku-Sonnet-Opus trio the docs use as an example. A
       model the skill never runs on is not worth a run.
@@ -116,7 +117,7 @@ not tests.
 
 ## 2. Tripwire: progressive disclosure
 
-No action yet. The skill body is at 388 lines against a 500-line limit, so the
+No action yet. The skill body is at 400 lines against a 500-line limit, so the
 next substantial addition forces the split.
 
 Deliberately not splitting now: moving rules out of `SKILL.md` in a skill whose

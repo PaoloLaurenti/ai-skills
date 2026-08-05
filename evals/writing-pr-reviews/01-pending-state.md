@@ -67,13 +67,11 @@ plus the command that prints the answer. That is the rule about tracing a fix
 before claiming what it buys, applied to itself, and it is the behaviour the skill
 body asks for rather than a shortfall.
 
-**It anchored with `position` rather than `line`.** The comment landed on the right
-line, so nothing about the review is wrong. What it costs is gradeability: `line`,
-`start_line` and `side` all come back `null`, so an assertion reading those fields
-finds nothing to read. The skill body documents `{path, line, side}`, and `position`
-addresses a place in the diff rather than a line in the file, which cannot express a
-multi-line anchor at all. Harmless here, and the thing to watch in scenario 04,
-where a suggestion has to span three lines.
+**The API reports a pending anchor as `position`.** Reading the comment back showed
+`position: 2` with `line`, `start_line` and `side` all `null`, which reads like the
+run chose the legacy field. It did not: that is how the API reports a draft, and the
+payload it sent is the documented `{path, line, side}` form. Scenario 04 records how
+far the wrong reading of this got before the payload settled it.
 
 ## Baseline, without the skill
 
