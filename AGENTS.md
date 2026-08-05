@@ -20,6 +20,7 @@ docs/PLAN.md                    queued work, with the reasoning behind each item
 LICENSE                         MIT, and one of the two places allowed to name the owner
 tools/skill-check/              the mechanical checks over every SKILL.md, run as cargo tests
 .tool-versions                  the Rust version asdf resolves for this repo
+.vscode/settings.json           points rust-analyzer at the crate, which is not at the root
 ```
 
 ## Language

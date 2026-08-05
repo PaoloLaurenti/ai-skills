@@ -1,0 +1,5 @@
+{
+  // The only crate lives two levels down, so rust-analyzer cannot discover it
+  // from the repo root on its own.
+  "rust-analyzer.linkedProjects": ["tools/skill-check/Cargo.toml"]
+}
