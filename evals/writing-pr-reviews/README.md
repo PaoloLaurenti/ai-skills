@@ -67,6 +67,13 @@ Confirm the skill loaded before reading anything into the result. A run where it
 never loaded is a description failure, not a rule failure, and the two need
 different fixes.
 
+**Expect to retry.** Several runs answered `API Error: 529 Overloaded` within seconds
+of starting, one of them four times in a row across twenty minutes. Wrap the run in a
+loop that retries while the output carries 529 and stops on anything else, so a real
+failure is not buried under a backoff. Stopping on anything else is the part that
+matters: the run that died with "Not logged in" looked identical from the outside, and
+a loop that retried everything would have hidden it behind ten attempts.
+
 ## Grading
 
 The assertions below are commands. Set `R` to the fixture repo and `N` to the pull

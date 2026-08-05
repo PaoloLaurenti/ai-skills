@@ -120,7 +120,31 @@ an agent under pressure will negotiate with:
       for held without the skill: the stale README claim was found, quoted and fixed
       unprompted. That one moves down the list of what earns the skill its place,
       without coming off it, since a nine-line README in a seven-file repo makes the
-      cross-check far easier than a real one.
+      cross-check far easier than a real one. **Four to go: 01, 02, 03, 04**, each
+      recorded under its own heading in its scenario file.
+- [ ] run the whole suite against Sonnet 5, five scenarios and five baselines. The
+      model set says a rule is settled only when both models agree, and so far only
+      Opus 5 has run, so every result recorded is half a result. This is where the
+      style rules are most likely to move: they fight a model's default writing voice,
+      so a less capable one is where they give first. Nothing about the procedure
+      changes, only `--model sonnet`.
+- [ ] get scenario 02 a second data point, which is one of those Sonnet runs and the
+      one to read first. Opus 5 held the rule the scenario tests, the finding landed
+      inline, and broke a narrower one beside it: the body restated the fix the inline
+      comment already proposed. One occurrence is not a pattern. If Sonnet does it too,
+      the rule is worth strengthening where it sits, in the section about what the
+      general comment contains. If it does not, the entry stays as a recorded
+      inconsistency and nothing in the skill body moves.
+- [ ] move the suite onto `claude plugin eval` once it leaves early access. It takes
+      `evals/**/case.yaml`, or `evals/**/prompt.md` plus `graders/*.md`, resolves a
+      skills-directory plugin by name, and carries `--ablation with-without` for the
+      baseline arm, `--runs` for repetition, `--judge-model`, an HTML report and
+      `--max-cost-usd`. That covers by hand exactly what has been built by hand here,
+      including the two parts that were hardest, the baseline arm and bounding the
+      spend. Every invocation currently answers "`plugin eval` is currently in early
+      access" and `eval init --bare` writes nothing, so this is a migration to plan
+      rather than to start. What already exists is the input it wants: the fixture,
+      the prompts, and the assertions.
 - [x] amend the skill body where a run actually failed. One did: a submit command
       rebuilt into `pulls/N/events`, which is not an endpoint, so the body now states
       the command instead of leaving it to be reconstructed, and says how the API
@@ -138,6 +162,12 @@ an agent under pressure will negotiate with:
       skill's scenarios before the commit. Without that line a future session
       has no way to know the suite exists, and "regression suite for every later
       edit" stays an intention.
+
+Deliberately not doing: a checker of its own for the mechanical assertions. It was
+queued here as the obvious next tool, and `claude plugin eval` shipping graders as
+`graders/*.md` with a judge model makes it work to be thrown away. The assertions
+written into each scenario file are the specification those graders will want, which is
+the part worth having either way.
 
 Store the scenarios in `evals/<skill-name>/`, one file per scenario, at the repo
 root rather than inside `skills/`. Everything under a skill directory is surface
