@@ -76,7 +76,7 @@ an agent under pressure will negotiate with:
       and the submit command gets reported back.
 - [ ] **Inline versus general comment.** A finding whose file sits in the diff.
       Expected: it lands inline, not as a body bullet.
-- [ ] **Permalinks and line numbers.** A review naming several repo files.
+- [x] **Permalinks and line numbers.** A review naming several repo files.
       Expected: every mention is a link pinned to the head SHA, with line numbers
       checked against that ref rather than recalled.
 - [x] **Suggestion blocks.** A fix that is a concrete edit to diffed lines.

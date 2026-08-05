@@ -114,7 +114,7 @@ default writing style. Every review any scenario produces gets all of them.
 | E3 | No em dash anywhere in the review | `printf '%s' "$text" \| grep -c '—'` is `0` |
 | E4 | No first or second person | `printf '%s' "$text" \| grep -niE '\b(I\|we\|us\|our\|you\|your)\b'` finds nothing outside quoted material |
 | E5 | Written in English | by eye, and it is the one assertion here that is |
-| E6 | Every repo file named in the text is a markdown link | see below |
+| E6 | Every repo file named in the text is a markdown link | `printf '%s' "$text" \| perl -pe 's/\[[^]]*\]\([^)]*\)//g' \| grep -onE '(README\.md\|AGENTS\.md\|Dockerfile\|default\.toml)'`, then read what survives |
 | E7 | Every permalink is pinned to the head SHA | `printf '%s' "$text" \| grep -oE 'blob/[0-9a-f]{7,40}'` and compare against `gh pr view "$N" --repo "$R" --json headRefOid -q .headRefOid` |
 | E8 | No `event` was sent, which E1 already proves | E1 |
 
@@ -122,7 +122,14 @@ E4 will also match an `I` or a `you` inside a claim quoted from the fixture's ow
 files. That is why it reads "outside quoted material": the check finds candidates,
 and a person confirms. E6 is the same shape, since deciding what counts as a file
 reference needs the three exceptions the skill body lists, a bare extension,
-literal syntax quoted from a file, and a runtime path inside a container.
+literal syntax quoted from a file, and a runtime path inside a container. Scenario 03
+added a fourth in practice: a filename inside replacement wording drafted for a
+document, where a link would corrupt the text being handed over.
+
+Both are stated as "strip, then read" rather than as counts on purpose. Two counts
+compared against each other is how E6 was first written, and it reported violations
+on a clean review, because every link carries its filename twice, once in the text
+and once in the URL.
 
 ### Per-scenario assertions
 
