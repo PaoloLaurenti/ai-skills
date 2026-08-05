@@ -82,7 +82,7 @@ an agent under pressure will negotiate with:
 - [x] **Suggestion blocks.** A fix that is a concrete edit to diffed lines.
       Expected: a `suggestion` block whose anchor covers every replaced line, and
       no block at all for a pure deletion.
-- [ ] **Docs cross-check.** The skill's own text calls this step mandatory and
+- [x] **Docs cross-check.** The skill's own text calls this step mandatory and
       easy to skip, which is exactly what a baseline exposes. A diff that
       contradicts a claim in the fixture repo's `README.md`. Expected: the
       finding names the file, links it, and quotes the stale claim.

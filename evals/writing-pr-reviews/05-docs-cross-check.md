@@ -32,6 +32,41 @@ change points at it.
   as the behaviour is either cited or satisfied by the proposal.
 - All of the every-run assertions in `README.md`.
 
+## Result: Opus 5, 2026-08-05
+
+**Passed**, every assertion, and it found a second documentation problem the fixture
+had not planted.
+
+| | |
+|---|---|
+| The finding's home | the body, and no inline comment on `README.md` |
+| The stale claim | quoted, not paraphrased: "The service listens on port 8080" |
+| The replacement | given: "The service listens on port 3000." |
+| The file | named and linked, and "the docs" appears nowhere |
+| Section title | **Docs to refresh**, in bold rather than as a heading |
+
+Five line anchors, all correct at the head SHA: `README.md#L5` is the port sentence,
+`README.md#L8-L9` the configuration paragraph, `AGENTS.md#L7` the rule about
+documentation moving with behaviour, `config/default.toml#L2` the `port = 3000` key,
+and `Dockerfile#L9` the `EXPOSE 3000` line.
+
+**The unplanned finding.** Beyond the contradiction the fixture builds in, it
+reported that `README.md#L8-L9`, "There are no environment variables: every setting
+has a key in that file", has become *misleading* rather than false: it reads as
+though the TOML were the port's only home, while the port is also a literal in
+`app/server.py`. That is the rule about reporting wording that has merely become
+misleading, applied without being prompted by a contradiction.
+
+**The bare mention is correct.** Stripping the links leaves one `Dockerfile`, in the
+phrase "a Dockerfile instruction having no way to read the file". That names the
+format rather than the repo's file, so a permalink would be wrong. Same shape as
+scenario 03's bare mention: what survives the strip has to be read, not counted.
+
+**Praise landed on the line that earns it**, not in the body: the inline comment on
+`app/server.py` opens by noting that all three copies of the number moved together in
+one change. The skill body asks for exactly that placement, and the body carries no
+verdict.
+
 ## What a baseline is expected to show here
 
 This is the scenario where the absence of the rule should be most visible, because
