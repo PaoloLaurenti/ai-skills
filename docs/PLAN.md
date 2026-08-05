@@ -28,10 +28,16 @@ scenario against a subagent *without* the skill first, record the rationalisatio
 verbatim, and only then write or amend the guidance, so each rule answers a
 failure that was actually observed.
 
-Where this stands: the procedure, the five scenario files and the fixture scripts
-are on disk under `evals/writing-pr-reviews/`, the sandbox repo exists with one open
-pull request per scenario, and the model set is decided. What is left is running
-them.
+Where this stands: all five scenarios have run against Opus 5. Four passed outright,
+and the fifth, inline versus general comment, held on the rule it was written for and
+broke a narrower one beside it. What is left is the baselines, which are the half that
+turns "the rules appear to hold" into "each rule answers a failure that was observed",
+and the same five scenarios against Sonnet 5.
+
+Two of those runs found problems the fixture had not planted: a configuration key
+nothing in the tree reads, and a `README.md` sentence that had become misleading
+rather than false. Two others exposed assertions of mine that reported violations on
+clean reviews, both of them counting where they should have been reading.
 
 Two defects surfaced before any run, both of which would have read as a skill
 failure rather than a harness one. Dry-running the fixture scripts against stubbed
@@ -74,8 +80,12 @@ an agent under pressure will negotiate with:
 - [x] **Pending state.** A scenario where the review reads as finished and the
       request is ambiguous about publishing. Expected: the review stays `PENDING`
       and the submit command gets reported back.
-- [ ] **Inline versus general comment.** A finding whose file sits in the diff.
-      Expected: it lands inline, not as a body bullet.
+- [x] **Inline versus general comment.** A finding whose file sits in the diff.
+      Expected: it lands inline, not as a body bullet. Ran mixed: the finding did land
+      inline and the trap did not catch it, while the body restated the fix the inline
+      comment already proposed, which the same section of the skill body forbids. A
+      rule broken rather than a rule missing, so it wants a second data point rather
+      than an amendment.
 - [x] **Permalinks and line numbers.** A review naming several repo files.
       Expected: every mention is a link pinned to the head SHA, with line numbers
       checked against that ref rather than recalled.
