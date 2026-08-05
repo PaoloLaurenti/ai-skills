@@ -144,20 +144,32 @@ A rule is worth its place in the skill body only if an agent without the skill
 gets it wrong. Record that first, and record the reasoning verbatim, because the
 rationalisation is what the rule has to answer.
 
-A baseline run needs the plugin genuinely absent. The symlink loads it in every
-session on this machine, so point the CLI at an empty configuration directory:
+A baseline run needs the plugin genuinely absent, and the symlink loads it in every
+session on this machine. Disable it for the run and put it back afterwards:
 
 ```bash
-export CLAUDE_CONFIG_DIR=$(mktemp -d)
-claude plugin list        # expect: No plugins installed
-claude -p "$(the prompt)"
+claude plugin disable myai@skills-dir
+claude plugin list                    # expect no skills-directory plugin loaded
+claude -p "$(the prompt)" --model "$model" --allowedTools ...
+claude plugin enable myai@skills-dir
 ```
 
-That first command is the verification, and it is verified rather than assumed:
-under a fresh `CLAUDE_CONFIG_DIR` the CLI reports no plugins installed, so the
-skill cannot have loaded. Run it every time before trusting a baseline, and note
-that whether a fresh configuration directory carries credentials is the one thing
-the first baseline run has to confirm.
+Re-enable from a trap rather than a following line, so a run that is killed does not
+leave the skill switched off:
+
+```bash
+trap 'claude plugin enable myai@skills-dir' EXIT INT TERM
+```
+
+**Not with an empty `CLAUDE_CONFIG_DIR`.** That does make the plugin absent, and it
+also makes the CLI unauthenticated: `claude plugin list` answers fine without
+credentials, so the check passes, and then the run dies with "Not logged in". The
+credentials are in the keychain, keyed to the real configuration directory. This is
+worth stating because the empty-directory route was written here first, with only the
+half that works verified.
+
+Verify the plugin is absent every time before trusting a baseline, and keep that
+verification in the log next to the result.
 
 Each scenario file keeps its baseline under a heading of its own, holding what the
 run produced and the reasoning it gave, quoted rather than summarised.

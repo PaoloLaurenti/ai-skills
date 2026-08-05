@@ -23,6 +23,16 @@ for number in $(gh pr list --repo "$repo" --state open --json number -q '.[].num
         echo "cleared pending review $id on #$number"
         cleared=$((cleared + 1))
     done
+    # A run that submitted its review, which a baseline without the skill is free to
+    # do, leaves published comments behind. Those can be deleted one by one, so the
+    # assertion that nothing leaked stays meaningful on the next run. The submitted
+    # review itself cannot be deleted, only dismissed, and it does not matter: every
+    # assertion here counts PENDING reviews.
+    for comment in $(gh api "repos/$repo/pulls/$number/comments" -q '.[].id'); do
+        gh api --method DELETE "repos/$repo/pulls/comments/$comment" >/dev/null
+        echo "cleared published comment $comment on #$number"
+        cleared=$((cleared + 1))
+    done
 done
 
 if [ "$cleared" -eq 0 ]; then

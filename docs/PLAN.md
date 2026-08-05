@@ -47,12 +47,21 @@ an identity from the authenticated account. And a run has to happen from inside 
 clone of the fixture rather than from this repo, or `gh` resolves the wrong
 repository entirely.
 
-The first run settled one of the two open questions about the harness itself: a
-`claude -p` prompt does reach the skill. Nothing in the output announces the load,
-but the review carries its fingerprints, created pending rather than submitted,
-written in English out of an Italian prompt, every file mention a permalink at the
-head SHA. What a baseline still has to settle is whether a fresh
-`CLAUDE_CONFIG_DIR` carries credentials.
+Both open questions about the harness are now answered. A `claude -p` prompt does
+reach the skill: nothing in the output announces the load, but the review carries its
+fingerprints, created pending rather than submitted, written in English out of an
+Italian prompt, every file mention a permalink at the head SHA. And a fresh
+`CLAUDE_CONFIG_DIR` does **not** carry credentials, so a baseline cannot be run that
+way. It disables the plugin instead and re-enables it from a trap.
+
+Worth knowing before this goes further: `claude plugin eval` exists, takes
+`evals/**/case.yaml` or `evals/**/prompt.md` plus `graders/*.md`, and carries an
+`--ablation with-without` mode that runs the no-plugin baseline arm itself, along with
+repeated runs, a judge model, an HTML report and a cost ceiling. It is in early access
+and gated on this machine, so nothing can be run through it yet, and the hand-rolled
+harness stays. The direction it sets is clear enough to plan for, and the inputs
+already written, the fixture, the prompts and the assertions, are what a case file
+would need.
 
 Three decisions make the task executable at all, so they come before any
 scenario gets written:
@@ -101,7 +110,17 @@ an agent under pressure will negotiate with:
       violates most naturally, because they fight its default writing style, and
       each one greps. Every review any scenario produces gets these checks.
 - [ ] Record a baseline run without the skill for each scenario, so the value of
-      each rule is visible.
+      each rule is visible. One recorded, scenario 05, and it separates the rules
+      cleanly. Everything about delivery is the skill's: the baseline wrote its review
+      into the reply and posted nothing at all, so pending state, inline anchoring and
+      the submit command have nothing to fall back on. Every style rule broke, with
+      numbers rather than impressions: 6 em dashes, 4 markdown headings, 0 permalinks
+      against 15 bare file mentions, a verdict paragraph, a preamble, 5 first or second
+      person forms, and the whole review in Italian. And the rule this scenario exists
+      for held without the skill: the stale README claim was found, quoted and fixed
+      unprompted. That one moves down the list of what earns the skill its place,
+      without coming off it, since a nine-line README in a seven-file repo makes the
+      cross-check far easier than a real one.
 - [x] amend the skill body where a run actually failed. One did: a submit command
       rebuilt into `pulls/N/events`, which is not an endpoint, so the body now states
       the command instead of leaving it to be reconstructed, and says how the API
