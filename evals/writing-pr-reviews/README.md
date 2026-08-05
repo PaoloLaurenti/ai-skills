@@ -45,6 +45,21 @@ Each scenario file carries its prompt verbatim. The prompt is written the way th
 thing is actually asked for, which is also what the skill's `description` is
 matched against, so a scenario doubles as a check that the skill loads at all.
 
+Two scripts do this, and they are the shortest path to a run:
+
+```bash
+evals/writing-pr-reviews/run.sh      opus "dammi un parere sulla PR #5"
+evals/writing-pr-reviews/baseline.sh opus "dammi un parere sulla PR #5"
+```
+
+`run.sh` clones the fixture, clears the previous pending review, runs the prompt, retries
+while the API is overloaded, and prints where it left the output, the log and the clone.
+`baseline.sh` takes the same two arguments and hands them straight to `run.sh` with the
+plugin disabled, so a baseline and the run it is compared against differ in one thing
+only. Both leave the clone in place, because the payload the skill posted from is in it.
+
+What each of them does, and why, in case either needs changing.
+
 A run happens from inside a clone of the fixture, the way a real review does, so
 that `gh` resolves the repo from the remote and the skill reads the repo's own docs
 from the working tree it is reviewing:
