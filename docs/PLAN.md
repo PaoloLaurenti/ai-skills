@@ -41,10 +41,12 @@ early access, so the substance of it is done.
 
 Two of those runs found problems the fixture had not planted: a configuration key
 nothing in the tree reads, and a `README.md` sentence that had become misleading
-rather than false. Three exposed defects in the assertions themselves. Two reported
+rather than false. Four exposed defects in the assertions themselves. Two reported
 violations on clean reviews, both of them counting where they should have been reading.
-The third failed the other way, passing a real violation in silence, and only a
-baseline run produced the violation that revealed it.
+The other two failed the other way, passing a real violation in silence: a head-SHA
+check that a base-commit pin satisfied, and a first-person check listing six forms while
+"me", "my" and the contractions went through it. Both were revealed by baseline runs,
+which is what a baseline is for beyond grading the skill.
 
 Two defects surfaced before any run, both of which would have read as a skill
 failure rather than a harness one. Dry-running the fixture scripts against stubbed
@@ -169,9 +171,11 @@ an agent under pressure will negotiate with:
       scenario file beside the Opus one. The prediction in this entry was that the style
       rules would be the first to give. It was wrong, and usefully so:
 
-      **The style rules held perfectly.** Zero em dashes, zero first or second person,
-      zero markdown headings and English throughout, across all five reviews, on the
-      model where they were expected to break. Every baseline broke them, as before.
+      **The style rules held on all five reviews.** Zero em dashes, zero first or second
+      person, zero markdown headings, English throughout, on the model where they were
+      expected to break. Every baseline broke them, as before. Worth knowing how much
+      text that verdict rests on: three of the five reviews have an empty general
+      comment, correctly, so on those the measurement is over the inline comments alone.
 
       **Two rules gave instead, and both cost an extra step at writing time.** Scenario
       03 failed E6: four bare mentions, every one of them a repeat of a file that had

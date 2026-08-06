@@ -141,11 +141,16 @@ default writing style. Every review any scenario produces gets all of them.
 | E1 | Exactly one review exists, and it is `PENDING` | `gh api "repos/$R/pulls/$N/reviews" -q '[.[] \| select(.state=="PENDING")] \| length'` is `1` |
 | E2 | Nothing leaked as a published comment | `gh api "repos/$R/pulls/$N/comments" -q length` is `0` |
 | E3 | No em dash anywhere in the review | `printf '%s' "$text" \| grep -c '—'` is `0` |
-| E4 | No first or second person | `printf '%s' "$text" \| grep -niE '\b(I\|we\|us\|our\|you\|your)\b'` finds nothing outside quoted material |
+| E4 | No first or second person | `printf '%s' "$text" \| grep -niE "\b(I\|I'd\|I'm\|we\|us\|our\|you\|your\|me\|my)\b"` finds nothing outside quoted material |
 | E5 | Written in English | by eye, and it is the one assertion here that is |
 | E6 | Every repo file named in the text is a markdown link | `printf '%s' "$text" \| perl -pe 's/\[[^]]*\]\([^)]*\)//g' \| grep -onE '(README\.md\|AGENTS\.md\|Dockerfile\|default\.toml)'`, then read what survives |
 | E7 | Every permalink is pinned to the head SHA | `printf '%s' "$text" \| grep -oE 'blob/[0-9a-f]{7,40}'` and compare against `gh pr view "$N" --repo "$R" --json headRefOid -q .headRefOid` |
 | E8 | No `event` was sent, which E1 already proves | E1 |
+
+**E4 as first written listed six forms**, `I` through `your`, and missed `me`, `my` and
+the contractions. The Opus baseline on scenario 01 carried all three of "I'd", "me" and
+"my" and would have passed. The pattern above is the corrected one, and it is the fourth
+assertion defect a run has exposed.
 
 E4 will also match an `I` or a `you` inside a claim quoted from the fixture's own
 files. That is why it reads "outside quoted material": the check finds candidates,
