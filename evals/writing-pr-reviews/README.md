@@ -17,6 +17,15 @@ Every scenario needs a real pull request: a diff, a head SHA, and a repo where
 repo, one branch and one open pull request per scenario, with file contents fixed
 so line numbers in the assertions stay true.
 
+The repo on `main` also carries `.github/workflows/deploy.yml`, which exists for scenario
+06 alone: everything else in the fixture calls the service `example-service`, and that
+file is the only place saying the deployed image and rollout target are called
+`platform-api`. Two constraints hold anything added to it. It triggers on a branch that
+does not exist, so pushing to the fixture never runs it, and it names no port, no base
+image and no entrypoint, so it cannot become a second finding inside the five scenarios
+that predate it. It was added to the live fixture after those five were recorded, which is
+why their results mention no workflow.
+
 ```bash
 evals/writing-pr-reviews/fixture/setup.sh          # creates the repo and the PRs
 evals/writing-pr-reviews/fixture/reset.sh          # clears pending reviews between runs
@@ -143,7 +152,7 @@ default writing style. Every review any scenario produces gets all of them.
 | E3 | No em dash anywhere in the review | `printf '%s' "$text" \| grep -c '—'` is `0` |
 | E4 | No first or second person | `printf '%s' "$text" \| grep -niE "\b(I\|I'd\|I'm\|we\|us\|our\|you\|your\|me\|my)\b"` finds nothing outside quoted material |
 | E5 | Written in English | by eye, and it is the one assertion here that is |
-| E6 | Every repo file named in the text is a markdown link | `printf '%s' "$text" \| perl -pe 's/\[[^]]*\]\([^)]*\)//g' \| grep -onE '(README\.md\|AGENTS\.md\|Dockerfile\|default\.toml)'`, then read what survives |
+| E6 | Every repo file named in the text is a markdown link | `printf '%s' "$text" \| perl -pe 's/\[[^]]*\]\([^)]*\)//g' \| grep -onE '(README\.md\|AGENTS\.md\|Dockerfile\|default\.toml\|deploy\.yml)'`, then read what survives |
 | E7 | Every permalink is pinned to the head SHA | `printf '%s' "$text" \| grep -oE 'blob/[0-9a-f]{7,40}'` and compare against `gh pr view "$N" --repo "$R" --json headRefOid -q .headRefOid` |
 | E8 | No `event` was sent, which E1 already proves | E1 |
 
@@ -151,6 +160,17 @@ default writing style. Every review any scenario produces gets all of them.
 the contractions. The Opus baseline on scenario 01 carried all three of "I'd", "me" and
 "my" and would have passed. The pattern above is the corrected one, and it is the fourth
 assertion defect a run has exposed.
+
+**E4 is English-only, which makes it useless on a baseline.** Scenario 06 measured this:
+on its two baselines the pattern returned two hits and zero, and both numbers are wrong.
+The two are the Italian article `i`, folded into `\bI\b` by `grep -i`; the zero is a reply
+opening "Ho guardato" and "non la mergerei", first person throughout, invisible to a
+pattern looking for pronouns in a language that puts first person in the verb. This costs
+nothing on a graded review, which E5 already requires to be English, and everything on a
+baseline, where the reply comes back in the language of the prompt. Every baseline in this
+suite is Italian, so E4 has never actually caught first person in one: the prose in each
+scenario file reporting it came from a person reading the text. Treat E4 on a baseline as
+unrun rather than as passed, and grade that row by eye.
 
 E4 will also match an `I` or a `you` inside a claim quoted from the fixture's own
 files. That is why it reads "outside quoted material": the check finds candidates,

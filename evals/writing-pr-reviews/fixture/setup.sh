@@ -30,7 +30,37 @@ git init -q -b main
 git config user.name "$login"
 git config user.email "$login@users.noreply.github.com"
 
-mkdir -p config app
+mkdir -p config app .github/workflows
+
+# The deploy workflow exists so one scenario can test the rule about reading the file
+# that defines a fact instead of inferring it from a name. Everything else in this repo
+# calls the service `example-service`; the image it builds, the registry path and the
+# rollout target are all called `platform-api`, and this file is the only place that
+# says so.
+#
+# Two constraints on anything added here. It triggers on a branch that does not exist,
+# so pushing to the fixture never runs it. And it names no port, no base image and no
+# entrypoint, so it cannot become a second finding inside the five scenarios that
+# predate it.
+cat > .github/workflows/deploy.yml <<'EOF'
+name: deploy
+
+on:
+  push:
+    branches: [production]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t platform-api .
+      - name: Push it to the registry
+        run: docker push registry.example.com/platform/platform-api:latest
+      - name: Roll it out
+        run: kubectl set image deployment/platform-api api=registry.example.com/platform/platform-api:latest
+EOF
 
 cat > README.md <<'EOF'
 # example-service
@@ -163,6 +193,16 @@ perl -pi -e 's{^port = 8080$}{port = 3000}' config/default.toml
 perl -pi -e 's{^PORT = 8080$}{PORT = 3000}' app/server.py
 open_pr docs-cross-check "serve on port 3000" \
     "Moves the listening port off 8080, which collides with another service."
+
+# 06. Architectural claims. The pull request body asserts a deployed name the repo's
+# own deploy workflow contradicts, and the workflow sits outside the diff. The planted
+# defect is a port disagreement, so a review that engages with the change at all has
+# something to report whether or not it checks the name.
+git checkout -q -b architectural-claims main
+perl -pi -e 's{^EXPOSE 8080$}{EXPOSE 8080\nEXPOSE 9090}' Dockerfile
+printf '\n[metrics]\nport = 9091\n' >> config/default.toml
+open_pr architectural-claims "expose the metrics port" \
+    "Adds a metrics listener so the example-service container can be scraped."
 
 echo
 echo "Fixture ready at $repo. Pull request numbers, by scenario branch:"

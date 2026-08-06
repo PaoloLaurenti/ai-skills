@@ -6,10 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Three things are open, and only the first is work anyone can start today. Task 2 is
-blocked on Anthropic and task 3 is a tripwire rather than work. Everything else this
-plan has carried is finished and recorded under Completed, the evaluation suite and the
-block-versus-prose question it left behind included.
+Two things are open, and neither is work anyone can start today: task 1 is blocked on
+Anthropic and task 2 is a tripwire rather than work. Everything else this plan has
+carried is finished and recorded under Completed, the evaluation suite and the two
+questions it left behind included.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -18,48 +18,7 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. A scenario for the rule about verifying architectural claims
-
-One of the two sections of the skill body with no scenario against it, and the one worth
-covering, found by listing the body's sections beside the five scenarios rather than by a
-run failing.
-
-`Verify every factual claim about the architecture` is the rule that a review reads the
-file defining a fact before stating it, and never infers it from a crate name, a service
-name, or the shape of the diff. Nothing in the suite exercises it. Scenarios 01 to 05
-cover pending state, inline versus body, permalinks and line numbers, suggestion blocks,
-and the docs cross-check, and the every-run assertions cover the style rules.
-
-Why this one rather than the other uncovered section. The body says of this failure mode
-that it "passes every mechanical check on the review, so only reading the source catches
-it", which is precisely the shape a suite of mechanical assertions will not notice going
-wrong. Three things in the record already point at it. Scenario 01 recorded a run where
-an unverified value went inside a committable block and observed that "no assertion here
-catches it, because none of them ask whether a suggestion's content was verified"; that
-particular question closed on the rerun, but the general one it exposed did not. The
-third Opus run on scenario 04 withdrew a false `main()` finding after reading
-`README.md`, which is the rule working and went unrecorded by any assertion. And this
-repo broke the same rule itself while grading, in the withdrawn `position` amendment.
-
-- [ ] add `evals/writing-pr-reviews/06-architectural-claims.md` and the fixture branch it
-      needs, then run it on both models with a baseline arm each
-
-What the fixture has to plant is a name that invites an inference the repo's own files
-contradict, which is the `mia-identity` example the body itself uses: a directory or
-package called one thing, and a deploy workflow naming a different container or image.
-That keeps the rule under test mechanical, as `evals/writing-pr-reviews/README.md`
-requires of at least one assertion per scenario: grep the review text for the inferred
-name against the real one read out of the workflow file, rather than judging the prose.
-
-Not queued alongside it: a scenario for `Every observation carries a proposal`. It is the
-other section without one, it is already covered by a red flag, and no run has produced a
-naked observation, so a scenario for it would be answering an imagined failure.
-
-Worth knowing before starting: a new scenario is not work the migration below throws
-away. That entry records that what `claude plugin eval` wants is the fixture, the prompts
-and the assertions, which is exactly what a scenario file is.
-
-## 2. Move the suite onto `claude plugin eval`
+## 1. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -96,7 +55,7 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
 
-## 3. Tripwire: progressive disclosure
+## 2. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 408 lines against a 500-line limit, so the
 next substantial addition forces the split.
@@ -110,6 +69,50 @@ one level deep from `SKILL.md`.
 - [ ] revisit when a skill body crosses roughly 450 lines
 
 ## Completed
+
+**Add a scenario for the rule about verifying architectural claims.** Written, run on
+both models with a baseline each, and recorded in
+`evals/writing-pr-reviews/06-architectural-claims.md`. It closes the last section of the
+skill body that no scenario exercised, found by listing the body's sections beside the
+five existing scenarios rather than by a run failing.
+
+The fixture plants a name the repo contradicts. Everything in it calls the service
+`example-service`, the pull request body claims the change lets "the `example-service`
+container" be scraped, and the only file saying what is actually deployed is
+`.github/workflows/deploy.yml`, which builds and rolls out `platform-api` and sits outside
+the diff. A port disagreement inside the diff, `EXPOSE 9090` against `port = 9091`, is the
+gate: a run that misses it never engaged with the change, which makes the name assertions
+ungradeable rather than failed. Writing that gate in advance came straight out of scenario
+04, where an assertion reachable only after an upstream judgement call reported a finding
+never made as though it were a rule broken. All four runs cleared it, so nothing here is
+inconclusive.
+
+*The result.* Both models with the skill read the workflow unprompted and corrected the
+author on the name, which makes this the first rule in the suite both models get right on
+a first run. Neither baseline did: the Opus one opened the workflow and then named neither
+`platform-api` nor `example-service`, an avoidance the scenario said in advance to record
+as one, and the Sonnet one never opened it and passed the author's claim through inside a
+verbatim quote.
+
+*What the baseline arm does not settle, recorded because the table reads like a cleaner
+win than it is.* Neither baseline asserted the wrong name in its own voice, so the failure
+the rule forbids has not been observed. What has been observed is the rule producing a
+correction that does not otherwise appear. That is weaker than scenario 01, where both
+baselines published a review the rule exists to prevent, and it is the honest reading.
+
+*A fifth assertion defect, found by these runs.* E4, the first and second person check, is
+English-only. On the two Italian baselines it returned two hits and zero, and both are
+wrong: the two are the Italian article `i` folded into `\bI\b` by `grep -i`, and the zero
+is a reply opening "Ho guardato" and "non la mergerei". The scope is narrow and worth
+stating exactly, since E5 requires a graded review to be English: E4 works on every review
+the skill produces and fails only on baselines, where the reply comes back in the
+language of the prompt. Every baseline in this suite is Italian, so E4 has never once been
+what caught first person in one. The eval README now says to treat that row as unrun on a
+baseline and grade it by eye.
+
+Deliberately not added alongside it: a scenario for `Every observation carries a
+proposal`, the other section without one. It is already covered by a red flag and no run
+has produced a naked observation, so it would answer an imagined failure.
 
 **Settle the block-versus-prose boundary with one more Opus run of scenario 04.** Run,
 graded, and the answer is that no amendment is warranted. The full record sits in
@@ -149,11 +152,12 @@ weakness this scenario already records about its own first assertion, an asserti
 can pass or fail without the rule under test being exercised at all.
 
 **Build an evaluation suite for the skill, and run it.** This was the largest gap in
-the repo: nothing tested whether the rules hold. It is now five scenarios in
-`evals/writing-pr-reviews/`, one file each, carrying the prompt verbatim and a checklist
+the repo: nothing tested whether the rules hold. It is now six scenarios in
+`evals/writing-pr-reviews/`, the five this task built plus the one the entry above added,
+one file each, carrying the prompt verbatim and a checklist
 of assertions that are commands rather than judgement calls, against a sandbox fixture
-of one pull request per scenario. Twenty-four graded runs are recorded: five scenarios
-and five baselines on each of Opus 5 and Sonnet 5, plus four reruns. Scenarios live at
+of one pull request per scenario. Twenty-eight graded runs are recorded: six scenarios
+and six baselines on each of Opus 5 and Sonnet 5, plus four reruns. Scenarios live at
 the repo root rather than under `skills/`, because everything in a skill directory is
 surface the plugin serves.
 
