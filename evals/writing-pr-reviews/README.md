@@ -103,7 +103,14 @@ $inline"
 ```
 
 `$body` is the general comment, `$inline` every inline comment, and `$text` the
-two together, which is what the style assertions read. The inline comments come
+two together, which is what the style assertions read.
+
+**When nothing was posted, the reply is the text to grade.** Four of the five baselines
+recorded so far created no review at all, which leaves `$id` empty and the whole chain
+above with nothing in it. Read `$out` instead and run every style assertion over that,
+since the review is in there. E1 and E2 then record an absence rather than reporting a
+failure, and any assertion about where a finding sits, inline or in the body, is
+ungradeable rather than failed: there is no body and no inline comment to place it in. The inline comments come
 from an endpoint of their own: a pending review's comments are not in
 `repos/$R/pulls/$N/comments`, which is why the assertion below expects that one to
 be empty.

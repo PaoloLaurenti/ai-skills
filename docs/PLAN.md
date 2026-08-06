@@ -28,16 +28,19 @@ scenario against a subagent *without* the skill first, record the rationalisatio
 verbatim, and only then write or amend the guidance, so each rule answers a
 failure that was actually observed.
 
-Where this stands: all five scenarios have run against Opus 5. Four passed outright,
-and the fifth, inline versus general comment, held on the rule it was written for and
-broke a narrower one beside it. What is left is the baselines, which are the half that
-turns "the rules appear to hold" into "each rule answers a failure that was observed",
-and the same five scenarios against Sonnet 5.
+Where this stands: all five scenarios and all five baselines have run against Opus 5.
+Four scenarios passed outright, and the fifth, inline versus general comment, held on
+the rule it was written for and broke a narrower one beside it. The baselines were the
+half that turns "the rules appear to hold" into "each rule answers a failure that was
+observed", and they do that for most of the rules, with two exceptions the entry below
+names. What is left is the same five scenarios, and their baselines, against Sonnet 5.
 
 Two of those runs found problems the fixture had not planted: a configuration key
 nothing in the tree reads, and a `README.md` sentence that had become misleading
-rather than false. Two others exposed assertions of mine that reported violations on
-clean reviews, both of them counting where they should have been reading.
+rather than false. Three exposed defects in the assertions themselves. Two reported
+violations on clean reviews, both of them counting where they should have been reading.
+The third failed the other way, passing a real violation in silence, and only a
+baseline run produced the violation that revealed it.
 
 Two defects surfaced before any run, both of which would have read as a skill
 failure rather than a harness one. Dry-running the fixture scripts against stubbed
@@ -109,19 +112,54 @@ an agent under pressure will negotiate with:
       own.** Em dashes, first and second person, English: the rules a model
       violates most naturally, because they fight its default writing style, and
       each one greps. Every review any scenario produces gets these checks.
-- [ ] Record a baseline run without the skill for each scenario, so the value of
-      each rule is visible. One recorded, scenario 05, and it separates the rules
-      cleanly. Everything about delivery is the skill's: the baseline wrote its review
-      into the reply and posted nothing at all, so pending state, inline anchoring and
-      the submit command have nothing to fall back on. Every style rule broke, with
-      numbers rather than impressions: 6 em dashes, 4 markdown headings, 0 permalinks
-      against 15 bare file mentions, a verdict paragraph, a preamble, 5 first or second
-      person forms, and the whole review in Italian. And the rule this scenario exists
-      for held without the skill: the stale README claim was found, quoted and fixed
-      unprompted. That one moves down the list of what earns the skill its place,
-      without coming off it, since a nine-line README in a seven-file repo makes the
-      cross-check far easier than a real one. **Four to go: 01, 02, 03, 04**, each
-      recorded under its own heading in its scenario file.
+- [x] Record a baseline run without the skill for each scenario, so the value of each
+      rule is visible. All five recorded, each under its own heading in its scenario
+      file, all on Opus 5. What they settle:
+
+      **Delivery is what the skill contributes, and scenario 01 proves it rather than
+      implying it.** Four baselines posted nothing at all and wrote the review into the
+      reply. The fifth submitted: a published `COMMENTED` review plus an inline comment
+      visible to the repo, settled on after GitHub refused `REQUEST_CHANGES` on an own
+      pull request. So the pending-state rule is not merely unexercised without the
+      skill, it is contradicted, and the run's own words show publishing was never a
+      decision it weighed. That is the strongest single result in the set.
+
+      **The style rules break every time.** Seven em dashes in each of the four new
+      baselines, without exception, and that identical number is not a counting
+      artifact: occurrences and matching lines agree at seven in all four. Four
+      markdown headings in three of them, a verdict opening in all four, first and
+      second person throughout, and Italian wherever the prompt was Italian. Scenario
+      03's prompt is the one written in English, so its English review is the prompt's
+      doing and not evidence.
+
+      **Permalinks and line numbers are intermittent rather than absent**, which is
+      new. Scenario 03's baseline wrote five permalinks unprompted and got all four of
+      its line numbers right, then pinned two of the five links to the base commit
+      instead of the head SHA: correct today, stale the moment either file moves, and
+      invisible to any grading that only checks the link resolves. Scenario 01's
+      baseline cited `AGENTS.md:8` for a rule on line 7 of a seven-line file. One run in
+      two.
+
+      **Two rules got no baseline evidence at all**, because both need a review object
+      to exist before they can be broken: inline versus body placement, and the
+      suggestion anchor. Their scenario files say so rather than scoring them as
+      vindicated. The nearest thing to evidence is scenario 02's baseline offering,
+      unprompted, to post its finding "come commento inline", which points the way the
+      rule already goes.
+
+      **Finding real defects is not what the skill contributes.** Every baseline found
+      what the fixture planted, and three went beyond it: the stale README claim in 05,
+      the PR description that misdescribes its own diff in 03, and in 04 the
+      observation that `main` already carried `COPY --chmod=755`, making the change
+      net-negative.
+
+      Two harness fixes came out of the round. Scenario 03's head-SHA assertion was
+      `grep -c 'blob/main'` is `0`, which a link pinned to the base commit passes in
+      silence, and that is exactly what the baseline produced: it is now a prefix match
+      of every `blob/<sha>` against `headRefOid`. And the grading recipe in
+      `evals/writing-pr-reviews/README.md` assumed a review object exists, which four of
+      five baselines did not create, so it now says the reply is the text to grade when
+      nothing was posted.
 - [ ] run the whole suite against Sonnet 5, five scenarios and five baselines. The
       model set says a rule is settled only when both models agree, and so far only
       Opus 5 has run, so every result recorded is half a result. This is where the

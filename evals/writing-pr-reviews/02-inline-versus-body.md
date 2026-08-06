@@ -78,8 +78,61 @@ was therefore graded from the API alone, which for a pending review answers `pos
 only. It was enough here, since there is no multi-line collapse to check, and it is
 the case scenario 04 flags as inconclusive when there is.
 
-## Baseline, without the skill
+## Baseline, without the skill: Opus 5, 2026-08-06
 
-Not yet recorded. The prediction worth testing is a body bullet naming the file,
-with the reasoning that a convention breach is a repo-level concern. Quote what it
-actually says.
+Plugin disabled for the run, verified absent before it started, re-enabled from a trap
+after. Same model, same prompt, same fixture.
+
+**It delivered nothing to GitHub**, the same as scenario 05's baseline: `pulls/2/reviews`
+empty, no comments of any kind, no payload left in the clone. The whole review went
+into the reply, closing with an offer:
+
+> Non ho pubblicato niente su GitHub. Se vuoi, posso postarlo come review formale o
+> come commento inline su `docker-entrypoint.sh:2` — dimmi tu.
+
+**Which leaves the rule this scenario tests unexercised rather than broken.** With no
+review object there is no body and no inline comment, so nothing here says where the
+finding would have gone. The one hint is that closing offer, and it points the right
+way: asked to post, the run names an inline comment on the diffed file rather than a
+review body. So the honest reading is that the placement rule is not what the skill is
+carrying on this scenario. What it is carrying is everything upstream of placement,
+since none of it happens on its own.
+
+The predicted rationalisation, a body bullet framed as a repo-level concern, did not
+appear in that form. What appeared instead is a document with four markdown headings,
+where the breach gets its own headed section citing `AGENTS.md:5` and `README.md:5-6`
+side by side, with no separation at all between what could be anchored to a line and
+what could not.
+
+| | baseline | with the skill |
+|---|---|---|
+| Delivery | nothing posted | one `PENDING` review, finding anchored inline |
+| Em dashes | 7 | 0 |
+| Permalinks | 0, all 4 file mentions bare | every mention linked at the head SHA |
+| First and second person | throughout, "il mio parere", "posso", "dimmi tu" | 0 |
+| Language | Italian | English |
+
+Two further breaches with no figure to set them against, since the run with the skill
+was graded on the assertions above and neither is one of them: four markdown headings
+where the skill asks for bold titles, and a verdict opening the whole thing, "**Il mio
+parere: da bloccare così com'è.**"
+
+**The line numbers are right, and one of them is right in a way worth noticing.** The
+`AGENTS.md:5` and `README.md:5-6` citations both resolve, and "la rimozione è `set -eu`
+alla riga 2" is correct against the base version, where that line still exists. The
+offered anchor, `docker-entrypoint.sh:2`, is the same number carried over to the head
+version, where line 2 is blank. That is exactly the anchoring subtlety this scenario's
+second assertion is about: a removed line has no line in the head file, so it needs
+`side: LEFT` or the added line on `RIGHT`, and the number alone does not say which.
+
+**The fix came as a plain fenced block, not a suggestion.** Six lines of
+`docker-entrypoint.sh` reproduced under an ```` ```sh ```` fence, of which one is the
+change and five are unchanged context. Committable by hand only, and it is the shape
+the skill body warns about for suggestions: reproduced context reads as changed lines
+to whoever looks at the rendered result. Relevant to scenario 04's baseline as much as
+to this one.
+
+**It raised a nit and priced it as low itself**, the redundant `echo "starting up"`
+next to `echo "running migrations"`, calling it "Valore basso, ma innocuo". The skill
+body asks for the same arithmetic and then for the nit to come out, so this is half
+the rule arriving unprompted: the quantifying, not the dropping.
