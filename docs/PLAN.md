@@ -6,11 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 1 is done apart from one item blocked on Anthropic. Task 2 took the three
-single-occurrence results from the Sonnet round and gave each a second run: two did not
-reproduce, the third turned out to be measuring a missed finding rather than a broken
-rule, so the skill body did not change. What it leaves behind is one targeted run,
-listed at the end of that task. Task 3 is a tripwire rather than work.
+Three things are open, and only the first is work anyone can start today. Task 2 is
+blocked on Anthropic and task 3 is a tripwire rather than work. Everything else this
+plan has carried is finished and recorded under Completed, the evaluation suite
+included.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -19,295 +18,62 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Write evaluation scenarios for the skill
+## 1. One Opus run of scenario 04, to settle the block-versus-prose boundary
 
-The largest gap. Nothing in the repo tests whether the rules hold.
+The only open question the evaluation rounds left behind, and the strongest candidate
+for the first amendment to the skill body that answers an observed failure rather than
+an imagined one.
 
-Anthropic asks for at least three evaluations per skill, plus a run against every
-model the skill is meant for. `superpowers:writing-skills` goes further: run the
-scenario against a subagent *without* the skill first, record the rationalisations
-verbatim, and only then write or amend the guidance, so each rule answers a
-failure that was actually observed.
+What was observed: on the identical fix in the identical file, adding `USER 1000:1000`
+to the fixture's `Dockerfile`, Opus handed it over as a committable `suggestion` block
+and both Sonnet runs wrote it as prose. Both readings fit the text. The body says to
+reach for a block "whenever the fix is a concrete edit to lines that sit in the diff",
+and also to skip one for "a design change, or anything the reader has to decide before
+writing". Sonnet framed the fix as one of two options contingent on intent and applied
+the exception. Opus did not.
 
-Where this stands: twenty runs are recorded, five scenarios and five baselines on each
-of Opus 5 and Sonnet 5, which is the whole model set. On Opus, four scenarios passed and
-one broke a narrower rule beside the one it tests. On Sonnet, three passed and two
-failed, on the permalink rule and the suggestion rule. The baselines turned "the rules
-appear to hold" into "each rule answers a failure that was observed" for most of the
-rules, with two exceptions the entry below names. Nothing here calls for a change to the
-skill body: every failure recorded is a rule the body already states plainly.
+- [ ] run scenario 04 once more on Opus, with the skill, same prompt and fixture. If it
+      writes the block again, the two models genuinely read the same sentence
+      differently, and the Code suggestions section needs a sentence saying which side a
+      conditional fix falls on. If it writes prose, all four runs agree and nothing needs
+      saying.
 
-What is left in this task is the migration to `claude plugin eval`, which is blocked on
-early access, so the substance of it is done.
+Why it is not being written already: the Opus side rests on a single run, so declaring
+the text ambiguous would be the same mistake as the withdrawn `position` amendment
+recorded below, an amendment answering a failure that had not been established. The full
+argument sits in `evals/writing-pr-reviews/04-suggestion-blocks.md`.
 
-Two of those runs found problems the fixture had not planted: a configuration key
-nothing in the tree reads, and a `README.md` sentence that had become misleading
-rather than false. Four exposed defects in the assertions themselves. Two reported
-violations on clean reviews, both of them counting where they should have been reading.
-The other two failed the other way, passing a real violation in silence: a head-SHA
-check that a base-commit pin satisfied, and a first-person check listing six forms while
-"me", "my" and the contractions went through it. Both were revealed by baseline runs,
-which is what a baseline is for beyond grading the skill.
+Two things to carry into that run. An edit to a `SKILL.md` reruns that skill's scenarios
+before it is offered, per `AGENTS.md`, so an amendment costs more than the one run. And
+scenario 04's first assertion is only reachable by a run that first decides the
+three-line collapse is worth proposing, which neither Sonnet run did, so anything read
+from that assertion has to name whether the block was missing or the finding was.
 
-Two defects surfaced before any run, both of which would have read as a skill
-failure rather than a harness one. Dry-running the fixture scripts against stubbed
-`gh` and `git push` showed that a machine can scope its git identity to a directory
-tree, leaving the fixture's temporary clone without one, so the fixture now derives
-an identity from the authenticated account. And a run has to happen from inside a
-clone of the fixture rather than from this repo, or `gh` resolves the wrong
-repository entirely.
+## 2. Move the suite onto `claude plugin eval`
 
-Both open questions about the harness are now answered. A `claude -p` prompt does
-reach the skill: nothing in the output announces the load, but the review carries its
-fingerprints, created pending rather than submitted, written in English out of an
-Italian prompt, every file mention a permalink at the head SHA. And a fresh
-`CLAUDE_CONFIG_DIR` does **not** carry credentials, so a baseline cannot be run that
-way. It disables the plugin instead and re-enables it from a trap.
+Blocked on Anthropic, not on this repo.
 
-Worth knowing before this goes further: `claude plugin eval` exists, takes
-`evals/**/case.yaml` or `evals/**/prompt.md` plus `graders/*.md`, and carries an
-`--ablation with-without` mode that runs the no-plugin baseline arm itself, along with
-repeated runs, a judge model, an HTML report and a cost ceiling. It is in early access
-and gated on this machine, so nothing can be run through it yet, and the hand-rolled
-harness stays. The direction it sets is clear enough to plan for, and the inputs
-already written, the fixture, the prompts and the assertions, are what a case file
-would need.
+`claude plugin eval` takes `evals/**/case.yaml`, or `evals/**/prompt.md` plus
+`graders/*.md`, resolves a skills-directory plugin by name, and carries
+`--ablation with-without` for the baseline arm, `--runs` for repetition,
+`--judge-model`, an HTML report and `--max-cost-usd`. That is, off the shelf, exactly
+what has been built by hand here, including the two parts that were hardest: the
+baseline arm and bounding the spend.
 
-Three decisions make the task executable at all, so they come before any
-scenario gets written:
+- [ ] migrate once it leaves early access. Still gated as of 2026-08-06: `--help` now
+      prints the full option list, `init` and `init --bare` included, and an actual
+      invocation still answers "`plugin eval` is currently in early access". Worth
+      re-probing with one command rather than assuming, since the help output moved
+      while the gate did not.
 
-- [x] **A fixture the scenarios run against.** Every scenario needs a real pull
-      request: a diff, a head SHA, a repo where `gh api` can create a pending
-      review. Set up a sandbox repo with one open PR per scenario, plus a reset
-      step between runs, since GitHub allows one pending review per user per PR
-      and every run leaves one behind.
-- [x] **A run procedure and pass criteria.** Each scenario is a file carrying
-      the prompt and a checklist of observable assertions, because almost every
-      expected outcome checks mechanically: review state `PENDING` via `gh api`,
-      the finding inline rather than in the body, permalinks containing the head
-      SHA, the `suggestion` anchor covering every replaced line. A suite graded
-      by eye is not a regression suite.
-- [x] **A clean baseline environment.** The symlink makes the skill loadable in
-      every session on this machine, and a scenario prompt is written to match
-      the skill's description. A baseline run needs the plugin genuinely absent:
-      disabled, or a session under an alternate configuration directory. Verify
-      the skill did not load before trusting the run as a baseline.
-
-The skill runs to 400 lines of rules, and the ones most worth testing are those
-an agent under pressure will negotiate with:
-
-- [x] **Pending state.** A scenario where the review reads as finished and the
-      request is ambiguous about publishing. Expected: the review stays `PENDING`
-      and the submit command gets reported back.
-- [x] **Inline versus general comment.** A finding whose file sits in the diff.
-      Expected: it lands inline, not as a body bullet. Ran mixed: the finding did land
-      inline and the trap did not catch it, while the body restated the fix the inline
-      comment already proposed, which the same section of the skill body forbids. A
-      rule broken rather than a rule missing, so it wants a second data point rather
-      than an amendment.
-- [x] **Permalinks and line numbers.** A review naming several repo files.
-      Expected: every mention is a link pinned to the head SHA, with line numbers
-      checked against that ref rather than recalled.
-- [x] **Suggestion blocks.** A fix that is a concrete edit to diffed lines.
-      Expected: a `suggestion` block whose anchor covers every replaced line, and
-      no block at all for a pure deletion.
-- [x] **Docs cross-check.** The skill's own text calls this step mandatory and
-      easy to skip, which is exactly what a baseline exposes. A diff that
-      contradicts a claim in the fixture repo's `README.md`. Expected: the
-      finding names the file, links it, and quotes the stale claim.
-- [x] **Style rules as assertions on every scenario, not a scenario of their
-      own.** Em dashes, first and second person, English: the rules a model
-      violates most naturally, because they fight its default writing style, and
-      each one greps. Every review any scenario produces gets these checks.
-- [x] Record a baseline run without the skill for each scenario, so the value of each
-      rule is visible. All five recorded, each under its own heading in its scenario
-      file, all on Opus 5. What they settle:
-
-      **Delivery is what the skill contributes, and scenario 01 proves it rather than
-      implying it.** Four baselines posted nothing at all and wrote the review into the
-      reply. The fifth submitted: a published `COMMENTED` review plus an inline comment
-      visible to the repo, settled on after GitHub refused `REQUEST_CHANGES` on an own
-      pull request. So the pending-state rule is not merely unexercised without the
-      skill, it is contradicted, and the run's own words show publishing was never a
-      decision it weighed. That is the strongest single result in the set.
-
-      **The style rules break every time.** Seven em dashes in each of the four new
-      baselines, without exception, and that identical number is not a counting
-      artifact: occurrences and matching lines agree at seven in all four. Four
-      markdown headings in three of them, a verdict opening in all four, first and
-      second person throughout, and Italian wherever the prompt was Italian. Scenario
-      03's prompt is the one written in English, so its English review is the prompt's
-      doing and not evidence.
-
-      **Permalinks and line numbers are intermittent rather than absent**, which is
-      new. Scenario 03's baseline wrote five permalinks unprompted and got all four of
-      its line numbers right, then pinned two of the five links to the base commit
-      instead of the head SHA: correct today, stale the moment either file moves, and
-      invisible to any grading that only checks the link resolves. Scenario 01's
-      baseline cited `AGENTS.md:8` for a rule on line 7 of a seven-line file. One run in
-      two.
-
-      **Two rules got no baseline evidence at all**, because both need a review object
-      to exist before they can be broken: inline versus body placement, and the
-      suggestion anchor. Their scenario files say so rather than scoring them as
-      vindicated. The nearest thing to evidence is scenario 02's baseline offering,
-      unprompted, to post its finding "come commento inline", which points the way the
-      rule already goes.
-
-      **Finding real defects is not what the skill contributes.** Every baseline found
-      what the fixture planted, and three went beyond it: the stale README claim in 05,
-      the PR description that misdescribes its own diff in 03, and in 04 the
-      observation that `main` already carried `COPY --chmod=755`, making the change
-      net-negative.
-
-      Two harness fixes came out of the round. Scenario 03's head-SHA assertion was
-      `grep -c 'blob/main'` is `0`, which a link pinned to the base commit passes in
-      silence, and that is exactly what the baseline produced: it is now a prefix match
-      of every `blob/<sha>` against `headRefOid`. And the grading recipe in
-      `evals/writing-pr-reviews/README.md` assumed a review object exists, which four of
-      five baselines did not create, so it now says the reply is the text to grade when
-      nothing was posted.
-- [x] run the whole suite against Sonnet 5, five scenarios and five baselines. Done,
-      `--model sonnet` resolving to `claude-sonnet-5`, and every result recorded in its
-      scenario file beside the Opus one. The prediction in this entry was that the style
-      rules would be the first to give. It was wrong, and usefully so:
-
-      **The style rules held on all five reviews.** Zero em dashes, zero first or second
-      person, zero markdown headings, English throughout, on the model where they were
-      expected to break. Every baseline broke them, as before. Worth knowing how much
-      text that verdict rests on: three of the five reviews have an empty general
-      comment, correctly, so on those the measurement is over the inline comments alone.
-
-      **Two rules gave instead, and both cost an extra step at writing time.** Scenario
-      03 failed E6: four bare mentions, every one of them a repeat of a file that had
-      already been linked once. Scenario 04 failed its own rule outright, no
-      `suggestion` block anywhere, with a concrete `USER 1000:1000` insertion written as
-      prose where Opus handed over a committable block on the same line. Neither is a
-      gap in the skill body, which states both rules plainly and repeats them in the red
-      flags, so nothing there moves. What they are is the first evidence the model set
-      was built to produce: rules that hold on Opus and give on Sonnet.
-
-      **Delivery held on both models**, which is the load-bearing result. Five `PENDING`
-      reviews, nothing published, the submit command reported with its review id every
-      time, and the empty general comment appearing correctly on the three scenarios
-      whose findings all sit in the diff.
-
-      **The baselines reproduced across models almost exactly.** Scenario 01's Sonnet
-      baseline submitted a published review for the same stated reason as the Opus one,
-      `REQUEST_CHANGES` being unavailable on an own pull request. The other four posted
-      nothing. Every baseline broke every style rule, and two produced nearly identical
-      banned verdict lines on two different models.
-
-      One thing to carry forward, recorded in scenario 01: Sonnet shipped a `suggestion`
-      pinning `FROM python:3.14-slim`, a version nothing in the run could verify, having
-      hedged the uncertainty in the prose beside it. Opus wrote the same block and
-      deleted it for exactly that reason. Worth a second data point before deciding
-      whether the suggestions section should say outright that an unverified value does
-      not belong in a committable block.
-- [x] get scenario 02 a second data point. Settled, and it settles the other way: Sonnet
-      passed the scenario outright, including the narrower rule Opus broke, leaving the
-      general comment empty and saying so. So the Opus result stays a recorded
-      inconsistency, and nothing in the section about what the general comment contains
-      moves.
-- [ ] move the suite onto `claude plugin eval` once it leaves early access. It takes
-      `evals/**/case.yaml`, or `evals/**/prompt.md` plus `graders/*.md`, resolves a
-      skills-directory plugin by name, and carries `--ablation with-without` for the
-      baseline arm, `--runs` for repetition, `--judge-model`, an HTML report and
-      `--max-cost-usd`. That covers by hand exactly what has been built by hand here,
-      including the two parts that were hardest, the baseline arm and bounding the
-      spend. Still gated as of 2026-08-06: `--help` now prints the full option list,
-      including `init` and `init --bare`, and an actual invocation still answers
-      "`plugin eval` is currently in early access". So this is a migration to plan
-      rather than to start, and the gate is worth re-probing with one command rather
-      than assumed. What already exists is the input it wants: the fixture, the
-      prompts, and the assertions.
-- [x] amend the skill body where a run actually failed. One did: a submit command
-      rebuilt into `pulls/N/events`, which is not an endpoint, so the body now states
-      the command instead of leaving it to be reconstructed, and says how the API
-      reports a pending anchor. An earlier amendment about `position` was written and
-      then withdrawn, because the failure it answered had not happened. Reading a
-      pending comment back shows `position` with `line` and `start_line` null
-      whatever the payload sent, and the payload had the anchor right all along. Cost:
-      one wasted run and one wrong entry in a scenario file. Worth keeping in view,
-      since it is the skill body's own rule about verifying a claim at its source,
-      broken while grading a skill built to enforce it.
-- [x] Decide the model set deliberately: the models that actually deliver these
-      reviews, not the Haiku-Sonnet-Opus trio the docs use as an example. A
-      model the skill never runs on is not worth a run.
-- [x] Wire the suite into `AGENTS.md`: every edit to a `SKILL.md` runs that
-      skill's scenarios before the commit. Without that line a future session
-      has no way to know the suite exists, and "regression suite for every later
-      edit" stays an intention.
+What already exists is the input it wants: the fixture, the prompts, and the assertions
+written into each scenario file.
 
 Deliberately not doing: a checker of its own for the mechanical assertions. It was
 queued here as the obvious next tool, and `claude plugin eval` shipping graders as
 `graders/*.md` with a judge model makes it work to be thrown away. The assertions
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
-
-Store the scenarios in `evals/<skill-name>/`, one file per scenario, at the repo
-root rather than inside `skills/`. Everything under a skill directory is surface
-the plugin serves, and support files there are for tools and heavy reference,
-not tests.
-
-## 2. Second data points for the three single-occurrence results
-
-The Sonnet round produced three findings that each rest on one run. The repo has
-already set the standard for what that is worth: when Opus broke a rule on scenario
-02, the entry read "one occurrence is not a pattern" and queued a second run rather
-than amending anything. Applying a looser standard to Sonnet's failures than to Opus's
-would make the suite say whatever the first run happened to do, so each of these gets
-one more run with the skill, same prompt, same fixture, same model.
-
-No baselines here. All three questions are about behaviour with the skill, and the
-baseline arm for these scenarios is already recorded on both models.
-
-What each rerun decides, written down before it runs so the reading is not fitted to
-the result:
-
-- [x] **Scenario 03, the bare repeated mentions.** Did not reproduce. The rerun linked
-      every mention in both the body and the inline comment, leaving nothing behind a
-      link strip, against four survivors before. Per the rule above, variance rather
-      than the model's default, and the skill body does not move. Worth noting why the
-      comparison is not clean: the rerun wrote 6 mentions where the first wrote 10, so
-      part of the improvement is a shorter review rather than a stricter one. The rule
-      now stands at 3 passes in 4 runs.
-- [x] **Scenario 04, the missing `suggestion` block.** Reproduced, no block either
-      time, and acting on the trigger anyway would have been wrong. The two runs failed
-      for different reasons: the first noticed the earlier `COPY --chmod=755` and
-      declined to propose undoing it, the second never mentions it. The collapse is the
-      fix that must be a block, and neither run proposed it, which is a finding never
-      made rather than a finding formatted wrongly, and the skill's own opening
-      disclaims responsibility for finding defects. The fix both runs did propose,
-      adding `USER 1000:1000`, is offered as one of two options contingent on intent,
-      which lands inside the body's stated exception for "a design change, or anything
-      the reader has to decide before writing". Opus read the same sentence the other
-      way and wrote a block.
-- [x] **Scenario 01, the unverified value inside a committable block.** Did not
-      reproduce, and the rerun is arguably the best of the three runs on this point: the
-      block carries `FROM python:3.12-slim`, the pin the base version already had and so
-      verifiable from the diff alone, while the unverifiable alternative stays in the
-      prose beside it. One occurrence in three, so the suggestions section stays as it
-      is and the question closes.
-
-Deliberately not rerunning the passes. A scenario that passed twice on Opus and once on
-Sonnet is not made more certain by a fourth run, and the runs cost real time.
-
-**Net result of this task: no change to the skill body.** Two of the three did not
-reproduce, and the one that did turned out to be measuring something else. That is the
-outcome the second-data-point rule exists to produce, and it is worth stating plainly,
-because three amendments written off three single runs would all have been wrong.
-
-- [ ] **One Opus run of scenario 04, to settle the boundary the reruns exposed.** Two
-      models drew the line between "a concrete edit, so hand over a block" and "a design
-      change, so use prose" differently on the identical fix in the identical file. That
-      is the strongest amendment candidate this task has produced and it is not being
-      written yet, because the Opus side rests on one run. If Opus writes the block
-      again, the two models genuinely read the same sentence differently and the
-      suggestions section needs to say which side a conditional fix falls on. If Opus
-      writes prose, all four runs agree and nothing needs saying. Whichever way it goes,
-      an amendment to `SKILL.md` reruns this skill's scenarios before it is offered, per
-      `AGENTS.md`.
 
 ## 3. Tripwire: progressive disclosure
 
@@ -323,6 +89,81 @@ one level deep from `SKILL.md`.
 - [ ] revisit when a skill body crosses roughly 450 lines
 
 ## Completed
+
+**Build an evaluation suite for the skill, and run it.** This was the largest gap in
+the repo: nothing tested whether the rules hold. It is now five scenarios in
+`evals/writing-pr-reviews/`, one file each, carrying the prompt verbatim and a checklist
+of assertions that are commands rather than judgement calls, against a sandbox fixture
+of one pull request per scenario. Twenty-three graded runs are recorded: five scenarios
+and five baselines on each of Opus 5 and Sonnet 5, plus three reruns. Scenarios live at
+the repo root rather than under `skills/`, because everything in a skill directory is
+surface the plugin serves.
+
+Anthropic asks for at least three evaluations per skill and a run against every model
+the skill is meant for. `superpowers:writing-skills` goes further, asking that each rule
+answer a failure actually observed without it, which is what the baseline arm is for.
+The model set was chosen deliberately: Opus 5, the model these reviews are actually
+asked for on, and Sonnet 5, where a lighter session lands. Haiku is out, because a model
+the skill never runs on is not worth the calls.
+
+*What the baselines settle.* Delivery is what the skill contributes, and scenario 01
+proves it rather than implying it: without the skill, both models submitted a published
+`COMMENTED` review, each having first tried `REQUEST_CHANGES` and been refused on an own
+pull request, and neither weighed publishing as a decision at all. The other eight
+baselines posted nothing and wrote the review into the reply, which leaves inline-versus-body
+placement and the suggestion anchor with no baseline evidence, since both need a review
+object before they can be broken. Their scenario files say so rather than scoring them
+as vindicated. Every baseline broke every style rule, with numbers rather than
+impressions, and two produced nearly identical banned verdict lines on two different
+models. Permalinks and line numbers came out intermittent rather than absent: one
+baseline wrote five links unprompted and pinned two of them to the base commit instead
+of the head SHA, correct today and stale the moment either file moves.
+
+*What the two-model set was worth.* The prediction was that the style rules would give
+first on Sonnet, since they fight a model's default writing voice. That was wrong: zero
+em dashes, zero first or second person, zero markdown headings and English throughout,
+across all five Sonnet reviews. Two other rules gave instead, both costing an extra step
+at writing time, and both then got a second run. The bare repeated mentions on scenario
+03 did not reproduce. The missing `suggestion` block on scenario 04 did, and turned out
+to be measuring a finding never made rather than a rule broken, which is what task 1
+above now exists to settle. Scenario 02's Opus inconsistency, a body restating a fix its
+inline comment already carried, did not reproduce on Sonnet either.
+
+*Net effect on the skill body: almost nothing, which is the point.* One amendment was
+made, and it answered a real failure: a submit command rebuilt into `pulls/N/events`,
+which is not an endpoint, so the body now states the command rather than leaving it to
+be reconstructed, and says how the API reports a pending anchor. An earlier amendment
+about `position` was written and then withdrawn, because the failure it answered had not
+happened: a pending comment reads back with `position` set and `line` null whatever the
+payload sent, and the payload had been right all along. Cost, one wasted run and one
+wrong entry in a scenario file, and it is worth keeping in view, since it is the skill
+body's own rule about verifying a claim at its source, broken while grading a skill
+built to enforce it. Three further amendments were considered off single runs and all
+three would have been wrong.
+
+*Four defects in the assertions, all found by runs.* Two reported violations on clean
+reviews, both counting where they should have been reading: comparing a count of
+filenames against a count of links double-counts every link, since the name appears in
+the link text and again in the URL. Two failed the other way, passing a real violation
+in silence: a head-SHA check written as `grep -c 'blob/main'`, which a base-commit pin
+satisfies, now a prefix match of every `blob/<sha>` against `headRefOid`; and a
+first-person check listing six forms while "me", "my" and the contractions went through
+it. The pattern in all four is an assertion testing the failure imagined while writing
+it rather than the one the rule is about.
+
+*Three harness lessons, each of which would have read as a skill failure.* A machine can
+scope its git identity to a directory tree, leaving the fixture's temporary clone
+without one, so the fixture derives an identity from the authenticated account. A run
+has to happen from inside a clone of the fixture, or `gh` resolves the wrong repository
+entirely. And a fresh `CLAUDE_CONFIG_DIR` removes the plugin and the credentials
+together, since credentials live in the keychain keyed to the real directory, so a
+baseline disables the plugin instead and re-enables it from a trap. The grading recipe
+also assumed a review object exists, which eight of the ten baselines never created, so
+it now says the reply is the text to grade when nothing was posted.
+
+`AGENTS.md` carries the line that makes the suite a regression suite rather than a
+one-off: every edit to a `SKILL.md` runs that skill's scenarios before the change is
+offered.
 
 **Rename the plugin namespace to `myai`.** A skill is invoked as
 `/myai:writing-pr-reviews`. The objection raised against the name and set aside:

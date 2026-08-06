@@ -105,7 +105,7 @@ $inline"
 `$body` is the general comment, `$inline` every inline comment, and `$text` the
 two together, which is what the style assertions read.
 
-**When nothing was posted, the reply is the text to grade.** Four of the five baselines
+**When nothing was posted, the reply is the text to grade.** Eight of the ten baselines
 recorded so far created no review at all, which leaves `$id` empty and the whole chain
 above with nothing in it. Read `$out` instead and run every style assertion over that,
 since the review is in there. E1 and E2 then record an absence rather than reporting a
