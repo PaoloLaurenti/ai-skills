@@ -43,8 +43,9 @@ pub struct Problem {
 pub fn check_skills(dir: &Path) -> io::Result<Vec<Problem>> {
     let mut problems = Vec::new();
     for skill in skill_directories(dir)? {
-        match fs::read_to_string(dir.join(&skill).join("SKILL.md")) {
-            Ok(content) => problems.extend(check_skill(&skill, &content)),
+        let directory = dir.join(&skill);
+        match fs::read_to_string(directory.join("SKILL.md")) {
+            Ok(content) => problems.extend(check_skill(&skill, &content, &directory)),
             // A directory with no SKILL.md is a skill that will not load, which
             // is a finding to report rather than a reason to stop reading the
             // rest of the tree. Any other read failure still surfaces as an Err.
@@ -58,7 +59,7 @@ pub fn check_skills(dir: &Path) -> io::Result<Vec<Problem>> {
     Ok(problems)
 }
 
-fn check_skill(skill: &str, content: &str) -> Vec<Problem> {
+fn check_skill(skill: &str, content: &str, directory: &Path) -> Vec<Problem> {
     let report = |message: String| Problem {
         skill: skill.to_owned(),
         message,
@@ -114,7 +115,102 @@ fn check_skill(skill: &str, content: &str) -> Vec<Problem> {
         )));
     }
 
+    for target in relative_link_targets(body) {
+        if !directory.join(&target).exists() {
+            problems.push(report(format!(
+                "the body links {target}, which does not exist. A reference file the body \
+                 points at and the tree does not hold is a rule the skill cannot reach"
+            )));
+        }
+    }
+
     problems
+}
+
+/// The relative link targets a body points at, with any `#fragment` and any
+/// link title stripped, in the order they appear.
+///
+/// Absolute URLs and bare anchors are left out, since neither names a file in
+/// the skill directory. The `<sha>` placeholders and `OWNER/REPO` stand-ins that
+/// appear in example permalinks are all `https:`, so they never reach this.
+///
+/// Code is stripped first, because a skill body about writing markdown quotes
+/// markdown. This repo's own skill has a red flag naming the shape a link should
+/// take, `[...](...)` inside a code span, and reading that as a link reported a
+/// missing file called `...` on a skill with nothing wrong with it.
+fn relative_link_targets(body: &str) -> Vec<String> {
+    let prose = strip_code(body);
+    let mut targets = Vec::new();
+    let mut rest = prose.as_str();
+    while let Some(open) = rest.find("](") {
+        rest = &rest[open + 2..];
+        let Some(close) = rest.find(')') else { break };
+        let target = &rest[..close];
+        rest = &rest[close + 1..];
+
+        // `[text](path "title")` keeps only the path.
+        let target = target.split_whitespace().next().unwrap_or_default();
+        // `path#anchor` and a bare `#anchor` both reduce to the file, and the
+        // bare one reduces to nothing, which is how it gets skipped.
+        let target = target.split('#').next().unwrap_or_default();
+
+        if target.is_empty() || target.contains("://") || target.starts_with("mailto:") {
+            continue;
+        }
+        targets.push(target.to_owned());
+    }
+    targets
+}
+
+/// The body with fenced blocks and inline code spans removed, so markdown quoted
+/// as an example is not read as markdown meant to resolve.
+///
+/// Lines are kept rather than joined, since dropping them would let a link on
+/// one side of a fence run into text on the other and produce a target that
+/// appears nowhere in the file.
+fn strip_code(body: &str) -> String {
+    let mut prose = String::with_capacity(body.len());
+    // The length of the run that opened the current block, or zero outside one.
+    // A block closes only on a run at least as long, which is what keeps a
+    // ````markdown wrapper from being closed by the ``` example inside it. This
+    // repo's own skill body uses that nesting to show what a suggestion looks
+    // like, and a toggle that ignored the length treated the inner lines as
+    // prose.
+    let mut fence = 0usize;
+    for line in body.lines() {
+        let ticks = line.trim_start().chars().take_while(|c| *c == '`').count();
+        if ticks >= 3 {
+            if fence == 0 {
+                fence = ticks;
+            } else if ticks >= fence {
+                fence = 0;
+            }
+            prose.push('\n');
+            continue;
+        }
+        if fence > 0 {
+            prose.push('\n');
+            continue;
+        }
+        // Backticks come in runs, and a span opened by three closes on three, so
+        // pairing whole runs keeps a `` `code` `` span from swallowing the rest.
+        let mut in_span = false;
+        let mut chars = line.chars().peekable();
+        while let Some(character) = chars.next() {
+            if character == '`' {
+                while chars.peek() == Some(&'`') {
+                    chars.next();
+                }
+                in_span = !in_span;
+                continue;
+            }
+            if !in_span {
+                prose.push(character);
+            }
+        }
+        prose.push('\n');
+    }
+    prose
 }
 
 /// The raw lines the description value is written on: the `description:` line

@@ -189,8 +189,25 @@ usual imprecision of a hook this shape: a fix left unstaged still counts.
 The suite is both the gate and the specification: every rule is a named test, and
 two of those tests run the checks over this repo itself. On a skill file it covers
 the shape only, whether the frontmatter parses, whether `name` matches the
-directory, the description limit, the body length. Nothing it reports is about the
+directory, the description limit, the body length, and whether every relative link
+in the body resolves to a file that exists. Nothing it reports is about the
 quality of the prose.
+
+That last one is what makes a `reference/` file safe to rely on. Before it, moving
+or renaming one left the pointer in `SKILL.md` dangling with nothing to catch it,
+and the first sign would have been a real review failing to be delivered.
+
+**Its scope is a `SKILL.md`, not the files one points at.** A reference file that
+links a second reference file is unchecked, which costs nothing today because none
+of them link anything, and would need the check made recursive the day one does.
+
+Two things it has to get right, and both were found by running it rather than by
+reasoning about it. A link is only checked when it is relative, since an external
+URL names nothing in the tree. And markdown inside a code span or a fenced block is
+illustration rather than a pointer: a body about writing markdown quotes markdown,
+and this repo's skill both names the shape a link should take, in a code span, and
+shows a suggestion block as four backticks wrapping three. A fence tracker that
+ignores run length lets that inner fence close the outer one.
 
 The same suite carries the rules this file states about the whole tree: no
 machine-local paths, no owner name outside the two places allowed to carry it, and

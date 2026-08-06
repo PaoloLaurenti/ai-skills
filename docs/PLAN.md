@@ -56,6 +56,40 @@ the part worth having either way.
 
 ## Completed
 
+**Check that a skill's relative links resolve, which is the gap the split opened.** Moving
+the delivery commands into `reference/` made the skill depend on a file nothing verified.
+Confirmed rather than assumed before writing anything: with the reference file deleted,
+`tools/check.sh` passed. A rename would have broken delivery silently, and the first sign
+of it would have been a real review not getting posted.
+
+The check now parses every relative markdown link in a body and reports one that resolves
+to nothing. External URLs are left alone, since they name nothing in the tree, and a
+fragment is stripped before the file is looked for. Five named tests, plus the existing
+one that runs the checker over this repo's own skills, and the gap is closed by
+demonstration: deleting the reference file now fails the suite where it used to pass.
+
+*It found a defect on its first run, and the defect was its own.* Against the real skill it
+reported a missing file called `...`, from the red flag that names the shape a link should
+take, `[...](...)` written inside a code span. A body about writing markdown quotes
+markdown, and a link parser that does not strip code reads the quotation as a pointer. The
+fix strips fenced blocks and inline code spans first, and both cases are now tests. Worth
+recording because it is the sixth assertion in this repo to test the failure imagined while
+writing it rather than the one the rule is about, and the first to be caught before it
+shipped rather than after.
+
+*A second defect in the same parser, found by checking rather than by reasoning.* The
+fence tracker toggled on any run of three or more backticks, and the skill body shows a
+suggestion block as four backticks wrapping three, so the inner fence closed the outer one
+and the lines between were read as prose. It produced no false positive today only because
+those lines carry no link. The tracker now records the opening run's length and closes on
+a run at least as long, with the nesting as a test.
+
+*Two limits of the check, stated rather than left to be discovered.* Its scope is a
+`SKILL.md` and not the files one points at, so a reference file linking a second reference
+file is unchecked; that costs nothing while none of them link anything, and would need the
+check made recursive the day one does. And it verifies that a path resolves, never that
+the thing it resolves to says what the pointer claims.
+
 **Split the delivery mechanics out of the skill body, which is the tripwire firing and
 then being answered.** The append amendment below took the body from 408 lines to 468,
 past the 450 mark this plan had set as its own trigger, and this is the change that

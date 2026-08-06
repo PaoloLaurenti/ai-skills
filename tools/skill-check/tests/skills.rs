@@ -248,6 +248,149 @@ fn a_directory_without_a_skill_file_is_reported() {
     assert!(mentions(&found, "SKILL.md"), "{found:?}");
 }
 
+/// Writes a skill whose body is one markdown link, so a case can say exactly
+/// what the body points at.
+fn write_skill_linking(root: &Path, directory: &str, link: &str) {
+    let dir = root.join(directory);
+    fs::create_dir_all(&dir).expect("fixture directory");
+    let frontmatter = frontmatter(directory, DESCRIPTION);
+    fs::write(
+        dir.join("SKILL.md"),
+        format!("{frontmatter}\n\nRead {link} before doing anything.\n"),
+    )
+    .expect("fixture skill");
+}
+
+/// The gap the progressive disclosure split opened. Moving the delivery commands
+/// into `reference/` made the skill depend on a file that nothing verified: the
+/// checker passed with the reference file deleted, so a rename would have broken
+/// delivery silently and the first sign of it would have been a real review
+/// failing to be posted.
+#[test]
+fn a_body_linking_a_missing_reference_file_is_reported() {
+    let tree = tree();
+    write_skill_linking(
+        tree.path(),
+        "writing-things",
+        "[the mechanics](reference/delivering.md)",
+    );
+    let found = problems(&tree);
+    assert!(mentions(&found, "reference/delivering.md"), "{found:?}");
+}
+
+#[test]
+fn a_body_linking_a_reference_file_that_exists_is_accepted() {
+    let tree = tree();
+    write_skill_linking(
+        tree.path(),
+        "writing-things",
+        "[the mechanics](reference/delivering.md)",
+    );
+    let reference = tree.path().join("writing-things/reference");
+    fs::create_dir_all(&reference).expect("fixture reference directory");
+    fs::write(reference.join("delivering.md"), "# Delivering\n").expect("fixture reference file");
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// An external URL names nothing in the skill directory, so checking it against
+/// the filesystem would report every legitimate link a body carries. The skill
+/// bodies here are full of them: every example permalink is one.
+#[test]
+fn an_absolute_url_is_not_checked_against_the_filesystem() {
+    let tree = tree();
+    write_skill_linking(
+        tree.path(),
+        "writing-things",
+        "[the docs](https://example.com/nothing/here.md)",
+    );
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// Found by the check on its first run against the repo, and a defect in the
+/// check rather than in the skill. This repo's skill body carries a red flag
+/// naming the shape a link should take, `[...](...)` inside a code span, and
+/// reading that as a link reported a missing file called `...` on a skill with
+/// nothing wrong with it. A body about writing markdown quotes markdown.
+#[test]
+fn a_link_inside_a_code_span_is_not_a_link() {
+    let tree = tree();
+    write_skill_linking(
+        tree.path(),
+        "writing-things",
+        "a file wrapped in a `[...](...)` link",
+    );
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// The same, for a fenced block. An example command or a sample of markdown is
+/// illustration rather than a pointer the tree has to satisfy.
+#[test]
+fn a_link_inside_a_fenced_block_is_not_a_link() {
+    let tree = tree();
+    let dir = tree.path().join("writing-things");
+    fs::create_dir_all(&dir).expect("fixture directory");
+    let frontmatter = frontmatter("writing-things", DESCRIPTION);
+    fs::write(
+        dir.join("SKILL.md"),
+        format!(
+            "{frontmatter}\n\nAn example:\n\n```markdown\n[a file](reference/nothing.md)\n```\n"
+        ),
+    )
+    .expect("fixture skill");
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// The nesting this repo's own skill uses to show what a fenced block looks
+/// like: four backticks wrapping three. A fence tracker that toggled on any run
+/// would let the inner fence close the outer one and read the lines between as
+/// prose, so a link in there would be checked when it should not be.
+#[test]
+fn a_link_inside_a_nested_fence_is_not_a_link() {
+    let tree = tree();
+    let dir = tree.path().join("writing-things");
+    fs::create_dir_all(&dir).expect("fixture directory");
+    let frontmatter = frontmatter("writing-things", DESCRIPTION);
+    fs::write(
+        dir.join("SKILL.md"),
+        format!(
+            "{frontmatter}\n\nWhat one looks like:\n\n\
+             ````markdown\n```suggestion\n[a file](reference/nothing.md)\n```\n````\n"
+        ),
+    )
+    .expect("fixture skill");
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// A link into the body's own headings resolves inside the file rather than to a
+/// path, and stripping its fragment leaves nothing to look for.
+#[test]
+fn a_bare_anchor_link_is_not_checked_against_the_filesystem() {
+    let tree = tree();
+    write_skill_linking(
+        tree.path(),
+        "writing-things",
+        "[the rules](#non-negotiables)",
+    );
+    assert_eq!(problems(&tree), vec![]);
+}
+
+/// A reference file pointed at with a line anchor still has to exist as a file.
+/// Without the fragment being stripped the lookup would be for a path that never
+/// exists, and every anchored link would be reported.
+#[test]
+fn a_fragment_is_stripped_before_the_file_is_looked_for() {
+    let tree = tree();
+    write_skill_linking(
+        tree.path(),
+        "writing-things",
+        "[appending](reference/delivering.md#appending-to-a-draft)",
+    );
+    let reference = tree.path().join("writing-things/reference");
+    fs::create_dir_all(&reference).expect("fixture reference directory");
+    fs::write(reference.join("delivering.md"), "# Delivering\n").expect("fixture reference file");
+    assert_eq!(problems(&tree), vec![]);
+}
+
 #[test]
 fn this_repos_own_skills_pass() {
     let found = check_skills(&repo_skills()).expect("reading the repo's skills");
