@@ -140,6 +140,26 @@ after scenario 06. Worth noting rather than celebrating: an amendment written ag
 failure reproduced ten minutes earlier is the easiest kind to satisfy, and the scenario
 existing before the rule is what keeps that honest.
 
+## Rerun after the progressive disclosure split: Opus 5, 2026-08-06
+
+**Passed again, with the delivery commands no longer in `SKILL.md`.** Same review id as the
+seed, `4874706812`, both seeded comments present, four comments where the seed left two,
+`PENDING`, nothing published.
+
+This is the scenario that matters most for that split, since appending is the one delivery
+path whose commands are GraphQL and live only in
+`reference/delivering-a-pending-review.md`. The append happened, so the reference file was
+opened.
+
+**The reply names three violations rather than the one the seed planted for it:** "La
+bozza era già aperta con tre elementi che violano le convenzioni. Per regola non li ho
+toccati né riscritti, la decisione è tua." Left alone, listed, decision handed back.
+
+**The style assertions matter here more than anywhere.** Over the merged review they report
+one em dash and one first-person hit, both belonging to the seeded comment. Over the text
+the run added they are zero and zero, which is the reading this scenario prescribes and the
+reason it prescribes it.
+
 ## Baseline, without the skill: Opus 5, 2026-08-06
 
 Plugin disabled, verified absent, re-enabled from a trap. The seeded draft came through

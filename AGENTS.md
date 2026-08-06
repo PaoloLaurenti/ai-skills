@@ -14,6 +14,7 @@ plus the few lines of shell that run it from a hook and from CI.
 ```
 .claude-plugin/plugin.json      the plugin manifest, naming the namespace every skill loads under
 skills/<skill-name>/SKILL.md    one directory per skill, the skill body lives in SKILL.md
+skills/<skill-name>/reference/  material a skill body points at rather than carries
 evals/<skill-name>/             the scenarios that test a skill's rules, one file each
 README.md                       what the repo is, how it is wired up, how to add a skill
 AGENTS.md                       this file
@@ -146,6 +147,21 @@ exactly as written:
 description: >-
   Use when asked for a review, including phrasings like "review PR #12".
 ```
+
+**Rules stay in the body, commands may move to `reference/`.** The 500-line limit forces a
+split eventually, and what gets extracted decides whether the split is free or costly. A
+command is reference material: it is looked up at the moment it is needed, and a body
+carrying twenty of them is mostly lookup table. A rule is not, because an agent that never
+opens the file never obeys it, and the rules most worth having are the ones an agent under
+pressure would rather skip.
+
+So the body keeps the non-negotiables, the red flags and every sentence stating what must
+or must not happen, and `reference/<topic>.md` takes the invocations behind them. Two
+things make the split safe. The reference file sits one hop from `SKILL.md`, linked from
+the section that used to hold its contents, never from another reference file. And the
+pointer is written as an instruction with its reason attached, since a footnote gets
+skipped: an agent has to know that opening it is part of the job and what goes wrong
+otherwise.
 
 ## Checking a skill mechanically
 

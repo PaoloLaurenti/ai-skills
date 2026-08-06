@@ -341,98 +341,29 @@ Numbers written from memory come out off by one.
 
 ## Delivering it as a pending review
 
-`gh pr review` cannot produce a draft: it requires `--comment`, `--approve`, or
-`--request-changes`, all of which publish immediately. Use the API and omit
-`event`:
+**Read [reference/delivering-a-pending-review.md](reference/delivering-a-pending-review.md)
+before posting anything.** It carries every command this section refers to. Two of them,
+the submit endpoint and the GraphQL append, come out wrong when reconstructed from memory,
+and both failures have happened.
 
-```bash
-gh api --method POST repos/OWNER/REPO/pulls/N/reviews --input review.json
-```
+The rules the commands serve:
 
-**Check for an open draft before running that.** GitHub allows one pending review
-per user per pull request, so the `POST` fails with `422 User can only have one
-pending review per pull request` while one exists:
-
-```bash
-gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | select(.state=="PENDING") | .id'
-```
-
-Nothing back means the `POST` is the right call. An id means that draft is
-appended to, per non-negotiable 2. REST has no append, so this part is GraphQL and
-works off the node id:
-
-```bash
-node=$(gh api repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID -q .node_id)
-```
-
-Inline comments go one at a time, anchored exactly as `review.json` would have
-anchored them:
-
-```bash
-gh api graphql -f query='
-mutation($rid:ID!,$body:String!,$path:String!,$line:Int!){
-  addPullRequestReviewThread(input:{pullRequestReviewId:$rid, body:$body,
-    path:$path, line:$line, side:RIGHT}){ thread { id } }
-}' -f rid="$node" -f body="..." -f path="..." -F line=N
-```
-
-It takes `startLine` and `startSide` too, so a range anchor survives the append.
-Reach for it rather than `addPullRequestReviewComment`, which reads like the
-obvious name and rejects `line` and `side` outright, because it still speaks the
-older `position` model.
-
-The general comment is added to rather than overwritten, so read the existing body
-and send it back with the new text after it:
-
-```bash
-old=$(gh api repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID -q .body)
-gh api graphql -f query='
-mutation($rid:ID!,$body:String!){
-  updatePullRequestReview(input:{pullRequestReviewId:$rid, body:$body}){
-    pullRequestReview { state } }
-}' -f rid="$node" -f body="$old
-...new text..."
-```
-
-Both mutations leave the review `PENDING` and publish nothing.
-
-`review.json` holds `commit_id`, `body`, and a `comments` array of
-`{path, line, side}`, or `{path, start_line, start_side, line, side}` for a
-range. No `event` key means the whole review, general comment included, stays
-`PENDING`.
-
-Reading a pending review back shows `position` and `original_position` only, with
-`line`, `start_line` and `side` null whatever the payload sent. That is how the API
-reports a draft, not evidence the anchor was lost.
-
-State the submit command rather than leaving it to be reconstructed, since the
-review id is part of it and reconstructing it produces an endpoint that does not
-exist:
-
-```bash
-gh api --method POST repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID/events -f event=COMMENT
-```
-
-Inline comments only attach to lines inside a diff hunk. Take line numbers from
-the head version of the file, not from the diff.
-
-Confirm nothing leaked before reporting back:
-
-```bash
-gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | "\(.id) \(.state)"'  # expect PENDING
-gh api repos/OWNER/REPO/pulls/N/comments -q 'length'                   # expect 0
-```
-
-To change a draft **this run created**, delete it and recreate it, since a second
-`POST` fails while it exists.
-
-```bash
-gh api --method DELETE repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID
-```
-
-That is the only draft this applies to. One that was already open when the review
-started belongs to whoever wrote it, and non-negotiable 2 governs it: append, and
-never reach for `DELETE` to get past the `422`.
+- **Check whether a draft is already open before creating one.** Nothing open means create
+  it. Something open means append to it, per non-negotiable 2. A `422 User can only have
+  one pending review per pull request` is that check arriving late, and never a reason to
+  delete.
+- **Delete and recreate applies to a draft this run created, and to nothing else.** One
+  that was already open belongs to whoever wrote it.
+- **Never `gh pr review`.** It requires `--comment`, `--approve` or `--request-changes`,
+  all of which publish immediately. The API with no `event` key is what keeps a review
+  `PENDING`.
+- **Confirm nothing leaked before reporting back**, then state the submit command rather
+  than leaving it to be reconstructed.
+- **Anchor inline comments inside a diff hunk**, taking line numbers from the head version
+  of the file rather than from the diff.
+- **A pending review reads back with `position` only**, and `line`, `start_line` and
+  `side` null whatever the payload sent. That is the API describing a draft, not the
+  anchor having been lost, so an anchor is checked against the payload.
 
 ## Red flags
 

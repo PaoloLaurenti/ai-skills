@@ -6,11 +6,9 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open. Task 1 is blocked on Anthropic. Task 2 is the progressive disclosure
-split, and it is the one entry here that has stopped being hypothetical: the amendment
-recorded at the top of Completed pushed the skill body past the 450-line mark this plan
-set as its own trigger, so the next person to touch that file inherits the decision.
-Everything else is finished and recorded under Completed.
+One thing is open, and it is blocked on Anthropic rather than on this repo. Everything
+else is finished and recorded under Completed, the progressive disclosure split included:
+it fired, it was done, and the skill body came back under where it started.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -56,34 +54,51 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
 
-## 2. Tripwire: progressive disclosure
-
-**The tripwire has fired.** The skill body is at 468 lines against a 500-line limit,
-having crossed the 450 mark this entry set as its own trigger. It went from 408 to 468 in
-one change, the append amendment recorded below, which is the entry that predicted it
-would be the thing to cross it.
-
-- [ ] split before the next substantial addition, which now has 32 lines of headroom
-      rather than 92
-
-Deliberately still not splitting: doing it inside the amendment that crossed the line
-would have meant restructuring the file in the same change that added a rule to it, and
-the amendment had six scenarios to satisfy on its own. The split is a decision about
-where rules live, and it deserves its own change rather than riding along with one.
-
-**What moves, and what must not.** The section to extract is the delivery mechanics for a
-pending review, which is reference material rather than a rule, and reference files stay
-one level deep from `SKILL.md`. The amendment made this both more pressing and easier: the
-GraphQL append calls are reference material of exactly the same kind as the `gh api`
-commands already sitting there, so they leave together.
-
-What must not follow them out is the rule itself. Non-negotiable 2, that an open draft is
-appended to and never deleted, belongs in the body beside the other non-negotiables, along
-with the two red flags guarding it. Moving rules out of a skill whose job is enforcing
-discipline risks them not being read at all, and a data-loss rule is the worst candidate
-in the file for that treatment.
-
 ## Completed
+
+**Split the delivery mechanics out of the skill body, which is the tripwire firing and
+then being answered.** The append amendment below took the body from 408 lines to 468,
+past the 450 mark this plan had set as its own trigger, and this is the change that
+answers it. The body is now 399 lines, under where it started, with 101 lines of headroom
+against the 500 limit rather than 32.
+
+*What moved.* The commands, into
+`skills/writing-pr-reviews/reference/delivering-a-pending-review.md`, one hop from
+`SKILL.md` and linked from the section that used to hold them: creating a draft, the
+`review.json` shape, checking for an open one, the two GraphQL append calls, delete and
+recreate, the submit endpoint, the leak check, and the two things the API reports
+misleadingly. Every command was checked as present in exactly one of the two files
+afterwards, so the move lost nothing.
+
+*What stayed, and this was the whole design constraint.* The rules. Non-negotiable 2 and
+the two red flags guarding it never moved, because a data-loss rule is the worst candidate
+in the file for a reference file nobody opens. What remains in the delivery section is six
+rules and a pointer: check before creating, delete only what this run created, never `gh pr
+review`, confirm nothing leaked and state the submit command, anchor inside a diff hunk,
+and read a draft's `position`-only response as the API describing a draft rather than as a
+lost anchor.
+
+*The risk this change carries, and it is different from the amendment's.* Moving commands
+out means an agent has to actually open the reference file to deliver anything. The
+pointer is therefore written as an instruction rather than as a footnote, and it names why:
+two of those calls come out wrong when reconstructed from memory, and both failures have
+already happened in this repo. Whether the pointer is obeyed is what the rerun tests, and
+delivery is what breaks first if it is not.
+
+*All seven scenarios rerun on Opus, and the pointer holds.* Every one delivered a single
+`PENDING` review with nothing published, no em dash, no first or second person, and every
+permalink on the head SHA. Scenario 04 still wrote its `suggestion` block, 05 still named
+`README.md` and quoted the stale port, 06 still named `platform-api`, and 07 still appended
+to the seeded draft under the same review id with both seeded comments intact.
+
+The sharpest evidence is the submit command. All seven reported it as
+`pulls/N/reviews/REVIEW_ID/events`, and that string now appears zero times in `SKILL.md`
+and once in the reference file. Getting it right is only possible by opening the file, so
+the instruction-shaped pointer is doing its job rather than being skipped.
+
+*A bonus the rerun settled.* Scenarios 03, 04 and 05 came back with no off-head permalinks,
+where the pre-split rerun had one each. That is the `deploy.yml` fixture repair confirmed
+by runs rather than only by the structural check, and it closes the false E7 for good.
 
 **Append to an open pending review instead of failing or destroying it, and the scenario
 that tests it.** Both halves shipped together, which is what the two entries said had to
@@ -154,8 +169,8 @@ a baseline in principle, since without the skill there are no conventions for th
 break.
 
 *Cost, paid as `AGENTS.md` requires.* The edit to `SKILL.md` reran the suite, and it took
-the body from 408 lines to 468, firing the progressive disclosure tripwire that task 2 now
-carries. The rerun was one Opus run per existing scenario rather than the full two-model
+the body from 408 lines to 468, firing the progressive disclosure tripwire that the entry
+above then answered. The rerun was one Opus run per existing scenario rather than the full two-model
 matrix, which is the reading of `AGENTS.md` a regression gate needs rather than the one
 that settles a rule, and it is stated here rather than quietly performed.
 
