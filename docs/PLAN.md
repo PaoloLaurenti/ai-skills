@@ -6,10 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 1 carries the most value by a wide margin and is the only real work left, now
-that the mechanical checks that ran ahead of it are done. Its scaffolding is in
-place, so what remains there is running the scenarios and recording what the runs
-say. Task 2 is a tripwire rather than work.
+Task 1 is done apart from one item blocked on Anthropic, so the queued work is now
+task 2: three single-occurrence results from the Sonnet round that the repo's own
+evidentiary standard says cannot be acted on yet. Task 3 is a tripwire rather than
+work.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -214,10 +214,12 @@ an agent under pressure will negotiate with:
       baseline arm, `--runs` for repetition, `--judge-model`, an HTML report and
       `--max-cost-usd`. That covers by hand exactly what has been built by hand here,
       including the two parts that were hardest, the baseline arm and bounding the
-      spend. Every invocation currently answers "`plugin eval` is currently in early
-      access" and `eval init --bare` writes nothing, so this is a migration to plan
-      rather than to start. What already exists is the input it wants: the fixture,
-      the prompts, and the assertions.
+      spend. Still gated as of 2026-08-06: `--help` now prints the full option list,
+      including `init` and `init --bare`, and an actual invocation still answers
+      "`plugin eval` is currently in early access". So this is a migration to plan
+      rather than to start, and the gate is worth re-probing with one command rather
+      than assumed. What already exists is the input it wants: the fixture, the
+      prompts, and the assertions.
 - [x] amend the skill body where a run actually failed. One did: a submit command
       rebuilt into `pulls/N/events`, which is not an endpoint, so the body now states
       the command instead of leaving it to be reconstructed, and says how the API
@@ -247,9 +249,46 @@ root rather than inside `skills/`. Everything under a skill directory is surface
 the plugin serves, and support files there are for tools and heavy reference,
 not tests.
 
-## 2. Tripwire: progressive disclosure
+## 2. Second data points for the three single-occurrence results
 
-No action yet. The skill body is at 400 lines against a 500-line limit, so the
+The Sonnet round produced three findings that each rest on one run. The repo has
+already set the standard for what that is worth: when Opus broke a rule on scenario
+02, the entry read "one occurrence is not a pattern" and queued a second run rather
+than amending anything. Applying a looser standard to Sonnet's failures than to Opus's
+would make the suite say whatever the first run happened to do, so each of these gets
+one more run with the skill, same prompt, same fixture, same model.
+
+No baselines here. All three questions are about behaviour with the skill, and the
+baseline arm for these scenarios is already recorded on both models.
+
+What each rerun decides, written down before it runs so the reading is not fitted to
+the result:
+
+- [ ] **Scenario 03, the bare repeated mentions.** Sonnet linked every file the first
+      time it appeared and left four later mentions plain. If the rerun does it again,
+      the failure is systematic on this model and the skill body's Code references
+      section is worth strengthening exactly where it sits, since the rule is stated
+      but evidently not sticky. If the rerun links them all, the entry stays a recorded
+      inconsistency and the body does not move.
+- [ ] **Scenario 04, the missing `suggestion` block.** Sonnet wrote a concrete
+      `USER 1000:1000` insertion as prose where Opus handed over a committable block on
+      the same line. Same decision rule: twice makes it the model's default and worth
+      answering in the body, once makes it variance.
+- [ ] **Scenario 01, the unverified value inside a committable block.** Sonnet shipped
+      `FROM python:3.14-slim` in a `suggestion` while hedging in the prose that the
+      current minor wants checking at merge time. Opus wrote that block and deleted it
+      for that reason. This one differs from the other two: no assertion covers it, and
+      the skill body arguably does not either. If the rerun ships an unverified value
+      again, the suggestions section needs a sentence saying a value nothing in the run
+      could verify does not belong in a one-click block, and that sentence would be the
+      first amendment in this task answering a failure observed rather than imagined.
+
+Deliberately not rerunning the passes. A scenario that passed twice on Opus and once on
+Sonnet is not made more certain by a fourth run, and the runs cost real time.
+
+## 3. Tripwire: progressive disclosure
+
+No action yet. The skill body is at 408 lines against a 500-line limit, so the
 next substantial addition forces the split.
 
 Deliberately not splitting now: moving rules out of `SKILL.md` in a skill whose
