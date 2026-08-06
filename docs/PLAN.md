@@ -6,9 +6,9 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open, and neither is work anyone can start today: task 1 is blocked on
-Anthropic and task 2 is a tripwire rather than work. Everything else this plan has
-carried is finished and recorded under Completed, the evaluation suite and the
+Three things are open, and only the first is work anyone can start today. Task 2 is
+blocked on Anthropic and task 3 is a tripwire rather than work. Everything else this
+plan has carried is finished and recorded under Completed, the evaluation suite and the
 block-versus-prose question it left behind included.
 
 Already in line, so absent from this plan: the `description` field states
@@ -18,7 +18,48 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Move the suite onto `claude plugin eval`
+## 1. A scenario for the rule about verifying architectural claims
+
+One of the two sections of the skill body with no scenario against it, and the one worth
+covering, found by listing the body's sections beside the five scenarios rather than by a
+run failing.
+
+`Verify every factual claim about the architecture` is the rule that a review reads the
+file defining a fact before stating it, and never infers it from a crate name, a service
+name, or the shape of the diff. Nothing in the suite exercises it. Scenarios 01 to 05
+cover pending state, inline versus body, permalinks and line numbers, suggestion blocks,
+and the docs cross-check, and the every-run assertions cover the style rules.
+
+Why this one rather than the other uncovered section. The body says of this failure mode
+that it "passes every mechanical check on the review, so only reading the source catches
+it", which is precisely the shape a suite of mechanical assertions will not notice going
+wrong. Three things in the record already point at it. Scenario 01 recorded a run where
+an unverified value went inside a committable block and observed that "no assertion here
+catches it, because none of them ask whether a suggestion's content was verified"; that
+particular question closed on the rerun, but the general one it exposed did not. The
+third Opus run on scenario 04 withdrew a false `main()` finding after reading
+`README.md`, which is the rule working and went unrecorded by any assertion. And this
+repo broke the same rule itself while grading, in the withdrawn `position` amendment.
+
+- [ ] add `evals/writing-pr-reviews/06-architectural-claims.md` and the fixture branch it
+      needs, then run it on both models with a baseline arm each
+
+What the fixture has to plant is a name that invites an inference the repo's own files
+contradict, which is the `mia-identity` example the body itself uses: a directory or
+package called one thing, and a deploy workflow naming a different container or image.
+That keeps the rule under test mechanical, as `evals/writing-pr-reviews/README.md`
+requires of at least one assertion per scenario: grep the review text for the inferred
+name against the real one read out of the workflow file, rather than judging the prose.
+
+Not queued alongside it: a scenario for `Every observation carries a proposal`. It is the
+other section without one, it is already covered by a red flag, and no run has produced a
+naked observation, so a scenario for it would be answering an imagined failure.
+
+Worth knowing before starting: a new scenario is not work the migration below throws
+away. That entry records that what `claude plugin eval` wants is the fixture, the prompts
+and the assertions, which is exactly what a scenario file is.
+
+## 2. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -29,11 +70,22 @@ Blocked on Anthropic, not on this repo.
 what has been built by hand here, including the two parts that were hardest: the
 baseline arm and bounding the spend.
 
-- [ ] migrate once it leaves early access. Still gated as of 2026-08-06: `--help` now
-      prints the full option list, `init` and `init --bare` included, and an actual
-      invocation still answers "`plugin eval` is currently in early access". Worth
-      re-probing with one command rather than assuming, since the help output moved
-      while the gate did not.
+- [ ] migrate once it leaves early access. Still gated at CLI 2.1.223, re-probed on
+      2026-08-06 on both entry points: `claude plugin eval init --bare` and a run against
+      `myai@skills-dir` each answer "`plugin eval` is currently in early access", while
+      `--help` prints the full option list. Probe the version rather than the date next
+      time, since the help output has already moved once while the gate did not, and a
+      version bump is the thing that can change the answer.
+
+Two details in that help output worth carrying into the migration, because both are
+decisions this suite made by hand and could lose by accident. `--allow-tools`, with its
+`Tool(pattern:*)` syntax, is where the deliberate tool list goes; the eval README argues
+at length against reaching for `--dangerously-skip-permissions`, and that argument has to
+survive the move. And `--threshold`, which exits non-zero below a score, is what would
+turn the `AGENTS.md` obligation to rerun a skill's scenarios after editing it into
+something mechanical rather than a promise. The help also confirms in writing that
+skills-dir plugins resolve by name and default to the `with-without` ablation, so the
+baseline arm this suite built by hand comes free.
 
 What already exists is the input it wants: the fixture, the prompts, and the assertions
 written into each scenario file.
@@ -44,7 +96,7 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
 
-## 2. Tripwire: progressive disclosure
+## 3. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 408 lines against a 500-line limit, so the
 next substantial addition forces the split.
