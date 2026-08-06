@@ -136,3 +136,83 @@ to this one.
 next to `echo "running migrations"`, calling it "Valore basso, ma innocuo". The skill
 body asks for the same arithmetic and then for the nit to come out, so this is half
 the rule arriving unprompted: the quantifying, not the dropping.
+
+## Result: Sonnet 5, 2026-08-06
+
+**Passed**, every assertion, including the narrower one the Opus run broke. This is the
+second data point that run asked for, and it settles the question the other way.
+
+| | |
+|---|---|
+| E1, E2 | one `PENDING` review, `pulls/2/comments` length 0 |
+| The finding | inline on `docker-entrypoint.sh`, `position: 1`, inside the hunk |
+| The general comment | **empty** |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | no bare mentions, every link pinned to the head SHA |
+| Line anchors | `AGENTS.md#L5` is the `set -eu` rule, `README.md#L5-L6` the container promise |
+
+**The body is empty, which is the assertion Opus failed.** Opus anchored the finding
+inline and then wrote a body that restated the fix. Sonnet anchored the finding inline
+and left the body with nothing in it, saying so in the reply: "Non ho trovato altri
+problemi al di fuori del diff, quindi il commento generale è vuoto: l'unico rilievo è
+quello inline."
+
+So the Opus result stays what its own entry called it, a rule broken rather than a rule
+missing, and now with a second model declining to break it. **Nothing in the skill body
+moves.** The plan entry asking for this data point can close on that.
+
+**The two runs also disagree about where the docs citations belong**, and both readings
+are defensible. Opus made `AGENTS.md#L5` and `README.md#L5-L6` a body finding in their
+own right, since neither file is in the diff. Sonnet folded both into the inline
+comment as the evidence for the ask. The skill body supports Sonnet here: those are not
+separate findings, they are why the anchored one matters, and the rule about a body
+carrying only what cannot be anchored is what decides it.
+
+**The suggestion handles the insertion the way the skill body asks.** The removed
+`set -eu` has no line in the head version, so the block anchors line 1, reproduces
+`#!/bin/sh`, and adds the missing line under it. One line of context rather than five.
+No payload was left in the clone again, so the anchor is graded from `position: 1` plus
+the block's own content, which is enough here for the same reason the Opus run gave:
+there is no multi-line collapse to check.
+
+## Baseline, without the skill: Sonnet 5, 2026-08-06
+
+Plugin disabled for the run, verified absent before it started, re-enabled from a trap
+after.
+
+**Nothing posted**, matching the Opus baseline on this scenario: no review, no comments,
+the whole thing written into the reply in Italian. So the placement rule is unexercised
+on both models, for the same reason, and this scenario's evidence for it stays what the
+Opus entry above says it is.
+
+**This one dropped line numbers entirely.** Where the Opus baseline cited `AGENTS.md:5`
+and `README.md:5-6` and got both right, Sonnet cites both files with no line number and
+no link, quoting the sentences instead. Four bare mentions, zero permalinks, zero
+anchors of any kind. Between the two baselines the pattern is that the citation degrades
+before the reasoning does: both traced the mechanism correctly, and neither made the
+evidence findable.
+
+| | Opus baseline | Sonnet baseline | with the skill |
+|---|---|---|---|
+| Delivery | nothing posted | nothing posted | one `PENDING` review |
+| Line anchors | 3, all correct | 0 written | 2, both correct |
+| Permalinks | 0 | 0 | every mention linked |
+| Em dashes | 7 | 4 | 0 |
+| Markdown headings | 4 | 0 | 0 |
+| Verdict | "**Il mio parere: da bloccare così com'è.**" | "**Il mio parere:** da bloccare così com'è." | none |
+| Language | Italian | Italian | English |
+
+That verdict line is worth noting for arriving in nearly the same words from two
+different models, and for being the phrase the skill body's ban on a verdict paragraph
+is aimed at.
+
+**The fix came as a plain fenced block again**, six lines of `docker-entrypoint.sh`
+with one changed, the same shape as the Opus baseline. Two of the fences also carry
+`+` and `-` markers, since the run quotes the diff back before discussing it, which is
+legitimate in a chat reply and is exactly the content the skill body bars from a
+`suggestion`.
+
+**One thing neither the Opus baseline nor either skill run did:** it read the pull
+request's CI status, noticed the only check present does not cover behavioural
+regressions, and said so. Nothing in the scenario asks for that, and it is the third
+baseline in the set to bring back something real that no assertion here grades.

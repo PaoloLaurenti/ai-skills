@@ -146,3 +146,89 @@ when the skill is absent:
 deleted, so `pulls/1` carries this one from now on. It disturbs nothing: every
 assertion here counts `PENDING` reviews, and the published comment it left behind was
 cleared by the next `reset.sh`.
+
+## Result: Sonnet 5, 2026-08-06
+
+**Passed**, every mechanical assertion and both of the ones needing an eye.
+
+| | |
+|---|---|
+| E1 | one `PENDING` review, alongside the submitted one the Opus baseline left |
+| E2 | `pulls/1/comments` length 0 |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | one file mention, `AGENTS.md:6`, linked and pinned to the head SHA |
+| Line anchors | `AGENTS.md#L6` is the pinning rule, `Dockerfile` line 1 is the changed `FROM` |
+
+The submit command came back in the reply carrying the review id, which is the form
+scenario 04's Opus run got wrong:
+
+```bash
+gh api --method POST repos/OWNER/REPO/pulls/1/reviews/REVIEW_ID/events -f event=COMMENT
+```
+
+**The body is empty**, and on this scenario that is the rule working rather than a
+gap: the only finding is in the diff, the general comment holds only what is not, so
+there is nothing left for it. Worth noting as a shape the skill body does not discuss,
+since its instruction to open with a sentence introducing the sections assumes there
+are sections.
+
+**Where the two models diverge, and it is the interesting part of this run.** Both
+found the same breach. Opus wrote a `suggestion` pinning a specific minor, then removed
+it, because the tool list carries no network access and it could not confirm which
+minor is current. Sonnet wrote that suggestion and shipped it, `FROM python:3.14-slim`,
+hedging in the prose beside it that this is "worth checking against the `python`
+image's tags on Docker Hub at merge time".
+
+The hedge is the rule about naming where to look, correctly applied. The block beside
+it is a one-click-committable version number that nothing in the run verified, which is
+the rule about verifying every factual claim, not applied. Sonnet satisfied both halves
+of the skill body in ways that work against each other, and the committable half is the
+one a reader acts on. No assertion here catches it, because none of them ask whether a
+suggestion's content was verified.
+
+**Not amending the skill body for this yet.** One run, and the section on suggestions
+already says to skip the block when the fix is not a mechanical edit the reader can
+take as given. Whether that covers an unverified value, or needs to say so outright, is
+worth a second data point before the text moves.
+
+## Baseline, without the skill: Sonnet 5, 2026-08-06
+
+Plugin disabled for the run, verified absent before it started, re-enabled from a trap
+after.
+
+**It submitted the review, exactly as the Opus baseline did**, and for the same stated
+reason: `REQUEST_CHANGES` is not available on an own pull request, so it published as
+`COMMENTED` instead. Two models, two baselines, the same outcome, which settles this
+scenario's rule as reproducible rather than a one-run curiosity.
+
+> Non ho potuto usare `--request-changes` perché la PR è tua (stesso autore del
+> commento), quindi ho lasciato un commento (`COMMENTED`) invece che una
+> request-changes formale.
+
+**Everything went in the general comment. There is no inline comment at all**, so the
+whole review is a published body on a pull request, and the finding about `Dockerfile`
+line 1 is anchored to nothing.
+
+**Which exposes something about E2.** `pulls/1/comments` came back 0, so E2 passes on a
+review that is fully public, because the run left no inline comment to leak. E1 is what
+catches this one. Worth keeping in view when reading any run where E2 passes alone.
+
+| | baseline | with the skill |
+|---|---|---|
+| Delivery | submitted, state `COMMENTED` | `PENDING`, submit command reported back |
+| Where the finding sits | the body, unanchored | inline on `Dockerfile` line 1 |
+| Em dashes | 3 in the review, 4 more in the reply | 0 |
+| Permalinks | 0, against 4 bare mentions | 1 mention, linked at the head SHA |
+| Second person | 1 | 0 |
+| `suggestion` blocks | 0, a plain ```` ```dockerfile ```` fence instead | 1 |
+| Language of the review | English | English |
+
+**And the line number is wrong again.** It cites `AGENTS.md:5` for the pinning rule,
+which is line 6; line 5 is the `set -eu` rule. The Opus baseline on this same scenario
+cited `AGENTS.md:8` for a rule on line 7. Both baselines, both models, wrong on the
+same short file, each in a different direction. That is now the best-evidenced failure
+in the whole set after the delivery rules.
+
+**It closed with what it had checked**, "Checked the rest of the repo (README, config,
+app) for other Python-version references", which is the preamble the skill body bans,
+arriving at the end rather than the start.

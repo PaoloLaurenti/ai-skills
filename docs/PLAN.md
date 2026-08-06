@@ -28,12 +28,16 @@ scenario against a subagent *without* the skill first, record the rationalisatio
 verbatim, and only then write or amend the guidance, so each rule answers a
 failure that was actually observed.
 
-Where this stands: all five scenarios and all five baselines have run against Opus 5.
-Four scenarios passed outright, and the fifth, inline versus general comment, held on
-the rule it was written for and broke a narrower one beside it. The baselines were the
-half that turns "the rules appear to hold" into "each rule answers a failure that was
-observed", and they do that for most of the rules, with two exceptions the entry below
-names. What is left is the same five scenarios, and their baselines, against Sonnet 5.
+Where this stands: twenty runs are recorded, five scenarios and five baselines on each
+of Opus 5 and Sonnet 5, which is the whole model set. On Opus, four scenarios passed and
+one broke a narrower rule beside the one it tests. On Sonnet, three passed and two
+failed, on the permalink rule and the suggestion rule. The baselines turned "the rules
+appear to hold" into "each rule answers a failure that was observed" for most of the
+rules, with two exceptions the entry below names. Nothing here calls for a change to the
+skill body: every failure recorded is a rule the body already states plainly.
+
+What is left in this task is the migration to `claude plugin eval`, which is blocked on
+early access, so the substance of it is done.
 
 Two of those runs found problems the fixture had not planted: a configuration key
 nothing in the tree reads, and a `README.md` sentence that had become misleading
@@ -160,19 +164,46 @@ an agent under pressure will negotiate with:
       `evals/writing-pr-reviews/README.md` assumed a review object exists, which four of
       five baselines did not create, so it now says the reply is the text to grade when
       nothing was posted.
-- [ ] run the whole suite against Sonnet 5, five scenarios and five baselines. The
-      model set says a rule is settled only when both models agree, and so far only
-      Opus 5 has run, so every result recorded is half a result. This is where the
-      style rules are most likely to move: they fight a model's default writing voice,
-      so a less capable one is where they give first. Nothing about the procedure
-      changes, only `--model sonnet`.
-- [ ] get scenario 02 a second data point, which is one of those Sonnet runs and the
-      one to read first. Opus 5 held the rule the scenario tests, the finding landed
-      inline, and broke a narrower one beside it: the body restated the fix the inline
-      comment already proposed. One occurrence is not a pattern. If Sonnet does it too,
-      the rule is worth strengthening where it sits, in the section about what the
-      general comment contains. If it does not, the entry stays as a recorded
-      inconsistency and nothing in the skill body moves.
+- [x] run the whole suite against Sonnet 5, five scenarios and five baselines. Done,
+      `--model sonnet` resolving to `claude-sonnet-5`, and every result recorded in its
+      scenario file beside the Opus one. The prediction in this entry was that the style
+      rules would be the first to give. It was wrong, and usefully so:
+
+      **The style rules held perfectly.** Zero em dashes, zero first or second person,
+      zero markdown headings and English throughout, across all five reviews, on the
+      model where they were expected to break. Every baseline broke them, as before.
+
+      **Two rules gave instead, and both cost an extra step at writing time.** Scenario
+      03 failed E6: four bare mentions, every one of them a repeat of a file that had
+      already been linked once. Scenario 04 failed its own rule outright, no
+      `suggestion` block anywhere, with a concrete `USER 1000:1000` insertion written as
+      prose where Opus handed over a committable block on the same line. Neither is a
+      gap in the skill body, which states both rules plainly and repeats them in the red
+      flags, so nothing there moves. What they are is the first evidence the model set
+      was built to produce: rules that hold on Opus and give on Sonnet.
+
+      **Delivery held on both models**, which is the load-bearing result. Five `PENDING`
+      reviews, nothing published, the submit command reported with its review id every
+      time, and the empty general comment appearing correctly on the three scenarios
+      whose findings all sit in the diff.
+
+      **The baselines reproduced across models almost exactly.** Scenario 01's Sonnet
+      baseline submitted a published review for the same stated reason as the Opus one,
+      `REQUEST_CHANGES` being unavailable on an own pull request. The other four posted
+      nothing. Every baseline broke every style rule, and two produced nearly identical
+      banned verdict lines on two different models.
+
+      One thing to carry forward, recorded in scenario 01: Sonnet shipped a `suggestion`
+      pinning `FROM python:3.14-slim`, a version nothing in the run could verify, having
+      hedged the uncertainty in the prose beside it. Opus wrote the same block and
+      deleted it for exactly that reason. Worth a second data point before deciding
+      whether the suggestions section should say outright that an unverified value does
+      not belong in a committable block.
+- [x] get scenario 02 a second data point. Settled, and it settles the other way: Sonnet
+      passed the scenario outright, including the narrower rule Opus broke, leaving the
+      general comment empty and saying so. So the Opus result stays a recorded
+      inconsistency, and nothing in the section about what the general comment contains
+      moves.
 - [ ] move the suite onto `claude plugin eval` once it leaves early access. It takes
       `evals/**/case.yaml`, or `evals/**/prompt.md` plus `graders/*.md`, resolves a
       skills-directory plugin by name, and carries `--ablation with-without` for the

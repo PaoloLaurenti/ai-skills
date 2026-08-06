@@ -164,6 +164,86 @@ is the one prompt in the set written in English, "review PR #3", so a review in 
 is what any run would produce with or without the rule. Scenarios 01, 02 and 04 are
 where that rule is actually under test.
 
+## Result: Sonnet 5, 2026-08-06
+
+**Failed**, on the rule this scenario exists for, and it is the first failure by a run
+carrying the skill in either model round. Everything else passed.
+
+| | |
+|---|---|
+| E1, E2 | one `PENDING` review, `pulls/3/comments` length 0 |
+| E3, E4 | no em dash, no first or second person |
+| E7 | every link pinned to the head SHA, none on a branch or the base commit |
+| Line anchors | 4 written, 4 correct: `README.md#L8-L9`, `AGENTS.md#L7`, `config/default.toml#L8`, `Dockerfile#L9` |
+| Body shape | opens with one sentence introducing the section, bold title, no heading |
+| **E6** | **four bare mentions, all of them repeated ones** |
+
+**Every bare mention is a second mention.** The first time a file comes up it is
+linked; from then on it is plain text:
+
+| where | the bare mention |
+|---|---|
+| body, opening sentence | "the new Dockerfile environment variable", "what README.md promises" |
+| body, after linking `README.md` | "the moment `APP_TIMEOUT` lands in the Dockerfile" |
+| inline on `config/default.toml` | "the single-source-of-truth story README.md tells", "dropping the Dockerfile env var" |
+
+That is exactly the shape this scenario's fourth assertion predicted: "a repeated
+mention is linked again rather than left bare on the second pass, which is the form
+this rule is usually broken in." Written as a prediction about a baseline, it turned
+out to describe a run with the skill.
+
+**Not amending the skill body.** The rule is already stated twice and as plainly as it
+can be: "Link every occurrence, including repeated ones" in the Code references
+section, and a red flag reading "Any repo file named in the review text without being
+wrapped in a `[...](...)` link, whether or not it carries a line number." Nothing about
+the text left this ambiguous, and a third statement of the same rule answers nothing.
+This is the same call scenario 02's Opus entry made: a rule broken rather than a rule
+missing.
+
+What it does change is what the model set is for. Opus passed this scenario outright
+and Sonnet did not, so the rule is settled as one that holds on the model these reviews
+are actually asked for on and gives on a lighter one. That is the difference the
+two-model set exists to surface, and this is the first time it has produced one.
+
+**One bare mention is not a violation**, and it is worth separating out: `config/default.toml`
+appears inside a paraphrase of the README sentence being quoted back. Same exception the
+Opus run's single bare mention fell under, prose belonging to another document rather
+than to the review.
+
+## Baseline, without the skill: Sonnet 5, 2026-08-06
+
+Plugin disabled for the run, verified absent before it started, re-enabled from a trap
+after. Nothing posted: no review, no comments, the whole thing written into the reply.
+
+**No permalinks at all**, which is where the two baselines part company. The Opus
+baseline wrote five links unprompted and pinned two of them wrongly. Sonnet wrote none:
+fifteen bare mentions across six files, every citation a plain `file:line` string.
+
+**Its three line numbers are all correct**, `README.md:8-9`, `AGENTS.md:7` and
+`server.py:3`, the last of which it went and found on its own while checking whether
+anything reads the new key.
+
+| | Opus baseline | Sonnet baseline | with the skill, Opus | with the skill, Sonnet |
+|---|---|---|---|---|
+| Delivery | nothing posted | nothing posted | one `PENDING` review | one `PENDING` review |
+| Permalinks | 5, two wrongly pinned | 0 | every mention | every first mention |
+| Bare mentions | 2, plus an exception | 15 | 1, correctly bare | 4, all repeats |
+| Line anchors correct | 4 of 4 | 3 of 3 | 5 of 5 | 4 of 4 |
+| Em dashes | 7 | 10 | 0 | 0 |
+| Markdown headings | 4 | 6 | 0 | 0 |
+| First person | 3 | 1 | 0 | 0 |
+
+**So the rule this scenario tests degrades in two steps rather than one.** Without the
+skill, Sonnet links nothing and Opus links most things badly. With the skill, Opus links
+everything correctly and Sonnet links every file the first time it appears. Reading the
+four runs together, what the skill reliably buys on both models is the head SHA and the
+verified line number, and what it buys unevenly is the discipline of linking a file the
+second and third time it comes up.
+
+**The line-number rule now has four data points and holds three ways.** Both baselines
+here got their numbers right; the Opus baseline on scenario 01 did not. Whatever makes
+the difference, it is not the model.
+
 **It found the same unplanned finding the run with the skill found**, that nothing
 reads the new key, and went further: it also checked the PR description against the
 diff and reported that "stops being hardcoded" describes a hardcoded timeout that never

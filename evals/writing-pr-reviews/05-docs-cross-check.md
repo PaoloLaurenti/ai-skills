@@ -118,3 +118,76 @@ the rule down the list of what earns the skill its place.
 that nothing reads `config/default.toml`, so the README's claim about configuration was
 already imprecise before this change. Both arrived there, which makes it a property of
 the fixture rather than of either configuration.
+
+## Result: Sonnet 5, 2026-08-06
+
+**Passed** every mechanical assertion, with one bare mention that should have been a
+link and one paraphrase where the assertion asks for a quotation.
+
+| | |
+|---|---|
+| E1, E2 | one `PENDING` review, `pulls/5/comments` length 0 |
+| The finding's home | the body, and no inline comment on `README.md` |
+| The stale claim | present, with the port: "still says the service listens on port 8080" |
+| "the docs" | never used generically |
+| E3, E4 | no em dash, no first or second person |
+| E7 | every link pinned to the head SHA |
+| Line anchors | `README.md#L5`, `README.md#L8-L9`, `AGENTS.md#L7`, `app/server.py#L3`, all correct |
+
+**It found the second, unplanted problem too**, the one the Opus run surfaced: the
+`README.md#L8-L9` claim that every setting has a key in `config/default.toml` does not
+hold, since nothing parses that file. Three runs on this scenario have now reached it
+independently, so it is the fixture rather than either model or the skill.
+
+**Where it fell short of the Opus run, in two small ways.**
+
+The stale claim is paraphrased rather than quoted. The assertion passes, because it
+checks that the port appears, and the intent behind it is a verbatim quotation so the
+author can find the sentence by searching for it. Worth reading as a near miss rather
+than a pass.
+
+And the same bare repeated mention that scenario 03 caught on this model: the inline
+comment links `app/server.py` twice and then writes "Worth wiring `server.py` to
+actually load this file" in plain text. One occurrence here against four there, same
+rule, same direction.
+
+**The `config/default.toml` inside the paraphrased README sentence is not a violation**,
+the same exception both earlier runs' bare mentions fell under.
+
+## Baseline, without the skill: Sonnet 5, 2026-08-06
+
+Plugin disabled for the run, verified absent before it started, re-enabled from a trap
+after. Nothing posted, the review written into the reply in Italian.
+
+**It found the stale claim, quoted it verbatim, and cited the rule.** `README.md:5`
+with "The service listens on port 8080" in quotation marks, `AGENTS.md:7` for
+documentation moving with behaviour, both line numbers correct, and a concrete
+proposal: add `README.md` to the diff as a fourth file. It also found the pre-existing
+imprecision about `config/default.toml` being the single source of configuration, and
+was careful to label it as pre-existing rather than caused by this change.
+
+**So the cross-check rule holds without the skill on both models**, which is what the
+Opus baseline above predicted might turn out to be true and what this run confirms.
+Four runs on this scenario, two with the skill and two without, and all four reached
+the planted finding. On this fixture the documentation cross-check is not the thing
+that gets skipped, and one run is no longer the basis for saying so.
+
+The caveat the Opus entry raised still applies and is worth repeating rather than
+assuming remembered: the fixture's `README.md` is nine lines long in a seven-file repo,
+and the change touches three sites carrying the same number. A cross-check is easy here
+in a way it is not in a real repository, so this says the rule is not carrying weight
+*on this fixture*, not that it carries none.
+
+| | Opus baseline | Sonnet baseline | with the skill |
+|---|---|---|---|
+| Delivery | nothing posted | nothing posted | one `PENDING` review, both models |
+| The planted finding | found | found | found |
+| Em dashes | 6 | 5 | 0 |
+| Markdown headings | 4 | 0 | 0 |
+| Permalinks | 0, 15 bare mentions | 0, 9 bare mentions | every mention linked |
+| Verdict | "Verdetto: chiederei una modifica" | "**Verdetto:** richiedi modifiche" | none |
+| Language | Italian | Italian | English |
+
+Both baselines closed on a verdict line opening with the same word, which is now the
+third pair of runs to produce nearly identical banned phrasing across two models.
+Whatever the ban on a verdict paragraph is fighting, it is not a quirk of one model.

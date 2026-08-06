@@ -153,3 +153,85 @@ observable changes, and would be if the non-root direction were taken. Whether t
 with the skill said any of this is not answerable from the record above, which is a
 summary rather than a transcript. What the baselines do settle, across all five, is
 that finding real problems is not what the skill is contributing.
+
+## Result: Sonnet 5, 2026-08-06
+
+**Failed**, on the rule this scenario exists for. Not a single `suggestion` block in the
+whole review, where the Opus run wrote two.
+
+| | |
+|---|---|
+| E1, E2 | one `PENDING` review, `pulls/4/comments` length 0 |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | two bare `Dockerfile` mentions, every link pinned to the head SHA |
+| The debug line | prose only, no block, correct |
+| **The concrete fix** | **spelled out in prose where a block was committable** |
+
+**The failure is not that it missed a finding.** It proposes a concrete edit to a line
+that sits in the diff: "Worth pairing this with a `USER 1000:1000` instruction after the
+copies". That is an insertion attaching to `Dockerfile` line 9, which is exactly what the
+Opus run handed over as a block anchored to that line and reproducing it. Sonnet
+described the same edit in sentences. The skill body's red flag names this outright: "An
+inline comment spelling out a concrete line edit in prose when a `suggestion` block would
+have been committable."
+
+**The three-line collapse never came up as a fix**, which is the second half of the same
+result. The comment does notice the earlier form, "`chmod +x` restores what the earlier
+single `COPY --chmod=755` set in one shot", and then treats the split as fine rather than
+as something to undo. With no collapse proposed there is nothing for the multi-line
+anchor assertion to grade, so the anchor question is moot here for a different reason
+than in the baselines: no block was written at all, rather than no review being posted.
+
+**Nothing else broke.** The pure deletion got prose and no block, which is the rule
+working. The body is empty, correctly, since both findings are in the diff. The line
+anchors and the head SHA are right.
+
+**One reach worth flagging, not an assertion failure.** The debug line is argued against
+by citing `AGENTS.md#L7`, documentation moving with the behaviour, to say the line should
+be mentioned in the pull request description if it is deliberate. The rule is real and
+the citation resolves, but a leftover debug statement is not a documentation problem, and
+stretching a repo rule to cover it is the shape the skill body warns about when it asks
+for claims to be read from the thing that defines them.
+
+**Two failures on Sonnet, two scenarios, and they rhyme.** Here a committable fix stayed
+prose; on scenario 03 a linkable file stayed bare. Both are rules the skill body states
+plainly and both are the kind that cost an extra step at writing time. That is the
+pattern the model set was added to expose.
+
+## Baseline, without the skill: Sonnet 5, 2026-08-06
+
+Plugin disabled for the run, verified absent before it started, re-enabled from a trap
+after. Nothing posted, the review written into the reply in Italian, closing with
+"fammi sapere se vuoi che scriva una review sulla PR".
+
+**No suggestion blocks, and here that is unremarkable**, since there is no review object
+to attach one to. Two fenced blocks quote the diff back with `+` and `-` markers, and
+the fix is named in prose, "tornare a `COPY --chmod=755`, togliere la riga DEBUG". Same
+shape as the Opus baseline: the replacement text is right and nothing about it is
+committable.
+
+| | Opus baseline | Sonnet baseline | with the skill, Opus | with the skill, Sonnet |
+|---|---|---|---|---|
+| Delivery | nothing posted | nothing posted | `PENDING` | `PENDING` |
+| `suggestion` blocks | 0 | 0 | 2 | **0** |
+| Line anchors | 1, correct | 0 written | correct | correct |
+| Permalinks | 0, 7 bare mentions | 0, 14 bare mentions | every mention | every mention but two |
+| Em dashes | 7 | 7 | 0 | 0 |
+| Markdown headings | 4 | 0 | 0 | 0 |
+| Language | Italian | Italian | English | English |
+
+**The most useful column here is the Sonnet pair.** With the skill, Sonnet delivered a
+`PENDING` review with correct anchors and no block; without it, prose in chat and no
+block. The suggestion rule is the one thing this scenario is for, and it is the one
+thing the skill did not buy on this model. Every other rule it did.
+
+**It out-argued all three other runs on the mechanism.** It worked out that `chmod +x`
+and `--chmod=755` are not equivalent, that the point is moot anyway because the file is
+tracked in git as `100755`, that the `chown` is not merely inert but actively misleading
+to a future reader, and that chowning the entrypoint alone is inconsistent with the
+intent it implies since `config/` and `app/` stay root-owned. It then checked all three
+`AGENTS.md` rules one by one and correctly cleared the change on the documentation one,
+reasoning that the README documents no startup logging for the debug line to contradict.
+None of that is graded here, and it is the strongest analysis any run on this scenario
+produced.
+
