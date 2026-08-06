@@ -6,10 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Three things are open, and only the first is work anyone can start today. Task 2 is
-blocked on Anthropic and task 3 is a tripwire rather than work. Everything else this
-plan has carried is finished and recorded under Completed, the evaluation suite
-included.
+Two things are open, and neither is work anyone can start today: task 1 is blocked on
+Anthropic and task 2 is a tripwire rather than work. Everything else this plan has
+carried is finished and recorded under Completed, the evaluation suite and the
+block-versus-prose question it left behind included.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -18,38 +18,7 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. One Opus run of scenario 04, to settle the block-versus-prose boundary
-
-The only open question the evaluation rounds left behind, and the strongest candidate
-for the first amendment to the skill body that answers an observed failure rather than
-an imagined one.
-
-What was observed: on the identical fix in the identical file, adding `USER 1000:1000`
-to the fixture's `Dockerfile`, Opus handed it over as a committable `suggestion` block
-and both Sonnet runs wrote it as prose. Both readings fit the text. The body says to
-reach for a block "whenever the fix is a concrete edit to lines that sit in the diff",
-and also to skip one for "a design change, or anything the reader has to decide before
-writing". Sonnet framed the fix as one of two options contingent on intent and applied
-the exception. Opus did not.
-
-- [ ] run scenario 04 once more on Opus, with the skill, same prompt and fixture. If it
-      writes the block again, the two models genuinely read the same sentence
-      differently, and the Code suggestions section needs a sentence saying which side a
-      conditional fix falls on. If it writes prose, all four runs agree and nothing needs
-      saying.
-
-Why it is not being written already: the Opus side rests on a single run, so declaring
-the text ambiguous would be the same mistake as the withdrawn `position` amendment
-recorded below, an amendment answering a failure that had not been established. The full
-argument sits in `evals/writing-pr-reviews/04-suggestion-blocks.md`.
-
-Two things to carry into that run. An edit to a `SKILL.md` reruns that skill's scenarios
-before it is offered, per `AGENTS.md`, so an amendment costs more than the one run. And
-scenario 04's first assertion is only reachable by a run that first decides the
-three-line collapse is worth proposing, which neither Sonnet run did, so anything read
-from that assertion has to name whether the block was missing or the finding was.
-
-## 2. Move the suite onto `claude plugin eval`
+## 1. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -75,7 +44,7 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
 
-## 3. Tripwire: progressive disclosure
+## 2. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 408 lines against a 500-line limit, so the
 next substantial addition forces the split.
@@ -90,12 +59,49 @@ one level deep from `SKILL.md`.
 
 ## Completed
 
+**Settle the block-versus-prose boundary with one more Opus run of scenario 04.** Run,
+graded, and the answer is that no amendment is warranted. The full record sits in
+`evals/writing-pr-reviews/04-suggestion-blocks.md`; what closes this entry is that the
+run landed on neither outcome the task predicted.
+
+The two fixes in that fixture separated. The three-line collapse got a `suggestion` block
+anchored `start_line: 5`, `line: 7`, spanning every replaced line, which is two for two
+on Opus and the assertion the scenario exists for. The conditional fix, adding `USER
+1000:1000`, got prose, where the first Opus run gave it a block.
+
+**Why no amendment: no run produced a failure to answer.** The body permits both
+readings outright, "Skip the suggestion when the fix is ... anything the reader has to
+decide before writing" for the prose and "Always reach for one where it makes sense" for
+the block, and `superpowers:writing-skills` asks that a rule answer a failure actually
+observed. Four runs on that fix produced two compliant treatments and no violation, so a
+new sentence would prevent nothing. That argument holds whichever way this run had gone,
+which is why it is the one carrying the decision.
+
+The tally is secondary and deliberately not the reason: three prose against one block,
+and what it settles is only that the model-level disagreement the task predicted did not
+appear, since Opus landed on the Sonnet side. The remaining split is inside Opus, one
+each out of two, and a within-model split is not evidence against ambiguity. Treating a
+majority as the argument is the shape of the withdrawn `position` amendment, which is
+why the record separates the two.
+
+Two things the run gave for free. The submit command came back correct,
+`pulls/4/reviews/REVIEW_ID/events`, which is the first evidence that this task's one
+amendment to the skill body holds; run 1 had reported `pulls/4/events`, which is not an
+endpoint. And a false finding about a missing `main()` guard was caught mid-run against
+`README.md` and withdrawn by deleting and recreating the review, which is the
+verify-at-source rule working on the skill's own terms.
+
+Worth carrying forward: E7 passed vacuously on this run, since the review text named no
+repo file outside the `suggestion` block and so had nothing to link. That is the same
+weakness this scenario already records about its own first assertion, an assertion that
+can pass or fail without the rule under test being exercised at all.
+
 **Build an evaluation suite for the skill, and run it.** This was the largest gap in
 the repo: nothing tested whether the rules hold. It is now five scenarios in
 `evals/writing-pr-reviews/`, one file each, carrying the prompt verbatim and a checklist
 of assertions that are commands rather than judgement calls, against a sandbox fixture
-of one pull request per scenario. Twenty-three graded runs are recorded: five scenarios
-and five baselines on each of Opus 5 and Sonnet 5, plus three reruns. Scenarios live at
+of one pull request per scenario. Twenty-four graded runs are recorded: five scenarios
+and five baselines on each of Opus 5 and Sonnet 5, plus four reruns. Scenarios live at
 the repo root rather than under `skills/`, because everything in a skill directory is
 surface the plugin serves.
 
@@ -125,8 +131,8 @@ em dashes, zero first or second person, zero markdown headings and English throu
 across all five Sonnet reviews. Two other rules gave instead, both costing an extra step
 at writing time, and both then got a second run. The bare repeated mentions on scenario
 03 did not reproduce. The missing `suggestion` block on scenario 04 did, and turned out
-to be measuring a finding never made rather than a rule broken, which is what task 1
-above now exists to settle. Scenario 02's Opus inconsistency, a body restating a fix its
+to be measuring a finding never made rather than a rule broken, which the third Opus run
+recorded in the entry above then settled. Scenario 02's Opus inconsistency, a body restating a fix its
 inline comment already carried, did not reproduce on Sonnet either.
 
 *Net effect on the skill body: almost nothing, which is the point.* One amendment was

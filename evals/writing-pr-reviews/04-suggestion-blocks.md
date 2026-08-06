@@ -254,6 +254,79 @@ fail it without touching the rule under test. The assertion is not being changed
 it is still the right thing to want, but anything read from it has to name which of the
 two happened.
 
+## Third run: Opus 5, 2026-08-06
+
+**Passed every assertion, and answered the question the plan queued it for by landing on
+neither of the two outcomes that plan predicted.** The two fixes in this file separated:
+the collapse got a block, the conditional fix got prose.
+
+| | run 1, Opus | run 3, Opus | Sonnet, both runs |
+|---|---|---|---|
+| The three-line collapse | block, `start_line: 5`, `line: 7` | block, `start_line: 5`, `line: 7` | never proposed |
+| The `USER 1000:1000` insertion | block, `line: 9` | **prose** | prose |
+| The pure deletion | prose, no block | prose, no block | prose, no block |
+| `suggestion` blocks in total | 2 | 1 | 0 |
+
+The block this run wrote replaces lines 5 to 7 of `Dockerfile`, `COPY`, `RUN chmod +x`
+and `RUN chown`, with a single `COPY --chown=1000:1000 --chmod=755 docker-entrypoint.sh
+./`. The anchor covers all three, read from the payload rather than the API. That is the
+assertion this scenario is built around, and it is now two for two on Opus.
+
+**The conditional fix went the other way from run 1.** The prose reads "the missing half
+is `USER 1000:1000` placed after the last `COPY` on line 9", offered as one of "two
+directions from here, depending on the intent", the same framing both Sonnet runs used to
+apply the exception.
+
+**No amendment, and the reason is that no run produced a failure to answer.** The body
+permits both readings outright: "Skip the suggestion when the fix is ... anything the
+reader has to decide before writing" covers the prose, and "Always reach for one where it
+makes sense" covers the block. `superpowers:writing-skills` asks that a rule answer a
+failure actually observed without it. Four runs on this fix produced two compliant
+treatments and no violation, so there is nothing for a new sentence to prevent. This is
+the argument that closes the question, and it would hold whichever way run 3 had gone.
+
+**The tally is the secondary point, and it is not the one to lean on.** Three prose
+against one block, the block being run 1. What that settles is narrower than it looks:
+the model-level disagreement the plan predicted, two models reading the same sentence
+differently, did not appear, because Opus landed on the Sonnet side this time. The split
+that remains is inside Opus, one block and one prose out of two. A within-model split is
+not evidence against ambiguity, and counting it that way would be reasoning from a
+majority rather than from the text. It is recorded here as what the run did, not as why
+the amendment is being skipped.
+
+Read from the earlier sections of this file rather than re-graded now: both Sonnet runs
+treated the fix as prose, the first quoted as "Worth pairing this with a `USER 1000:1000`
+instruction after the copies", the second recorded with the same two-options framing and
+the same observation that the change drags `config/` and `app/` along.
+
+What remains true is that the sentence leaves a conditional fix to judgement. That is a
+boundary the body declines to draw, not a defect it has, and drawing it now would be the
+withdrawn `position` amendment again: text written to settle a disagreement the runs did
+not actually record.
+
+**The submit command came back correct**, `pulls/4/reviews/4872744967/events`. Run 1
+reported `pulls/4/events`, which is not an endpoint, and that is the one amendment this
+task made to the skill body. This run is the first evidence that the amendment holds.
+
+**A false finding was caught and withdrawn mid-run**, which is the verify-at-source rule
+working. The body initially carried a finding that `app/migrate.py` and `app/server.py`
+never call `main()`. `README.md` states "Nothing here runs", so the run deleted the
+review and recreated it without the point. E1 still reads `1`, so the delete and recreate
+left exactly one draft.
+
+**Every-run assertions.** E1 one `PENDING` review; E2 `pulls/4/comments` length 0; E3 no
+em dash; E4 no first or second person; E5 English; E6 one surviving `docker-entrypoint.sh`,
+inside the `suggestion` block, which is literal replacement text rather than a file
+mention; E7 no permalink written and none required. M4 zero `+` or `-` markers inside any
+block. Indentation matches, the block holds only the final code, and the body is empty at
+zero characters, correctly, since both findings sit in the diff.
+
+**E7 passed vacuously here, and that is worth naming rather than scoring.** The review
+text names no repo file outside the block, so there was nothing to link and nothing to
+pin. Run 1 linked every mention at the head SHA. Passing E7 on this run therefore says
+nothing about the rule, the same shape of weakness this file already records for its own
+first assertion.
+
 ## Baseline, without the skill: Sonnet 5, 2026-08-06
 
 Plugin disabled for the run, verified absent before it started, re-enabled from a trap
