@@ -6,10 +6,11 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open, and neither is work anyone can start today: task 1 is blocked on
-Anthropic and task 2 is a tripwire rather than work. Everything else this plan has
-carried is finished and recorded under Completed, the evaluation suite and the two
-questions it left behind included.
+Four things are open. Tasks 1 and 2 are one piece of work split in two entries and are
+what anyone should start with, since they answer a failure that has been reproduced
+rather than imagined. Task 3 is blocked on Anthropic and task 4 is a tripwire rather than
+work. Everything else this plan has carried is finished and recorded under Completed, the
+evaluation suite and the two questions it left behind included.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -18,7 +19,92 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Move the suite onto `claude plugin eval`
+## 1. Append to an open pending review instead of failing or destroying it
+
+The failure is reproduced, not imagined, which is the bar this repo sets for an
+amendment. With a draft already open on the pull request, the command the skill body
+states comes back:
+
+```
+422 Unprocessable Entity
+"User can only have one pending review per pull request"
+```
+
+**What makes it worse than a failed call is the instruction sitting next to it.** The
+body's only sentence about this situation is "To change a pending review, delete it and
+recreate it", so an agent that hits the 422 has, as its nearest written guidance, a
+`DELETE` of a draft whose comments may be someone else's work. That path is already in
+use: the third Opus run on scenario 04 deleted and recreated its own review to withdraw a
+false finding. Nothing distinguishes a draft the run created a minute ago from one a
+person has been writing by hand.
+
+The wanted behaviour is to append to the open draft, and to stop and ask when a comment
+already in it breaks a rule the skill enforces, rather than rewriting or deleting
+somebody else's text.
+
+- [ ] amend the delivery section: detect an open draft, append to it, and ask rather than
+      edit when an existing comment violates a rule
+
+**The API path is verified against the fixture rather than recalled.** REST has no append,
+so this is GraphQL:
+
+| step | call | result |
+|---|---|---|
+| append an inline comment | `addPullRequestReviewThread` with `pullRequestReviewId` | works, accepts `line`, `side`, `startLine`, `startSide` |
+| append to the general comment | `updatePullRequestReview` | works, stays `PENDING` |
+| the pre-existing human comment | | survives |
+| published comments after | | 0 |
+
+**One trap worth writing into the body rather than leaving to be reconstructed.**
+`addPullRequestReviewComment` also exists and looks like the obvious name. It rejects
+`line` and `side`, because it still speaks the older `position` model, and the anchor
+model this skill uses is the newer one. Reaching for the plausible name and getting a
+silent mismatch is exactly the shape of the `pulls/N/events` mistake this suite already
+caught once.
+
+Two things about the second half, the asking. The skill has no rule today that stops and
+puts a question to the requester, so this is a new kind of instruction in it rather than a
+variation on one. And a headless run has nobody to ask, which is what task 2 has to solve
+before this can be graded at all.
+
+What it costs: an edit to `SKILL.md` reruns all six scenarios per `AGENTS.md`, and roughly
+thirty lines onto a body at 408 puts it near the 450 mark task 4 watches for.
+
+## 2. A scenario for appending to an open pending review
+
+Task 1 ships with this rather than before it. Adding a rule with no scenario is what the
+entry above it in Completed just finished repairing, and the whole argument for the suite
+is that a rule nobody exercised is a rule nobody knows is working.
+
+- [ ] add `evals/writing-pr-reviews/07-append-to-open-draft.md`, with the fixture step the
+      scenario needs, and run it on both models with a baseline each
+
+**The fixture wrinkle to solve first.** Every other scenario starts from a pull request
+with no draft on it, and `reset.sh` guarantees that by clearing every pending review
+before every run. This scenario needs the opposite: a draft that already exists when the
+run starts, holding a comment written by hand, at least one of which breaks a rule the
+skill enforces, so both halves of task 1 are exercised. So it needs a seeding step that
+runs after `reset.sh` rather than a branch in `setup.sh`, and `run.sh` currently has no
+hook for one.
+
+**Assertions that are commands, and they are unusually good here** because the rule is
+about preservation rather than prose:
+
+- the review id after the run equals the id before it, which is what proves it appended
+  rather than deleted and recreated
+- the hand-written comment is still present, byte for byte
+- the comment count grew rather than replaced
+- state is still `PENDING` and `pulls/N/comments` is still `0`
+
+**The half that is hard to grade, and it needs deciding before the scenario is written.**
+A run under `claude -p` has no interactive user, so "ask the requester" cannot happen as a
+question. The reachable version is that the run leaves the offending comment untouched and
+raises the matter in its reply, which is gradeable: the comment is unchanged, and the
+reply names it. Worth settling deliberately, because writing the assertion around a
+question the harness makes impossible would produce another assertion that tests the
+failure imagined rather than the one the rule is about, which is now five of those.
+
+## 3. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -55,7 +141,7 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
 
-## 2. Tripwire: progressive disclosure
+## 4. Tripwire: progressive disclosure
 
 No action yet. The skill body is at 408 lines against a 500-line limit, so the
 next substantial addition forces the split.
@@ -67,6 +153,16 @@ review, which is reference material rather than a rule, and reference files stay
 one level deep from `SKILL.md`.
 
 - [ ] revisit when a skill body crosses roughly 450 lines
+
+**Task 1 collides with this entry, and whoever does it should read this first.** The
+section it grows by roughly thirty lines is the delivery mechanics, which is the exact
+section named above as the one to extract. Two consequences. The 450 mark is likely to be
+crossed by task 1 itself rather than by some later addition, so the split stops being
+hypothetical at that moment. And the split gets easier rather than harder, since the
+GraphQL append calls are reference material of the same kind as the `gh api` commands
+already there. What must not follow it into a reference file is the rule itself, that an
+open draft is appended to and never deleted, which belongs in the body with the other
+non-negotiables.
 
 ## Completed
 
