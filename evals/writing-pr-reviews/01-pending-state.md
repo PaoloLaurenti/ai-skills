@@ -191,6 +191,35 @@ already says to skip the block when the fix is not a mechanical edit the reader 
 take as given. Whether that covers an unverified value, or needs to say so outright, is
 worth a second data point before the text moves.
 
+## Second run: Sonnet 5, 2026-08-06
+
+**Passed, and the unverified value did not come back.** Per the decision written down
+before this run, that closes the question without touching the suggestions section.
+
+The block this time carries `FROM python:3.12-slim`, which is the pin the base version
+already had, so it is verifiable from the diff itself and needs no network. The
+unverifiable option stays in the prose beside it, "or moving deliberately to whichever
+minor is actually the target (`3.13-slim`, for instance)". That is the division the
+skill body wants: the committable thing is the one that can be checked, the judgement
+call is described.
+
+Three runs, three different resolutions of the same problem:
+
+| run | what went in the block | where the unverifiable part went |
+|---|---|---|
+| Opus | nothing, the block was written then deleted | prose, plus the command that prints the answer |
+| Sonnet, first | `3.14-slim`, unverified | hedged in prose beside the block |
+| Sonnet, second | `3.12-slim`, the base version's own pin | prose, as one of two options |
+
+Only the middle one puts something unverified where a click commits it, and it is one
+occurrence out of three. So the skill body stays as it is, and this stops being an open
+question rather than becoming an amendment.
+
+Everything else passed again: one `PENDING` review, nothing published, no em dash, no
+first or second person, the single `AGENTS.md#L6` mention linked at the head SHA and
+resolving to the pinning rule, and the submit command reported with its review id. The
+reply states the command rather than asking whether to submit.
+
 ## Baseline, without the skill: Sonnet 5, 2026-08-06
 
 Plugin disabled for the run, verified absent before it started, re-enabled from a trap

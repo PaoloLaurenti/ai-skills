@@ -198,6 +198,62 @@ prose; on scenario 03 a linkable file stayed bare. Both are rules the skill body
 plainly and both are the kind that cost an extra step at writing time. That is the
 pattern the model set was added to expose.
 
+## Second run: Sonnet 5, 2026-08-06
+
+**The failure reproduced: no `suggestion` block, twice out of two on this model.** Every
+other assertion passed again, cleanly: one `PENDING` review, nothing published, no em
+dash, no first or second person, no bare mention, both links on the head SHA,
+`Dockerfile#L13` correctly the `ENTRYPOINT` line, and the pure deletion given prose with
+no block.
+
+**The trigger written down before this run said twice makes it worth answering in the
+skill body. Reading the two runs together, acting on that would be wrong, and this
+section is the argument for why.** Recorded plainly because overriding a rule set in
+advance is exactly the move that produced the withdrawn `position` amendment earlier in
+this task.
+
+**The two runs failed differently, and only one thing is common to both.**
+
+| | first Sonnet run | second Sonnet run |
+|---|---|---|
+| The three-line collapse | noticed the earlier `COPY --chmod=755`, did not propose undoing it | never mentions it at all |
+| The `USER 1000:1000` fix | prose | prose |
+| `suggestion` blocks | 0 | 0 |
+
+The collapse is what this scenario is built around, and it is the fix that *must* be a
+block, since it is a purely mechanical edit to three anchored lines with nothing for the
+author to decide. Neither run proposed it. That is a finding never made, not a finding
+formatted wrongly, and the skill's own opening disclaims the former: it holds conventions
+for writing and delivering a review, "not general advice on how to find defects".
+
+**And the fix both runs did propose falls inside an exception the body already states.**
+Adding `USER 1000:1000` is offered as one of two options contingent on intent, "Two ways
+to close that gap, depending on the intent", and both runs note it drags `config/` and
+`app/` along with it. The body says to skip the block for "a design change, or anything
+the reader has to decide before writing". Sonnet applied that exception. Opus did not,
+and handed over a block. Neither is obviously wrong under the text as written.
+
+**So what the reruns actually exposed is a boundary, not a broken rule.** Two models drew
+the line between "concrete edit, hand over a block" and "design change, use prose"
+differently on the identical fix in the identical file. That is a real gap and the best
+candidate for an amendment this task has produced. It is not being written yet, for one
+reason: the Opus side of it rests on a single run. Opus n=1 saying block, Sonnet n=2
+saying prose, is not enough to declare the text ambiguous rather than Opus's run being
+the outlier.
+
+**What settles it, queued in the plan:** one more Opus run of this scenario. If Opus
+writes the block again, the two models genuinely read the same sentence differently and
+the suggestions section needs to say which side a conditional fix falls on. If Opus
+writes prose this time, all four runs agree and nothing needs saying.
+
+**A weakness in this scenario's own first assertion, worth recording either way.** "The
+comment on the `COPY` lines contains a fenced `suggestion` block" is only reachable by a
+run that first decides the collapse is worth proposing. An assertion that depends on an
+upstream judgement call is a weaker regression test than it reads as, because a run can
+fail it without touching the rule under test. The assertion is not being changed, since
+it is still the right thing to want, but anything read from it has to name which of the
+two happened.
+
 ## Baseline, without the skill: Sonnet 5, 2026-08-06
 
 Plugin disabled for the run, verified absent before it started, re-enabled from a trap

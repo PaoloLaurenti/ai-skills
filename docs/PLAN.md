@@ -6,10 +6,11 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Task 1 is done apart from one item blocked on Anthropic, so the queued work is now
-task 2: three single-occurrence results from the Sonnet round that the repo's own
-evidentiary standard says cannot be acted on yet. Task 3 is a tripwire rather than
-work.
+Task 1 is done apart from one item blocked on Anthropic. Task 2 took the three
+single-occurrence results from the Sonnet round and gave each a second run: two did not
+reproduce, the third turned out to be measuring a missed finding rather than a broken
+rule, so the skill body did not change. What it leaves behind is one targeted run,
+listed at the end of that task. Task 3 is a tripwire rather than work.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -264,27 +265,49 @@ baseline arm for these scenarios is already recorded on both models.
 What each rerun decides, written down before it runs so the reading is not fitted to
 the result:
 
-- [ ] **Scenario 03, the bare repeated mentions.** Sonnet linked every file the first
-      time it appeared and left four later mentions plain. If the rerun does it again,
-      the failure is systematic on this model and the skill body's Code references
-      section is worth strengthening exactly where it sits, since the rule is stated
-      but evidently not sticky. If the rerun links them all, the entry stays a recorded
-      inconsistency and the body does not move.
-- [ ] **Scenario 04, the missing `suggestion` block.** Sonnet wrote a concrete
-      `USER 1000:1000` insertion as prose where Opus handed over a committable block on
-      the same line. Same decision rule: twice makes it the model's default and worth
-      answering in the body, once makes it variance.
-- [ ] **Scenario 01, the unverified value inside a committable block.** Sonnet shipped
-      `FROM python:3.14-slim` in a `suggestion` while hedging in the prose that the
-      current minor wants checking at merge time. Opus wrote that block and deleted it
-      for that reason. This one differs from the other two: no assertion covers it, and
-      the skill body arguably does not either. If the rerun ships an unverified value
-      again, the suggestions section needs a sentence saying a value nothing in the run
-      could verify does not belong in a one-click block, and that sentence would be the
-      first amendment in this task answering a failure observed rather than imagined.
+- [x] **Scenario 03, the bare repeated mentions.** Did not reproduce. The rerun linked
+      every mention in both the body and the inline comment, leaving nothing behind a
+      link strip, against four survivors before. Per the rule above, variance rather
+      than the model's default, and the skill body does not move. Worth noting why the
+      comparison is not clean: the rerun wrote 6 mentions where the first wrote 10, so
+      part of the improvement is a shorter review rather than a stricter one. The rule
+      now stands at 3 passes in 4 runs.
+- [x] **Scenario 04, the missing `suggestion` block.** Reproduced, no block either
+      time, and acting on the trigger anyway would have been wrong. The two runs failed
+      for different reasons: the first noticed the earlier `COPY --chmod=755` and
+      declined to propose undoing it, the second never mentions it. The collapse is the
+      fix that must be a block, and neither run proposed it, which is a finding never
+      made rather than a finding formatted wrongly, and the skill's own opening
+      disclaims responsibility for finding defects. The fix both runs did propose,
+      adding `USER 1000:1000`, is offered as one of two options contingent on intent,
+      which lands inside the body's stated exception for "a design change, or anything
+      the reader has to decide before writing". Opus read the same sentence the other
+      way and wrote a block.
+- [x] **Scenario 01, the unverified value inside a committable block.** Did not
+      reproduce, and the rerun is arguably the best of the three runs on this point: the
+      block carries `FROM python:3.12-slim`, the pin the base version already had and so
+      verifiable from the diff alone, while the unverifiable alternative stays in the
+      prose beside it. One occurrence in three, so the suggestions section stays as it
+      is and the question closes.
 
 Deliberately not rerunning the passes. A scenario that passed twice on Opus and once on
 Sonnet is not made more certain by a fourth run, and the runs cost real time.
+
+**Net result of this task: no change to the skill body.** Two of the three did not
+reproduce, and the one that did turned out to be measuring something else. That is the
+outcome the second-data-point rule exists to produce, and it is worth stating plainly,
+because three amendments written off three single runs would all have been wrong.
+
+- [ ] **One Opus run of scenario 04, to settle the boundary the reruns exposed.** Two
+      models drew the line between "a concrete edit, so hand over a block" and "a design
+      change, so use prose" differently on the identical fix in the identical file. That
+      is the strongest amendment candidate this task has produced and it is not being
+      written yet, because the Opus side rests on one run. If Opus writes the block
+      again, the two models genuinely read the same sentence differently and the
+      suggestions section needs to say which side a conditional fix falls on. If Opus
+      writes prose, all four runs agree and nothing needs saying. Whichever way it goes,
+      an amendment to `SKILL.md` reruns this skill's scenarios before it is offered, per
+      `AGENTS.md`.
 
 ## 3. Tripwire: progressive disclosure
 

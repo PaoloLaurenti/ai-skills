@@ -210,6 +210,36 @@ appears inside a paraphrase of the README sentence being quoted back. Same excep
 Opus run's single bare mention fell under, prose belonging to another document rather
 than to the review.
 
+## Second run: Sonnet 5, 2026-08-06
+
+**Passed, including E6.** The failure above did not reproduce, so it is variance rather
+than the model's default, and per the decision written down before this run the skill
+body does not move.
+
+Same prompt, same fixture, same model. Every file mention in both the body and the
+inline comment is a link: `README.md:8-9` twice, `AGENTS.md:7`, `config/default.toml:8`,
+`app/server.py`, `docker-entrypoint.sh`. Stripping the links leaves nothing at all,
+against four survivors on the first run. Every link carries the head SHA, all three line
+anchors resolve, no em dash, no first or second person, no heading, and the body opens
+with one sentence introducing its single section.
+
+**What differed between the two runs is the shape, not the discipline.** The first
+wrote two inline comments and a two-bullet body; this one wrote a single inline comment
+on `Dockerfile` and a one-paragraph body. Fewer mentions is part of why fewer went bare,
+which is worth saying rather than claiming the rule got stronger: 6 linked mentions here
+against 10 mentions and 4 bare ones before.
+
+**So the rule is now 3 for 4 across the set**, passing on both Opus runs and one of two
+Sonnet runs. That is an inconsistency worth leaving recorded and watching, not a
+systematic failure to answer in the skill body. The one thing it does settle is that the
+two-model set was right to exist: the variance is real and only repeated runs expose it.
+
+**One bare "README" without its extension**, in "then the README sentence needs
+rewriting". The first Sonnet run had the same, in "worth updating that README
+paragraph", and neither was counted, since E6 matches `README.md`. Whether a bare
+"README" in prose is a file mention the rule covers is genuinely unsettled, and both
+runs did it, so it is the one thing here with two data points rather than one.
+
 ## Baseline, without the skill: Sonnet 5, 2026-08-06
 
 Plugin disabled for the run, verified absent before it started, re-enabled from a trap
