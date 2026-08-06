@@ -37,7 +37,15 @@ log="$out.log"
 # Before every run, not after a failure. GitHub allows one pending review per user per
 # pull request, so the draft the previous run left behind makes this one's POST fail in
 # a way that reads exactly like the skill getting delivery wrong.
-"$here/fixture/reset.sh" >> "$log" 2>&1
+#
+# EVAL_SKIP_RESET exists for scenario 07 alone, which needs a draft already open when the
+# run starts and seeds one itself. Skipping the clearing anywhere else reintroduces the
+# failure the clearing is here to prevent.
+if [ -z "${EVAL_SKIP_RESET:-}" ]; then
+    "$here/fixture/reset.sh" >> "$log" 2>&1
+else
+    echo "reset skipped: EVAL_SKIP_RESET set" >> "$log"
+fi
 
 attempt=1
 while [ "$attempt" -le 10 ]; do

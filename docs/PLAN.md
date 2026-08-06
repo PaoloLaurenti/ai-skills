@@ -6,11 +6,11 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Four things are open. Tasks 1 and 2 are one piece of work split in two entries and are
-what anyone should start with, since they answer a failure that has been reproduced
-rather than imagined. Task 3 is blocked on Anthropic and task 4 is a tripwire rather than
-work. Everything else this plan has carried is finished and recorded under Completed, the
-evaluation suite and the two questions it left behind included.
+Two things are open. Task 1 is blocked on Anthropic. Task 2 is the progressive disclosure
+split, and it is the one entry here that has stopped being hypothetical: the amendment
+recorded at the top of Completed pushed the skill body past the 450-line mark this plan
+set as its own trigger, so the next person to touch that file inherits the decision.
+Everything else is finished and recorded under Completed.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -19,92 +19,7 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Append to an open pending review instead of failing or destroying it
-
-The failure is reproduced, not imagined, which is the bar this repo sets for an
-amendment. With a draft already open on the pull request, the command the skill body
-states comes back:
-
-```
-422 Unprocessable Entity
-"User can only have one pending review per pull request"
-```
-
-**What makes it worse than a failed call is the instruction sitting next to it.** The
-body's only sentence about this situation is "To change a pending review, delete it and
-recreate it", so an agent that hits the 422 has, as its nearest written guidance, a
-`DELETE` of a draft whose comments may be someone else's work. That path is already in
-use: the third Opus run on scenario 04 deleted and recreated its own review to withdraw a
-false finding. Nothing distinguishes a draft the run created a minute ago from one a
-person has been writing by hand.
-
-The wanted behaviour is to append to the open draft, and to stop and ask when a comment
-already in it breaks a rule the skill enforces, rather than rewriting or deleting
-somebody else's text.
-
-- [ ] amend the delivery section: detect an open draft, append to it, and ask rather than
-      edit when an existing comment violates a rule
-
-**The API path is verified against the fixture rather than recalled.** REST has no append,
-so this is GraphQL:
-
-| step | call | result |
-|---|---|---|
-| append an inline comment | `addPullRequestReviewThread` with `pullRequestReviewId` | works, accepts `line`, `side`, `startLine`, `startSide` |
-| append to the general comment | `updatePullRequestReview` | works, stays `PENDING` |
-| the pre-existing human comment | | survives |
-| published comments after | | 0 |
-
-**One trap worth writing into the body rather than leaving to be reconstructed.**
-`addPullRequestReviewComment` also exists and looks like the obvious name. It rejects
-`line` and `side`, because it still speaks the older `position` model, and the anchor
-model this skill uses is the newer one. Reaching for the plausible name and getting a
-silent mismatch is exactly the shape of the `pulls/N/events` mistake this suite already
-caught once.
-
-Two things about the second half, the asking. The skill has no rule today that stops and
-puts a question to the requester, so this is a new kind of instruction in it rather than a
-variation on one. And a headless run has nobody to ask, which is what task 2 has to solve
-before this can be graded at all.
-
-What it costs: an edit to `SKILL.md` reruns all six scenarios per `AGENTS.md`, and roughly
-thirty lines onto a body at 408 puts it near the 450 mark task 4 watches for.
-
-## 2. A scenario for appending to an open pending review
-
-Task 1 ships with this rather than before it. Adding a rule with no scenario is what the
-entry above it in Completed just finished repairing, and the whole argument for the suite
-is that a rule nobody exercised is a rule nobody knows is working.
-
-- [ ] add `evals/writing-pr-reviews/07-append-to-open-draft.md`, with the fixture step the
-      scenario needs, and run it on both models with a baseline each
-
-**The fixture wrinkle to solve first.** Every other scenario starts from a pull request
-with no draft on it, and `reset.sh` guarantees that by clearing every pending review
-before every run. This scenario needs the opposite: a draft that already exists when the
-run starts, holding a comment written by hand, at least one of which breaks a rule the
-skill enforces, so both halves of task 1 are exercised. So it needs a seeding step that
-runs after `reset.sh` rather than a branch in `setup.sh`, and `run.sh` currently has no
-hook for one.
-
-**Assertions that are commands, and they are unusually good here** because the rule is
-about preservation rather than prose:
-
-- the review id after the run equals the id before it, which is what proves it appended
-  rather than deleted and recreated
-- the hand-written comment is still present, byte for byte
-- the comment count grew rather than replaced
-- state is still `PENDING` and `pulls/N/comments` is still `0`
-
-**The half that is hard to grade, and it needs deciding before the scenario is written.**
-A run under `claude -p` has no interactive user, so "ask the requester" cannot happen as a
-question. The reachable version is that the run leaves the offending comment untouched and
-raises the matter in its reply, which is gradeable: the comment is unchanged, and the
-reply names it. Worth settling deliberately, because writing the assertion around a
-question the harness makes impossible would produce another assertion that tests the
-failure imagined rather than the one the rule is about, which is now five of those.
-
-## 3. Move the suite onto `claude plugin eval`
+## 1. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -141,30 +56,143 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
 
-## 4. Tripwire: progressive disclosure
+## 2. Tripwire: progressive disclosure
 
-No action yet. The skill body is at 408 lines against a 500-line limit, so the
-next substantial addition forces the split.
+**The tripwire has fired.** The skill body is at 468 lines against a 500-line limit,
+having crossed the 450 mark this entry set as its own trigger. It went from 408 to 468 in
+one change, the append amendment recorded below, which is the entry that predicted it
+would be the thing to cross it.
 
-Deliberately not splitting now: moving rules out of `SKILL.md` in a skill whose
-job is enforcing discipline risks them not being read at all. When the split
-becomes unavoidable, the section to move is the delivery mechanics for a pending
-review, which is reference material rather than a rule, and reference files stay
-one level deep from `SKILL.md`.
+- [ ] split before the next substantial addition, which now has 32 lines of headroom
+      rather than 92
 
-- [ ] revisit when a skill body crosses roughly 450 lines
+Deliberately still not splitting: doing it inside the amendment that crossed the line
+would have meant restructuring the file in the same change that added a rule to it, and
+the amendment had six scenarios to satisfy on its own. The split is a decision about
+where rules live, and it deserves its own change rather than riding along with one.
 
-**Task 1 collides with this entry, and whoever does it should read this first.** The
-section it grows by roughly thirty lines is the delivery mechanics, which is the exact
-section named above as the one to extract. Two consequences. The 450 mark is likely to be
-crossed by task 1 itself rather than by some later addition, so the split stops being
-hypothetical at that moment. And the split gets easier rather than harder, since the
-GraphQL append calls are reference material of the same kind as the `gh api` commands
-already there. What must not follow it into a reference file is the rule itself, that an
-open draft is appended to and never deleted, which belongs in the body with the other
-non-negotiables.
+**What moves, and what must not.** The section to extract is the delivery mechanics for a
+pending review, which is reference material rather than a rule, and reference files stay
+one level deep from `SKILL.md`. The amendment made this both more pressing and easier: the
+GraphQL append calls are reference material of exactly the same kind as the `gh api`
+commands already sitting there, so they leave together.
+
+What must not follow them out is the rule itself. Non-negotiable 2, that an open draft is
+appended to and never deleted, belongs in the body beside the other non-negotiables, along
+with the two red flags guarding it. Moving rules out of a skill whose job is enforcing
+discipline risks them not being read at all, and a data-loss rule is the worst candidate
+in the file for that treatment.
 
 ## Completed
+
+**Append to an open pending review instead of failing or destroying it, and the scenario
+that tests it.** Both halves shipped together, which is what the two entries said had to
+happen: the rule and the scenario that makes it verifiable, rather than a rule nobody
+exercised.
+
+*The failure this answers, reproduced before anything was written.* With a draft already
+open, the command the skill body stated came back `422 User can only have one pending
+review per pull request`. Worse than the failed call was the instruction beside it: the
+body's only sentence on the subject was "To change a pending review, delete it and
+recreate it", so an agent hitting the `422` had a `DELETE` of somebody else's work as its
+nearest written guidance, and that path was already in live use.
+
+*What changed in the skill body.* A new non-negotiable 2, that a draft this run did not
+create is appended to and never deleted or rewritten, and that a comment already in it
+breaking the conventions is left exactly as written and named in the reply. The delivery
+section gained the check for an open draft and the two GraphQL calls that append to one,
+`addPullRequestReviewThread` for inline comments and `updatePullRequestReview` for the
+body, both verified against the fixture rather than recalled. The dangerous sentence was
+scoped rather than left standing: delete and recreate now applies only to a draft this run
+created. Two red flags guard it.
+
+*One trap written down so nobody rebuilds it.* `addPullRequestReviewComment` reads like the
+obvious name and rejects `line` and `side`, because it still speaks the older `position`
+model. Reaching for the plausible endpoint is the same shape as the `pulls/N/events`
+mistake this suite caught once already, which is why the working call is stated rather
+than left to be reconstructed.
+
+*The rule is phrased as an action, not as a question, and that was deliberate.* "Ask the
+requester" cannot be graded under `claude -p`, which has nobody to ask, so an assertion
+about it would test the harness rather than the rule. Leaving the comment untouched and
+naming it in the reply is gradeable headlessly and is the same behaviour interactively,
+since a person reading the reply gets the question. The alternative would have produced a
+sixth assertion of the family this suite keeps finding.
+
+*Scenario 07 and its two inversions.* It is the only scenario about preserving something
+rather than producing something, which makes its assertions unusually strong: the review id
+after the run compared against the id before it is what separates an append from a delete
+and recreate, and nothing else distinguishes them once the run is over. It inverts two
+house rules. It needs a draft to exist when the run starts, so `fixture/seed-open-draft.sh`
+seeds one after `reset.sh` and `run.sh` learned `EVAL_SKIP_RESET` for that scenario alone.
+And its seed breaks E3 and E4 on purpose, so the every-run assertions are read over the
+text the run added rather than over the merged review, since scoring the merged text would
+punish the rule working.
+
+*Both models passed on the first run.* Same review id, both seeded comments intact byte for
+byte, the seeded body still the opening line, state `PENDING`, nothing published, and the
+offending comment named in the reply with the rules it breaks. Worth noting rather than
+celebrating: an amendment written against a failure reproduced minutes earlier is the
+easiest kind to satisfy, and the scenario existing before the rule is what keeps that
+honest.
+
+*The baseline arm settles less than this rule would like, and that is recorded rather than
+glossed.* Neither baseline destroyed the draft. Zero of two. The Opus one never engaged
+with the review state at all and the draft survived by inaction; the Sonnet one noticed the
+draft, verified its comments, posted nothing and asked what to do with it, which is close
+to the wanted behaviour reached without the amendment. So the failure non-negotiable 2
+forbids has not been observed in a baseline.
+
+*What justifies it instead, and it is a different reason from every other rule here.* The
+hazard was introduced by the skill's own text. The body said "To change a pending review,
+delete it and recreate it" with no scope on it, and the `422` is the error an agent meets
+exactly when a draft it must not touch is in the way. A baseline never faced that hazard
+because a baseline never read that sentence. The rule repairs a danger the skill created,
+which is a legitimate reason to write one and worth distinguishing from answering a failure
+a model makes on its own. The half about leaving an offending comment alone is untestable by
+a baseline in principle, since without the skill there are no conventions for the comment to
+break.
+
+*Cost, paid as `AGENTS.md` requires.* The edit to `SKILL.md` reran the suite, and it took
+the body from 408 lines to 468, firing the progressive disclosure tripwire that task 2 now
+carries. The rerun was one Opus run per existing scenario rather than the full two-model
+matrix, which is the reading of `AGENTS.md` a regression gate needs rather than the one
+that settles a rule, and it is stated here rather than quietly performed.
+
+*No regression, and the one thing that looked like one was this repo's own doing.* Every
+rerun scenario held: `PENDING` with nothing published, no em dash, no first or second
+person, scenario 02's body still free of diffed files, scenario 04 still writing a
+`suggestion` block with no diff markers, scenario 05 still naming `README.md` and quoting
+the stale port, scenario 06 still naming `platform-api`. Scenario 01 mattered most, being
+the pending-state scenario nearest the text that changed, and it came back clean with the
+submit command in its correct form.
+
+*The near miss is worth more than the pass.* Scenarios 03, 04 and 05 each produced one
+permalink pinned to `2a2ca60` rather than the head SHA, and E7 duly flagged all three.
+Read as a skill failure that is three regressions in the rule scenario 03 exists for.
+It is not one. `2a2ca60` is the commit that added `.github/workflows/deploy.yml` for
+scenario 06, and those three branches were cut from `main` before it, so the file does not
+exist at their head SHAs and a head-SHA permalink to it would `404`. Pinning to the commit
+where the file exists is the only link that works, so all three runs were right and the
+assertion was measuring a fixture that had gone inconsistent underneath it.
+
+The control is already in the record: scenarios 06 and 07, whose branches were cut after
+the workflow landed, both link `deploy.yml` at their head SHA with nothing flagged. Same
+rule, same file, opposite result, decided entirely by whether the branch predates the file.
+
+*What that leaves to fix, and it is a fixture defect rather than a skill one.* Adding
+`deploy.yml` to `main` after five branches were already cut made a file that a run can see
+in its working tree and cannot link at the head SHA. The constraint written when it was
+added covered the risk that it would become a second finding inside older scenarios, and it
+holds: no run treated it as one. It did not cover the risk of it becoming a new link
+target, which is the channel the contamination actually came through.
+
+Fixed rather than noted: `main` is merged into all five older branches, `deploy.yml` now
+resolves at all seven head SHAs, and every line number the assertions rest on was checked
+afterwards and is where it was. The diffs are unchanged, the merge base having moved with
+them. `setup.sh` needed no change, since it writes the workflow into the initial commit
+and a rebuilt fixture never had the problem; only a live fixture patched in place drifts
+this way, which is the rule the eval README now carries for anything added to `main`.
 
 **Add a scenario for the rule about verifying architectural claims.** Written, run on
 both models with a baseline each, and recorded in
@@ -248,14 +276,18 @@ weakness this scenario already records about its own first assertion, an asserti
 can pass or fail without the rule under test being exercised at all.
 
 **Build an evaluation suite for the skill, and run it.** This was the largest gap in
-the repo: nothing tested whether the rules hold. It is now six scenarios in
-`evals/writing-pr-reviews/`, the five this task built plus the one the entry above added,
-one file each, carrying the prompt verbatim and a checklist
+the repo: nothing tested whether the rules hold. It is now seven scenarios in
+`evals/writing-pr-reviews/`, the five this task built plus the two the entries above
+added, one file each, carrying the prompt verbatim and a checklist
 of assertions that are commands rather than judgement calls, against a sandbox fixture
-of one pull request per scenario. Twenty-eight graded runs are recorded: six scenarios
-and six baselines on each of Opus 5 and Sonnet 5, plus four reruns. Scenarios live at
+of one pull request per scenario. Scenarios live at
 the repo root rather than under `skills/`, because everything in a skill directory is
 surface the plugin serves.
+
+Counting runs stopped being useful once the suite started being rerun as a regression gate
+rather than built. What is worth carrying instead: every scenario has been graded on both
+Opus 5 and Sonnet 5 with a baseline arm on each, and the amendment above added a full
+rerun on top of that.
 
 Anthropic asks for at least three evaluations per skill and a run against every model
 the skill is meant for. `superpowers:writing-skills` goes further, asking that each rule

@@ -22,16 +22,21 @@ general advice on how to find defects.
    explicit request to submit or publish the review; a request to write, prepare,
    add, or leave a review is not that, and neither is a review that reads as
    ready to go.
-2. **Write the review in English**, even when the conversation is in Italian.
-3. **Never use em dashes** (the `—` character) anywhere in the review: not in the
+2. **Never delete or rewrite a draft this run did not create.** A pending review
+   already open on the pull request is appended to, never replaced. A comment
+   already in it that breaks these conventions stays exactly as written: leave it
+   untouched, and say in the reply which comment it is and which rule it breaks.
+   That decision belongs to whoever asked for the review, not to the review.
+3. **Write the review in English**, even when the conversation is in Italian.
+4. **Never use em dashes** (the `—` character) anywhere in the review: not in the
    general comment, not in inline comments. Restructure the sentence instead.
    Commas, colons, parentheses, or two shorter sentences all work.
-4. **Impersonal forms only.** No "I", "we", "us", "our", "you", "your" anywhere
+5. **Impersonal forms only.** No "I", "we", "us", "our", "you", "your" anywhere
    in the review. Use "worth ...", "the suggestion is to ...", passive and gerund
    constructions instead. This holds even where a first-person plural would sound
    collegial: "we are in good shape today" becomes "today's position is fine",
    and "gives us a way in" becomes "leaves a way in".
-5. **Be short and direct.** No filler.
+6. **Be short and direct.** No filler.
 
 ## Tone
 
@@ -344,6 +349,53 @@ Numbers written from memory come out off by one.
 gh api --method POST repos/OWNER/REPO/pulls/N/reviews --input review.json
 ```
 
+**Check for an open draft before running that.** GitHub allows one pending review
+per user per pull request, so the `POST` fails with `422 User can only have one
+pending review per pull request` while one exists:
+
+```bash
+gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | select(.state=="PENDING") | .id'
+```
+
+Nothing back means the `POST` is the right call. An id means that draft is
+appended to, per non-negotiable 2. REST has no append, so this part is GraphQL and
+works off the node id:
+
+```bash
+node=$(gh api repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID -q .node_id)
+```
+
+Inline comments go one at a time, anchored exactly as `review.json` would have
+anchored them:
+
+```bash
+gh api graphql -f query='
+mutation($rid:ID!,$body:String!,$path:String!,$line:Int!){
+  addPullRequestReviewThread(input:{pullRequestReviewId:$rid, body:$body,
+    path:$path, line:$line, side:RIGHT}){ thread { id } }
+}' -f rid="$node" -f body="..." -f path="..." -F line=N
+```
+
+It takes `startLine` and `startSide` too, so a range anchor survives the append.
+Reach for it rather than `addPullRequestReviewComment`, which reads like the
+obvious name and rejects `line` and `side` outright, because it still speaks the
+older `position` model.
+
+The general comment is added to rather than overwritten, so read the existing body
+and send it back with the new text after it:
+
+```bash
+old=$(gh api repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID -q .body)
+gh api graphql -f query='
+mutation($rid:ID!,$body:String!){
+  updatePullRequestReview(input:{pullRequestReviewId:$rid, body:$body}){
+    pullRequestReview { state } }
+}' -f rid="$node" -f body="$old
+...new text..."
+```
+
+Both mutations leave the review `PENDING` and publish nothing.
+
 `review.json` holds `commit_id`, `body`, and a `comments` array of
 `{path, line, side}`, or `{path, start_line, start_side, line, side}` for a
 range. No `event` key means the whole review, general comment included, stays
@@ -371,12 +423,16 @@ gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | "\(.id) \(.state)"'  # expect 
 gh api repos/OWNER/REPO/pulls/N/comments -q 'length'                   # expect 0
 ```
 
-To change a pending review, delete it and recreate it. GitHub allows one pending
-review per user per PR, so a second POST fails while a draft exists.
+To change a draft **this run created**, delete it and recreate it, since a second
+`POST` fails while it exists.
 
 ```bash
 gh api --method DELETE repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID
 ```
+
+That is the only draft this applies to. One that was already open when the review
+started belongs to whoever wrote it, and non-negotiable 2 governs it: append, and
+never reach for `DELETE` to get past the `422`.
 
 ## Red flags
 
@@ -396,6 +452,10 @@ Any of these means the review is not ready:
   introducing the sections.
 - An `event` field in the payload, or reaching for `gh pr review`.
 - A review that ended up submitted without an explicit request to publish it.
+- A draft that was already open before the review started, deleted or rewritten,
+  or a `DELETE` used to get past a `422`.
+- A comment already in an open draft edited to satisfy these conventions, rather
+  than left alone and raised in the reply.
 - No `README.md`, `AGENTS.md`, or `CLAUDE.md` was read before writing the review.
 - A body made entirely of bold labels and terse bullets, with no prose framing
   it. Bullets themselves are fine and often better; the absence of prose is not.

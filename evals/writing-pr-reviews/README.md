@@ -26,6 +26,24 @@ image and no entrypoint, so it cannot become a second finding inside the five sc
 that predate it. It was added to the live fixture after those five were recorded, which is
 why their results mention no workflow.
 
+**A new file on `main` has to reach every branch, and forgetting that cost a false
+failure.** `deploy.yml` was pushed to `main` after the five original branches were cut, so
+it did not exist at their head SHAs. Three of them then linked it at the commit that
+introduced it, because a head-SHA permalink to a file the head does not contain returns
+`404`. E7 flagged all three, and read quickly that is three regressions in the rule
+scenario 03 exists for. It was the fixture: the runs produced the only link that works,
+and scenarios 06 and 07, cut after the workflow landed, linked it at their head SHA with
+nothing flagged.
+
+`main` has since been merged into all five, so the file is reachable at every head SHA and
+the diffs are unchanged, the merge base having moved with them. The constraint written
+above covered the risk of the workflow becoming a second *finding*, and that held. It did
+not cover it becoming a new *link target*, which is the channel the contamination came
+through. **Anything added to `main` from now on gets merged into every open branch in the
+same change**, and `setup.sh` needs no fix for this, since it writes the workflow into the
+initial commit and a rebuilt fixture never has the problem. Only a live fixture patched in
+place drifts this way.
+
 ```bash
 evals/writing-pr-reviews/fixture/setup.sh          # creates the repo and the PRs
 evals/writing-pr-reviews/fixture/reset.sh          # clears pending reviews between runs
@@ -40,6 +58,21 @@ here names anyone.
 pull request, so every run leaves one behind and the next `POST` fails while it is
 there. A failed second run reads exactly like a skill failure, which is the trap
 `reset.sh` exists to remove. Run it before every run, including the first.
+
+**Scenario 07 is the exception, and it inverts two of the rules on this page.** It tests
+what happens to a draft that is already open, so it needs one to exist when the run
+starts. `fixture/seed-open-draft.sh` puts it there, and it has to land after `reset.sh`
+rather than before, so `run.sh` takes `EVAL_SKIP_RESET=1` for that scenario alone:
+
+```bash
+evals/writing-pr-reviews/fixture/reset.sh
+evals/writing-pr-reviews/fixture/seed-open-draft.sh
+EVAL_SKIP_RESET=1 evals/writing-pr-reviews/run.sh opus "dammi un parere sulla PR #7"
+```
+
+Setting `EVAL_SKIP_RESET` anywhere else reintroduces exactly the failure the reset step
+exists to prevent. The second inversion is in grading, and it is described with the
+every-run assertions below.
 
 Scenarios refer to their pull request by branch name, so no generated state is
 kept in this repo. Resolve the number when running:
@@ -144,6 +177,12 @@ thing that looks conclusive.
 
 These are the rules a model violates most naturally, because they fight its
 default writing style. Every review any scenario produces gets all of them.
+
+**With one exception, scenario 07.** Its fixture seeds a comment that breaks E3 and E4 on
+purpose, since the rule under test is that the skill leaves such a comment alone. Running
+these over the merged review would report two violations the run did not commit and
+scoring them would punish the rule working. Grade them over the text the run **added**:
+the general comment minus the seeded prefix, and the comments minus the seeded two.
 
 | | Assertion | Command |
 |---|---|---|

@@ -204,6 +204,14 @@ printf '\n[metrics]\nport = 9091\n' >> config/default.toml
 open_pr architectural-claims "expose the metrics port" \
     "Adds a metrics listener so the example-service container can be scraped."
 
+# 07. Appending to an open draft. The diff only has to be worth one inline comment;
+# what the scenario tests is what happens to a pending review that is already there,
+# which `seed-open-draft.sh` creates after `reset.sh` has run.
+git checkout -q -b open-draft main
+perl -pi -e 's{^EXPOSE 8080$}{EXPOSE 8080\nHEALTHCHECK CMD curl -f http://localhost:8081/health || exit 1}' Dockerfile
+open_pr open-draft "add a container healthcheck" \
+    "Lets the orchestrator restart the container when it stops answering."
+
 echo
 echo "Fixture ready at $repo. Pull request numbers, by scenario branch:"
 gh pr list --repo "$repo" --state open --json number,headRefName \
