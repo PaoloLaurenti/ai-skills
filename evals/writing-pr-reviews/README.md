@@ -194,6 +194,32 @@ the general comment minus the seeded prefix, and the comments minus the seeded t
 | E6 | Every repo file named in the text is a markdown link | `printf '%s' "$text" \| perl -pe 's/\[[^]]*\]\([^)]*\)//g' \| grep -onE '(README\.md\|AGENTS\.md\|Dockerfile\|default\.toml\|deploy\.yml)'`, then read what survives |
 | E7 | Every permalink is pinned to the head SHA | `printf '%s' "$text" \| grep -oE 'blob/[0-9a-f]{7,40}'` and compare against `gh pr view "$N" --repo "$R" --json headRefOid -q .headRefOid` |
 | E8 | No `event` was sent, which E1 already proves | E1 |
+| E9 | No inline comment's prose runs past 80 words | the command below |
+
+E9 counts prose only, so a `suggestion` block does not push a comment over: the block is
+the fix rather than the explaining, and a rule that counted it would punish the very shape
+the skill asks for.
+
+```bash
+gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[].body' \
+  | awk '/^```/{f=!f; next} !f' | awk 'BEGIN{RS="\0"} {print NF}'
+```
+
+That counts the whole set as one number. For a per-comment count, which is what the
+assertion is about, read them one at a time:
+
+```bash
+gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[] | @base64' \
+  | while read -r c; do printf '%s' "$c" | base64 -d \
+      | jq -r .body | awk '/^```/{f=!f; next} !f{w+=NF} END{print w}'; done
+```
+
+**Where the 80 came from.** The seven post-split runs produced inline comments between 18
+and 179 words. The two comments a person wrote by hand for scenario 07's fixture are 18
+and 22. So a model left alone writes five to eight times what a person writes on the same
+kind of finding, and the rule exists to answer that rather than a style preference. 80 is
+set above every human-written comment in the fixture and below most of what the runs
+produced, so it bites where the gap is.
 
 **E4 as first written listed six forms**, `I` through `your`, and missed `me`, `my` and
 the contractions. The Opus baseline on scenario 01 carried all three of "I'd", "me" and

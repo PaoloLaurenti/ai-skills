@@ -6,9 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open, and it is blocked on Anthropic rather than on this repo. Everything
-else is finished and recorded under Completed, the progressive disclosure split included:
-it fired, it was done, and the skill body came back under where it started.
+Two things are open. Task 1 is finishing a rerun that was started and not completed, and it
+is the only work anyone can pick up today. Task 2 is blocked on Anthropic.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -17,7 +16,25 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Move the suite onto `claude plugin eval`
+## 1. Finish the rerun the brevity directive owes
+
+`AGENTS.md` asks for a skill's whole suite before a `SKILL.md` change is offered. The
+`One point per comment` directive recorded at the top of Completed ran three of the eight
+scenarios, 03, 04 and 06, picked as the two whose comments were longest plus the one
+carrying a `suggestion` block. Four were not run.
+
+- [ ] rerun scenarios 01, 02, 05 and 07 on Opus against the current body
+
+Why it was left short rather than skipped quietly: the session ran out of room, and three
+runs chosen for what they exercise is a better partial than three taken in order. What the
+three settle is that the cap holds and that excluding code from the count keeps the
+`suggestion` rule intact. What they leave open is the delivery scenarios, 01 and 07, which
+is where a body edit has broken something before.
+
+Scenario 07 needs its seed, so its run is the three-command form in the eval README rather
+than one.
+
+## 2. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -55,6 +72,58 @@ written into each scenario file are the specification those graders will want, w
 the part worth having either way.
 
 ## Completed
+
+**Make every comment as short and plainly worded as it can be, and grade it.** Requested
+as a directive, and it turned out to answer something measurable rather than a preference.
+
+*The evidence, gathered before the rule was written.* The seven post-split runs produced
+inline comments between 18 and 179 words. The two comments a person wrote by hand for
+scenario 07's fixture are 18 and 22. A model left alone writes five to eight times what a
+person writes on the same kind of finding. Non-negotiable 6 already said "be short and
+direct, no filler", and a 179-word comment passed it, so what was missing was a shape
+rather than an instruction.
+
+*What the body now says.* A `One point per comment` section, pointed at from non-negotiable
+6: a comment's prose stays under 80 words and most land well under 50, code in a
+`suggestion` block excluded since that is the fix rather than the explaining. Three things
+a comment needs, what is wrong, why where it is not obvious, and what to do instead, with
+everything past them cut. One point per comment, short sentences, ordinary words, and the
+note that a point genuinely needing paragraphs is a design discussion belonging in the
+general comment or an issue rather than anchored to a line. Three red flags guard it.
+
+*Graded as an every-run assertion rather than a scenario, which is the design call worth
+recording.* Brevity is a property of every review, exactly like the em dash rule, so a
+scenario of its own would have tested it in one place while leaving it unmeasured in the
+other seven. E9 in the eval README counts prose words per inline comment with fenced blocks
+stripped. The 80 is set above every human-written comment in the fixture and below most of
+what the runs produced, so it bites precisely where the measured gap is.
+
+*It works, measured on three scenarios on Opus.* Every comment came back under the cap, and
+the change is large rather than marginal:
+
+| scenario | before | after |
+|---|---|---|
+| 03 | 160 | 54 |
+| 04 | 118, 23 | 49, 66, 23 |
+| 06 | 139 | 35, 40 |
+
+Scenario 04 is the interesting one: the long comment did not merely shrink, the review went
+from two comments to three, which is `One point per comment` doing what it says rather than
+prose being squeezed. The `suggestion` block survived in both 04 and 06, so excluding code
+from the count kept the rule from fighting the one the skill cares more about. Nothing else
+moved: no em dash, no first or second person, no off-head permalink, `PENDING` with nothing
+published, on all three.
+
+*An ambiguity the first result exposed, fixed before it could bite.* Scenario 03 came back
+with a 177-word general comment, and the skill calls that a comment too, so read literally
+the 80 would have applied and forced a finding out. The body now says the general comment
+is measured per finding rather than as a whole, since it legitimately carries several.
+
+*What is not done, stated rather than implied.* `AGENTS.md` asks for the whole suite before
+a `SKILL.md` change is offered, and this ran three of eight scenarios, chosen as the ones
+whose comments were longest plus the one carrying a `suggestion` block. Scenarios 01, 02,
+05 and 07 have not been rerun against this directive. Nothing observed suggests a problem,
+and that is a prediction rather than a result.
 
 **Check that a skill's relative links resolve, which is the gap the split opened.** Moving
 the delivery commands into `reference/` made the skill depend on a file nothing verified.

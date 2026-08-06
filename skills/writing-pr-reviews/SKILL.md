@@ -36,7 +36,9 @@ general advice on how to find defects.
    constructions instead. This holds even where a first-person plural would sound
    collegial: "we are in good shape today" becomes "today's position is fine",
    and "gives us a way in" becomes "leaves a way in".
-6. **Be short and direct.** No filler.
+6. **Be short and direct.** No filler, and every comment stays as short and as
+   plainly worded as it can be while still being actionable. See One point per
+   comment for the shape that takes.
 
 ## Tone
 
@@ -59,6 +61,43 @@ being handed down.
 Warmth never costs precision: the file, the line, and the concrete fix stay
 exactly as sharp as they were. It never becomes padding either. Cordiality comes
 from word choice, not from added praise or hedging, and the brevity rule holds.
+
+## One point per comment
+
+A review is scanned between other work, not read through. Every comment is
+written for a colleague giving it a few seconds, so it says one thing, in the
+plainest words that still carry it.
+
+**Keep an inline comment's prose under 80 words, and most of them well under 50.**
+Code inside a `suggestion` block does not count: it is the fix, not the
+explaining. Going over is the signal to cut, and there are only three things a
+comment needs:
+
+1. what is wrong, on the line it is wrong on;
+2. why it matters, in one sentence, only where it is not obvious;
+3. what to do instead.
+
+Everything past those three is context the reader did not ask for. Cut the
+reasoning that led to the finding, the alternatives considered and rejected, and
+the second and third implications of the change.
+
+- **One comment makes one point.** A comment carrying two findings is two
+  comments, each on the line it belongs to.
+- **Short sentences, ordinary words.** No nested clauses, no sentence that has to
+  be read twice. Prefer the word a colleague would say out loud.
+- **Say the thing, then stop.** A comment that has already given the fix does not
+  also need a summary of itself.
+- **The alternative is not a comment.** Where a point genuinely needs several
+  paragraphs, it is a design discussion, and it belongs in the general comment or
+  in an issue rather than anchored to a line.
+
+**The general comment is measured per finding, not as a whole.** It legitimately
+carries several, so a total word count would only force one of them out. Each
+finding in it gets the same 80 words and the same three parts as an inline
+comment, and the prose introducing the sections stays to a sentence or two.
+
+The shortest form that a reader can act on wins, every time. A comment nobody
+finishes reading has failed, however right it is.
 
 ## Check the diff against the repo's own docs
 
@@ -397,3 +436,7 @@ Any of these means the review is not ready:
 - Any "I", "we", "us", "our", "you" or "your" in the review text.
 - An observation that names a problem without saying what to do about it, or one
   whose proposal stops at "worth checking" without naming where and what.
+- An inline comment whose prose runs past 80 words, or one carrying two findings
+  where two comments were wanted.
+- A sentence that has to be read twice, or a word chosen over the plainer one a
+  colleague would have said.
