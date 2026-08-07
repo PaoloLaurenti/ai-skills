@@ -10,8 +10,8 @@ description: >-
 # PR Review Conventions
 
 Standing preferences for how a pull request review is written and
-delivered. These override default review habits. They are conventions, not
-general advice on how to find defects.
+delivered. These override default review habits. Finding the defects is delegated,
+per non-negotiable 7, so what follows is what happens to what that step returns.
 
 ## Non-negotiables
 
@@ -39,6 +39,10 @@ general advice on how to find defects.
 6. **Be short and direct.** No filler, and every comment stays as short and as
    plainly worded as it can be while still being actionable. See One point per
    comment for the shape that takes.
+7. **Run `superpowers:requesting-code-review` first**, and write nothing before it
+   comes back. It produces the findings, this file decides what becomes of them.
+   An ask that already names the finding is the exception, since there is nothing
+   to go looking for. See Where the findings come from.
 
 ## Tone
 
@@ -81,6 +85,13 @@ Everything past those three is context the reader did not ask for. Cut the
 reasoning that led to the finding, the alternatives considered and rejected, and
 the second and third implications of the change.
 
+**A comment does not have to justify itself.** The bar is that the suggestion is
+understandable and worth acting on, never that the reader can reconstruct how it
+was arrived at. Give a reason only where the suggestion would otherwise be
+puzzling, and give it in one sentence. The reasoning itself still gets done, and
+Every observation carries a proposal still asks for the fix to be traced against
+the mechanism; what stays out of the comment is the working, not the work.
+
 - **One comment makes one point.** A comment carrying two findings is two
   comments, each on the line it belongs to.
 - **Short sentences, ordinary words.** No nested clauses, no sentence that has to
@@ -98,6 +109,50 @@ comment, and the prose introducing the sections stays to a sentence or two.
 
 The shortest form that a reader can act on wins, every time. A comment nobody
 finishes reading has failed, however right it is.
+
+## Pragmatic and concrete
+
+Every comment, extremely so. A comment proposes a concrete change to concrete
+code, in words the reader can act on without translating them first.
+
+- **No advice that would read the same on another pull request.** A sentence that
+  survives being pasted onto a different diff says nothing about this one.
+- **No principle by name.** Say what breaks and what to change instead, not that
+  something violates DRY, separation of concerns, or single responsibility.
+- **The value, the setting, the call, the replacement wording.** "Cache the
+  compiled regex in a `OnceLock`", never "this could be more efficient".
+- **Nothing hypothetical.** What someone might one day do to this code is not a
+  finding.
+
+## Where the findings come from
+
+`superpowers:requesting-code-review`, run before any comment is written. It
+dispatches a reviewer subagent over the change, and what comes back is raw
+material for this review rather than the review itself.
+
+Fill its template from the pull request: `BASE_SHA` is the merge base with the
+base branch, `HEAD_SHA` the head SHA of the pull request, `DESCRIPTION` what the
+diff does, `PLAN_OR_REQUIREMENTS` the pull request body plus anything it links.
+
+Everything it returns then passes through the rest of this file, and none of the
+shape it arrives in survives:
+
+- **Its output format is not this review's.** Strengths, Recommendations,
+  Assessment and the Critical, Important and Minor headings organise a report to
+  whoever asked for it. None becomes a body section or a comment. Where a strength
+  names something on a line in the diff, it may survive as a short inline note,
+  per Tone.
+- **Filter first, rewrite second.** A finding resolving to nothing to change, or a
+  nit too small to earn attention, comes out here rather than getting reworded.
+  What survives is rewritten to these conventions: impersonal, one point per
+  comment, pragmatic, permalinked, carrying a proposal, and anchored inline
+  wherever its file sits in the diff.
+- **Its severity ranking decides nothing.** Critical or Minor says how the
+  subagent ranked a finding, not whether it belongs in this review.
+
+That subagent was handed the change rather than the repository around it, so the
+two sections below stay this review's own work, and every claim it makes about how
+the system fits together is verified here rather than trusted.
 
 ## Check the diff against the repo's own docs
 
@@ -440,3 +495,8 @@ Any of these means the review is not ready:
   where two comments were wanted.
 - A sentence that has to be read twice, or a word chosen over the plainer one a
   colleague would have said.
+- A comment written before `superpowers:requesting-code-review` returned, or a
+  review carrying its Strengths, Recommendations, Assessment or severity headings.
+- A comment that would read the same on another pull request, or one naming a
+  principle where it could have named the change to make.
+- A comment explaining how a finding was reached rather than what to do about it.

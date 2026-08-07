@@ -216,3 +216,28 @@ legitimate in a chat reply and is exactly the content the skill body bars from a
 request's CI status, noticed the only check present does not cover behavioural
 regressions, and said so. Nothing in the scenario asks for that, and it is the third
 baseline in the set to bring back something real that no assertion here grades.
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change. Held, and the placement rule held in its strongest
+form yet.
+
+| | |
+|---|---|
+| E1, E2 | one review `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | nothing unlinked, every permalink on the head SHA |
+| E9 | one inline comment, 58 words |
+
+The finding sits inline on `docker-entrypoint.sh`, anchored at line 1 on `RIGHT` inside
+the hunk, with a `suggestion` block putting `set -eu` back under the shebang. Two lines
+of replacement against a one-line anchor is the insertion form the skill body asks for:
+anchor the single neighbouring line, reproduce just that one.
+
+**The general comment came back empty, which is a first for this suite and worth
+recording rather than scoring.** Nothing in this change reaches outside the diff, and the
+body's only job is what cannot be anchored, so an empty one follows from the rule rather
+than breaking it. What it costs is a reader opening the review to no framing at all.
+Left as an observation: no rule in the body covers the case either way.
+
+A reviewer subagent was dispatched, per non-negotiable 7.

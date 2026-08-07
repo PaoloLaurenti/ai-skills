@@ -284,3 +284,30 @@ of the skill.
 checked and am *not* flagging", the pinned base image and the missing `__main__`
 guards. That is the rule about a finding resolving to "nothing to change": good work to
 have done, and a message to the author rather than a review comment.
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change. Every assertion this scenario exists for held, and
+the new non-negotiable did not.
+
+| | |
+|---|---|
+| E1, E2 | one review `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person |
+| E6 | every mention of `README.md`, `AGENTS.md`, `config/default.toml` and `app/server.py` inside a link |
+| E7 | every permalink on the head SHA |
+| E9 | two inline comments, 58 and 53 words |
+
+All four line anchors were checked against the head SHA and resolve to the lines the
+comments talk about: `AGENTS.md#L7` is the rule about documentation moving with
+behaviour, `README.md#L5-L6` the port and the migration, `README.md#L8-L9` the claim
+about environment variables, `config/default.toml#L7-L8` the `[limits]` key.
+
+**It loaded `superpowers:requesting-code-review` and then reviewed the diff itself.** The
+transcript is unambiguous: the skill was invoked, `code-reviewer.md` was read, and the
+next tool calls are `git show` of the repo's own files followed by writing the payload.
+No subagent was ever dispatched. The rationalisation is not in the text, so what this
+records is the behaviour rather than the reasoning, and the superpowers skill names this
+exact failure in its own table of excuses.
+
+One of two runs in this rerun to skip the dispatch, out of seven.

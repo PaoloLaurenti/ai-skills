@@ -210,3 +210,25 @@ reported a number that meant nothing.
 Not fixed here. A pattern covering Italian first person is a different assertion from the
 one E4 states, and the fix belongs with whoever decides whether a baseline in another
 language should be graded by command at all.
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change. Held, gate included.
+
+| | |
+|---|---|
+| Gate | the port disagreement is reported, `9090` and `9091` both present |
+| M | `platform-api` named, nothing calls `example-service` the deployed unit |
+| E1, E2 | one review `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | nothing unlinked, every permalink on the head SHA, `deploy.yml` included |
+| E9 | two inline comments, 51 and 54 words |
+
+`.github/workflows/deploy.yml` was read during the run and linked twice at the head SHA,
+so the claim about what is deployed is traceable to the file that defines it rather than
+asserted. The body corrects the pull request in as many words: the name to search for is
+`platform-api`, per the workflow, "rather than the `example-service` of the PR body".
+
+A reviewer subagent was dispatched, per non-negotiable 7, and the architectural claim was
+still verified here rather than taken from it, which is what the closing paragraph of
+`Where the findings come from` asks for.

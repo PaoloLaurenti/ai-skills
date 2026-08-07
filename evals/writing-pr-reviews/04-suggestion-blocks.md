@@ -364,3 +364,37 @@ reasoning that the README documents no startup logging for the debug line to con
 None of that is graded here, and it is the strongest analysis any run on this scenario
 produced.
 
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change. Held, and the anchor came out in a shape no earlier
+run produced.
+
+| | |
+|---|---|
+| E1, E2 | one review `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person |
+| E7 | every permalink on the head SHA |
+| E9 | three inline comments, 49, 52 and 34 words |
+
+E6 reported `docker-entrypoint.sh` unlinked. It is the `COPY --chmod=755
+docker-entrypoint.sh ./` line inside the `suggestion` block, so it is replacement code
+rather than a file reference, which is the exception this suite already reads by eye.
+
+**The three-line collapse became a two-line one plus a deletion, and that is better.**
+Earlier runs anchored `start_line: 5, line: 7` and replaced all three lines with one.
+This run anchored `start_line: 5, line: 6`, covering exactly the two lines the block
+replaces, and gave `RUN chown 1000:1000` on line 7 a comment of its own carrying no
+block at all. That is the rule about a pure deletion getting no block, reached by
+splitting a comment rather than by suppressing one. No diff markers in any block.
+
+**This run is where the delegation is visible in substance rather than only in the tool
+log.** The subagent came back with four Strengths, `Critical: None`, and three Important
+findings. The two Dockerfile findings shipped as the two Dockerfile comments, with the
+reasoning intact and the prose cut from roughly two hundred words each to 52 and 49. The
+Strengths, the severity headings, the assessment and the subagent's own em dashes and
+second person are all absent from the review. That is `Where the findings come from`
+working: the finding survives, none of the shape does.
+
+It dispatched the subagent with the template filled verbatim without invoking the
+superpowers skill first, which is the rule met by its content rather than by its form.

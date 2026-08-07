@@ -216,3 +216,29 @@ called them both sound, which they are on substance. Neither baseline noticed th
 them breaks the conventions, which is unsurprising, since without the skill there are no
 conventions to break. That half of the rule is therefore untestable by a baseline in
 principle rather than merely untested here.
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change. Held, every assertion, including the one that is the
+whole scenario.
+
+| | |
+|---|---|
+| M | the review id after the run is the id the seed printed |
+| M | both seeded comments present byte for byte |
+| M | six comments where the seed left two |
+| M | the seeded sentence is still the first line of the body |
+| E1, E2 | still `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person in the text the run added |
+| E9 | the four added comments run 52, 63, 71 and 46 words |
+
+E6 reported `config/default.toml` unlinked. It sits inside replacement wording drafted
+for `AGENTS.md`, where a link would corrupt the text being handed over, which is the
+exception this suite recorded on scenario 03.
+
+The reply names both seeded comments by id and the rules each breaks, the missing
+proposal on one and the em dash with first person on the other, and leaves both
+untouched. It also volunteers something no assertion asks for: that submitting publishes
+the seeded comments too, since a pull request carries one review rather than two.
+
+A reviewer subagent was dispatched, per non-negotiable 7.

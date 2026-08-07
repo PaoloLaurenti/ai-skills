@@ -6,8 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open. Task 1 is finishing a rerun that was started and not completed, and it
-is the only work anyone can pick up today. Task 2 is blocked on Anthropic.
+Two things are open. Task 1 is a gap the last rerun measured in a rule written the same
+day, and it is the only work anyone can pick up today. Task 2 is blocked on Anthropic.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -16,23 +16,41 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Finish the rerun the brevity directive owes
+## 1. Close the dispatch gap the rerun measured
 
-`AGENTS.md` asks for a skill's whole suite before a `SKILL.md` change is offered. The
-`One point per comment` directive recorded at the top of Completed ran three of the eight
-scenarios, 03, 04 and 06, picked as the two whose comments were longest plus the one
-carrying a `suggestion` block. Four were not run.
+Non-negotiable 7 sends the finding to `superpowers:requesting-code-review`. Five of seven
+runs dispatched a reviewer subagent. Two, scenarios 03 and 05, invoked the skill, read
+`code-reviewer.md`, and then wrote the review from the diff themselves. The rule holds
+five times out of seven, which is not what a non-negotiable means.
 
-- [ ] rerun scenarios 01, 02, 05 and 07 on Opus against the current body
+- [ ] tighten non-negotiable 7 so it names the subagent rather than the skill: what is
+      required is that the finding comes back from a dispatched reviewer, not that the
+      skill was loaded
+- [ ] add a red flag for the shape the two runs took, the reviewer skill loaded and no
+      subagent dispatched
+- [ ] give the suite an assertion for the dispatch, since E1 through E9 all pass on a run
+      that skipped it. A run's own transcript is where the answer is, under
+      `~/.claude/projects/<the clone path, dash-encoded>/`, and `grep -c '"name":"Agent"'`
+      over it separates a run that dispatched from one that did not
+- [ ] rerun all seven scenarios afterwards, since this is another `SKILL.md` change, and
+      grade the dispatch on every one of them rather than on the two that failed today
 
-Why it was left short rather than skipped quietly: the session ran out of room, and three
-runs chosen for what they exercise is a better partial than three taken in order. What the
-three settle is that the cap holds and that excluding code from the count keeps the
-`suggestion` rule intact. What they leave open is the delivery scenarios, 01 and 07, which
-is where a body edit has broken something before.
+*What makes this worth an amendment rather than a note.* The failure is named in the
+upstream skill's own table of excuses, "I'll just review the diff myself instead of
+dispatching a reviewer", so it is a known pull rather than a one-off. And it is invisible
+to every assertion in the suite: both runs produced clean, well-formed reviews that passed
+E1 through E9 and every per-scenario check. Only the transcript separates them from the
+five that obeyed, which is why the rerun record for 03 and 05 quotes the tool sequence.
 
-Scenario 07 needs its seed, so its run is the three-command form in the eval README rather
-than one.
+*One thing the amendment must not do* is cost more than six lines. The body is at 494
+against the 500 limit, well past the 450 mark this plan set itself as a tripwire, so this
+change either fits in the headroom or arrives with a split.
+
+*A weak signal worth carrying into the fix, stated as a guess.* 03 and 05 are the two
+scenarios whose findings sit mostly outside the diff, in documentation, which is the
+material a reviewer subagent handed a git range is least able to bring back. If that is
+the cause, the amendment should say the dispatch is required whatever the finding turns
+out to be, rather than leaving room to skip it when the diff looks thin.
 
 ## 2. Move the suite onto `claude plugin eval`
 
@@ -72,6 +90,62 @@ written into each scenario file are the specification those graders will want, w
 the part worth having either way.
 
 ## Completed
+
+**Delegate the finding to `superpowers:requesting-code-review`, and make every comment
+pragmatic.** Three directives, requested together, and the rerun that measured them.
+
+*What the body says now.* Non-negotiable 7 runs `superpowers:requesting-code-review`
+before anything is written, with an exception for an ask that already names the finding.
+A `Where the findings come from` section makes what it returns raw material: its output
+format is not the review's, so Strengths, Recommendations, Assessment and the severity
+headings become nothing, a strength on a line in the diff may survive as a short inline
+note per Tone, findings are filtered before being rewritten, its ranking decides nothing,
+and its architectural claims are verified here rather than trusted. A `Pragmatic and
+concrete` section bans advice that would read the same on another pull request, a
+principle named instead of a change proposed, and anything hypothetical. Inside `One
+point per comment`, a comment no longer has to justify itself: the bar is that the
+suggestion is understandable, and the reasoning still gets done but stays out of the
+text. Three red flags, and the `README.md` skills row now says where the findings come
+from.
+
+*The harness had to be fixed before any of it could be measured.* `run.sh` allowed
+`Read Write Grep Glob` and three `Bash` patterns, so a headless run had no way to
+dispatch a subagent and no `Skill` tool to load the skill it is told to run. Every
+scenario would have quietly reviewed the diff itself and passed. The tool name was
+confirmed rather than guessed, by dispatching one under `--allowedTools Agent` and
+getting a reply, since `Task` is the plausible alternative and a wrong name in a
+committed file fails silently.
+
+*The rerun: all seven scenarios on Opus, and every mechanical assertion held.* E1 through
+E9 clean on all seven, which includes the four the previous directive left unrun and
+closes that debt. Two E6 hits, both documented exceptions: replacement code inside a
+`suggestion` block on 04, and a filename inside proposed wording for a document on 07.
+The sharpest results are 04, where the anchor came back `start_line: 5, line: 6` covering
+exactly the two lines replaced with the deletion on line 7 split into a comment carrying
+no block, and 07, which appended under the same review id with both seeded comments byte
+for byte and named the offending one in the reply.
+
+*The evidence that the delegation works in substance, not only in the tool log.* On
+scenario 04 the subagent returned four Strengths, `Critical: None`, and three Important
+findings. The two Dockerfile findings shipped as the two Dockerfile comments with the
+reasoning intact and the prose cut from roughly two hundred words each to 52 and 49, and
+the Strengths, the severity headings, the assessment and the subagent's own em dashes and
+second person are absent. Scenario 01 shows the pragmatism rule deciding a real case: a
+genuine `deploy.yml` defect was kept out of the review because it holds on any pull
+request in this repo rather than on this one.
+
+*What it did not settle, which is now task 1.* Five of seven dispatched. Scenarios 03 and
+05 loaded the skill, read `code-reviewer.md`, and reviewed the diff themselves, producing
+clean reviews that pass every assertion in the suite.
+
+*One deviation from the documented procedure, stated because this repo has been bitten by
+a fixture drifting under its assertions.* The eval README asks for `reset.sh` before every
+run. This rerun did one reset up front, seeded scenario 07 after it, and ran all seven in
+parallel with `EVAL_SKIP_RESET=1`. Each scenario owns its own pull request and a pending
+review is per pull request, so it is equivalent to the sequential form, and it cost
+fifteen minutes rather than two hours. What it gives up is the guarantee that a retry
+after a failure starts from a clean pull request, which nothing needed here: all seven
+succeeded on the first attempt.
 
 **Make every comment as short and plainly worded as it can be, and grade it.** Requested
 as a directive, and it turned out to answer something measurable rather than a preference.

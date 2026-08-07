@@ -191,3 +191,26 @@ in a way it is not in a real repository, so this says the rule is not carrying w
 Both baselines closed on a verdict line opening with the same word, which is now the
 third pair of runs to produce nearly identical banned phrasing across two models.
 Whatever the ban on a verdict paragraph is fighting, it is not a quirk of one model.
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change. Every assertion this scenario exists for held, and
+the new non-negotiable did not.
+
+| | |
+|---|---|
+| E1, E2 | one review `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | nothing unlinked, every permalink on the head SHA |
+| E9 | one inline comment, 57 words |
+| M | `README.md` named in the body, the stale `8080` quoted, no inline comment on it, no generic "the docs" |
+
+**It loaded `superpowers:requesting-code-review` and then reviewed the diff itself.** The
+skill was invoked, `code-reviewer.md` was read, and the next thing in the transcript is
+"Analysis is done. Writing the review now." followed by the payload. No subagent was
+dispatched at any point.
+
+One of two runs in this rerun to skip the dispatch, out of seven. Worth noting which two:
+03 and 05 are the scenarios whose findings sit largely outside the diff, in documentation,
+which is the material the reviewer subagent is least equipped to bring back. Whether that
+is the cause or a coincidence of two runs is not settled here.

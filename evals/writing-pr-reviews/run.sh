@@ -50,8 +50,12 @@ fi
 attempt=1
 while [ "$attempt" -le 10 ]; do
     echo "attempt $attempt at $(date -u +%H:%M:%S)" >> "$log"
+    # Agent and Skill are what non-negotiable 7 needs: the findings come from
+    # superpowers:requesting-code-review, which dispatches a reviewer subagent.
+    # Without them a run reviews the diff itself and the rule goes unmeasured.
     if (cd "$clone" && claude -p "$prompt" --model "$model" \
-        --allowedTools Read Write Grep Glob "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)" \
+        --allowedTools Read Write Grep Glob Agent Skill \
+        "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)" \
         > "$out" 2>&1); then
         echo "attempt $attempt succeeded" >> "$log"
         printf 'output: %s\nlog:    %s\nclone:  %s\n' "$out" "$log" "$clone"

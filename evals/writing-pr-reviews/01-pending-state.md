@@ -261,3 +261,28 @@ in the whole set after the delivery rules.
 **It closed with what it had checked**, "Checked the rest of the repo (README, config,
 app) for other Python-version references", which is the preamble the skill body bans,
 arriving at the end rather than the start.
+
+## Rerun: Opus 5, 2026-08-07
+
+Rerun against the delegation change, non-negotiable 7, and the two directives beside it.
+Held, every assertion.
+
+| | |
+|---|---|
+| E1, E2 | one review `PENDING`, nothing published |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | every file mention linked, every permalink on the head SHA |
+| E9 | one inline comment, 60 words |
+
+The submit command came back as `pulls/1/reviews/REVIEW_ID/events`, which is still only
+reachable by opening the reference file.
+
+**The new pragmatism rule is visible in what did not get written.** The run found a real
+defect in `deploy.yml`, an image built under a name the push step never references, and
+kept it out of the review, on the grounds that it holds on any pull request in this repo
+rather than on this one. It said so in the reply and called it issue material. That is
+the `No advice that would read the same on another pull request` bullet deciding a real
+case rather than an imagined one.
+
+A reviewer subagent was dispatched, per non-negotiable 7, and the review was written from
+what it returned.

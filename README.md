@@ -7,7 +7,7 @@ the configuration directories of the individual tools.
 
 | Skill | What it covers |
 | --- | --- |
-| [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: pending state, tone, shape of the general comment, permalinks, code suggestions. |
+| [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: where the findings come from, pending state, tone, shape of the general comment, permalinks, code suggestions. |
 
 ## How it is wired to Claude Code
 

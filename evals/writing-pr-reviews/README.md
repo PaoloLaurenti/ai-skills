@@ -111,7 +111,8 @@ git clone "git@github.com:$EVAL_FIXTURE_REPO.git" /tmp/fixture-clone
 evals/writing-pr-reviews/fixture/reset.sh
 cd /tmp/fixture-clone
 claude -p "$prompt" --model "$model" \
-    --allowedTools Read Write Grep Glob "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)"
+    --allowedTools Read Write Grep Glob Agent Skill \
+    "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)"
 ```
 
 The tool list is deliberate rather than a bypass. `--dangerously-skip-permissions`
@@ -119,6 +120,13 @@ would be shorter, and the `gh` token reaches every repo the account can see, so 
 sandbox fixture is not a reason to widen what a headless run may do. `Write` is on
 the list because the delivery mechanism needs it: the review is posted from a JSON
 file, per the skill body.
+
+`Agent` and `Skill` are on it for non-negotiable 7, which sends the finding to
+`superpowers:requesting-code-review` and so needs a subagent dispatched. Without
+them a run quietly reviews the diff itself, every assertion still passes, and the
+rule goes unmeasured, which is the vacuous pass this suite has recorded before.
+`Agent` is the name this CLI accepts, confirmed by dispatching one under
+`--allowedTools Agent` rather than guessed against `Task`.
 
 Confirm the skill loaded before reading anything into the result. A run where it
 never loaded is a description failure, not a rule failure, and the two need
