@@ -39,10 +39,11 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
 6. **Be short and direct.** No filler, and every comment stays as short and as
    plainly worded as it can be while still being actionable. See One point per
    comment for the shape that takes.
-7. **Run `superpowers:requesting-code-review` first**, and write nothing before it
-   comes back. It produces the findings, this file decides what becomes of them.
-   An ask that already names the finding is the exception, since there is nothing
-   to go looking for. See Where the findings come from.
+7. **The findings come back from a dispatched reviewer subagent**, through
+   `superpowers:requesting-code-review`, run first. Loading that skill is not the
+   requirement, dispatching is, and nothing gets written before the subagent
+   returns. An ask that already names the finding is the exception, since there is
+   nothing to go looking for. See Where the findings come from.
 
 ## Tone
 
@@ -126,9 +127,9 @@ code, in words the reader can act on without translating them first.
 
 ## Where the findings come from
 
-`superpowers:requesting-code-review`, run before any comment is written. It
-dispatches a reviewer subagent over the change, and what comes back is raw
-material for this review rather than the review itself.
+A reviewer subagent, dispatched through `superpowers:requesting-code-review` before
+any comment is written. Reading that skill is not doing it: the dispatch is what the
+rule asks for, and what comes back is raw material rather than the review itself.
 
 Fill its template from the pull request: `BASE_SHA` is the merge base with the
 base branch, `HEAD_SHA` the head SHA of the pull request, `DESCRIPTION` what the
@@ -495,8 +496,10 @@ Any of these means the review is not ready:
   where two comments were wanted.
 - A sentence that has to be read twice, or a word chosen over the plainer one a
   colleague would have said.
-- A comment written before `superpowers:requesting-code-review` returned, or a
-  review carrying its Strengths, Recommendations, Assessment or severity headings.
+- The reviewer skill loaded and no subagent dispatched, so the findings came from
+  reading the diff directly.
+- A comment written before the subagent returned, or a review carrying its
+  Strengths, Recommendations, Assessment or severity headings.
 - A comment that would read the same on another pull request, or one naming a
   principle where it could have named the change to make.
 - A comment explaining how a finding was reached rather than what to do about it.

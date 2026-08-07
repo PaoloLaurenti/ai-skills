@@ -398,3 +398,24 @@ working: the finding survives, none of the shape does.
 
 It dispatched the subagent with the template filled verbatim without invoking the
 superpowers skill first, which is the rule met by its content rather than by its form.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+Held on the assertions this scenario exists for, with one style miss beside them.
+
+The anchor is back to `start_line: 5, line: 7`, spanning all three lines the one-line
+block replaces, which is the form this scenario was written to check. One block, no diff
+markers, and the comment on the debug line carries none. Two inline comments at 73 and 38
+words. E10 is `1`.
+
+**One genuine E6 hit, the first in either rerun.** The comment opens "Nothing in this
+Dockerfile sets `USER`", with `Dockerfile` in plain prose and no link on it. None of the
+three exceptions covers it: it is a repo file named in review text. That the comment is
+anchored to that same file is what makes it easy to write and does not make it linked.
+The second hit on the same run is inside the `suggestion` block and is replacement code
+rather than a reference.
+
+**The payload was written to a path outside the clone**, so the anchor could not be graded
+the way this scenario's assertion says. It came out of the run's transcript instead, which
+is now written into the eval `README.md` as the fallback, since this is the third run to
+put the file somewhere the recipe does not look.

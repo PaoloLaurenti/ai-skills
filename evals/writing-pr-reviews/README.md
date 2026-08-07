@@ -181,10 +181,18 @@ answering a failure that had not happened. The rule the skill body sets for revi
 holds for grading them too: read the thing that defines the claim, rather than the
 thing that looks conclusive.
 
+**Where the payload is not in the clone, the transcript has it.** Nothing tells a run
+where to put that file, and three runs so far have written it to the parent directory or
+to `/tmp`, which leaves the anchor ungradeable by the line above. The `Write` tool call
+that produced it is in the transcript named under E10 below, with the full contents, so
+the anchor is recoverable rather than lost.
+
 ### Assertions on every run
 
 These are the rules a model violates most naturally, because they fight its
-default writing style. Every review any scenario produces gets all of them.
+default writing style. Every review any scenario produces gets all of them. E10 is the
+odd one out: it grades where the findings came from rather than how they read, and it is
+the only row here that the review itself cannot answer.
 
 **With one exception, scenario 07.** Its fixture seeds a comment that breaks E3 and E4 on
 purpose, since the rule under test is that the skill leaves such a comment alone. Running
@@ -203,6 +211,7 @@ the general comment minus the seeded prefix, and the comments minus the seeded t
 | E7 | Every permalink is pinned to the head SHA | `printf '%s' "$text" \| grep -oE 'blob/[0-9a-f]{7,40}'` and compare against `gh pr view "$N" --repo "$R" --json headRefOid -q .headRefOid` |
 | E8 | No `event` was sent, which E1 already proves | E1 |
 | E9 | No inline comment's prose runs past 80 words | the command below |
+| E10 | A reviewer subagent was dispatched | the command below |
 
 E9 counts prose only, so a `suggestion` block does not push a comment over: the block is
 the fix rather than the explaining, and a rule that counted it would punish the very shape
@@ -221,6 +230,30 @@ gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[] | @base64' \
   | while read -r c; do printf '%s' "$c" | base64 -d \
       | jq -r .body | awk '/^```/{f=!f; next} !f{w+=NF} END{print w}'; done
 ```
+
+**E10 is graded from the run's own transcript, because the review cannot show it.**
+Non-negotiable 7 asks for the findings to come back from a dispatched reviewer subagent,
+and a run that skips the dispatch still writes a review that passes every other assertion
+here. That is not hypothetical: two of the seven runs on 2026-08-07 loaded
+`superpowers:requesting-code-review`, read its template, then reviewed the diff
+themselves, and nothing in E1 through E9 saw it. A headless run's transcript sits under
+`~/.claude/projects/`, in a directory named after the working directory with every `/`
+turned into `-`:
+
+```bash
+grep -ho '"name":"Agent","input"' \
+    "$HOME/.claude/projects/$(printf '%s' "$clone" | tr / -)"/*.jsonl | wc -l
+```
+
+At least `1` passes and `0` fails. The pattern matches a tool-use record rather than
+prose, so a reply that merely talks about dispatching one does not count. Reading it with
+an eye is worth the extra minute on a first run: the same transcript carries what the
+subagent returned, which is the only way to see whether its findings are the ones that
+shipped or whether it was dispatched and then ignored.
+
+**Not applicable to a baseline.** Without the skill there is nothing telling a run to
+dispatch anything, so a zero there records an absence rather than a failure, the same
+shape as E1 and E2 on a baseline that posts nothing.
 
 **Where the 80 came from.** The seven post-split runs produced inline comments between 18
 and 179 words. The two comments a person wrote by hand for scenario 07's fixture are 18

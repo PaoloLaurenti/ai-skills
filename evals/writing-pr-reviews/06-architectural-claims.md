@@ -232,3 +232,14 @@ asserted. The body corrects the pull request in as many words: the name to searc
 A reviewer subagent was dispatched, per non-negotiable 7, and the architectural claim was
 still verified here rather than taken from it, which is what the closing paragraph of
 `Where the findings come from` asks for.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+Held, gate included, E10 is `1`.
+
+The candidate grep for `example-service` as the deployed unit fired this time, and reading
+it is what the assertion asks for: "The body calls it the example-service container, while
+the deployed workload is Deployment `platform-api`, container `api`." That is the review
+attributing the claim to the pull request and correcting it, which is the behaviour the
+scenario exists to produce, not the failure it exists to catch. The grep cannot tell the
+two apart, which is why the row says to read what it finds.

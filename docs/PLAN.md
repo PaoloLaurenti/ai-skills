@@ -6,8 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open. Task 1 is a gap the last rerun measured in a rule written the same
-day, and it is the only work anyone can pick up today. Task 2 is blocked on Anthropic.
+One thing is open, and it is blocked on Anthropic rather than on this repo. Nothing here
+is waiting on a decision.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -16,43 +16,7 @@ the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
 
-## 1. Close the dispatch gap the rerun measured
-
-Non-negotiable 7 sends the finding to `superpowers:requesting-code-review`. Five of seven
-runs dispatched a reviewer subagent. Two, scenarios 03 and 05, invoked the skill, read
-`code-reviewer.md`, and then wrote the review from the diff themselves. The rule holds
-five times out of seven, which is not what a non-negotiable means.
-
-- [ ] tighten non-negotiable 7 so it names the subagent rather than the skill: what is
-      required is that the finding comes back from a dispatched reviewer, not that the
-      skill was loaded
-- [ ] add a red flag for the shape the two runs took, the reviewer skill loaded and no
-      subagent dispatched
-- [ ] give the suite an assertion for the dispatch, since E1 through E9 all pass on a run
-      that skipped it. A run's own transcript is where the answer is, under
-      `~/.claude/projects/<the clone path, dash-encoded>/`, and `grep -c '"name":"Agent"'`
-      over it separates a run that dispatched from one that did not
-- [ ] rerun all seven scenarios afterwards, since this is another `SKILL.md` change, and
-      grade the dispatch on every one of them rather than on the two that failed today
-
-*What makes this worth an amendment rather than a note.* The failure is named in the
-upstream skill's own table of excuses, "I'll just review the diff myself instead of
-dispatching a reviewer", so it is a known pull rather than a one-off. And it is invisible
-to every assertion in the suite: both runs produced clean, well-formed reviews that passed
-E1 through E9 and every per-scenario check. Only the transcript separates them from the
-five that obeyed, which is why the rerun record for 03 and 05 quotes the tool sequence.
-
-*One thing the amendment must not do* is cost more than six lines. The body is at 494
-against the 500 limit, well past the 450 mark this plan set itself as a tripwire, so this
-change either fits in the headroom or arrives with a split.
-
-*A weak signal worth carrying into the fix, stated as a guess.* 03 and 05 are the two
-scenarios whose findings sit mostly outside the diff, in documentation, which is the
-material a reviewer subagent handed a git range is least able to bring back. If that is
-the cause, the amendment should say the dispatch is required whatever the finding turns
-out to be, rather than leaving room to skip it when the diff looks thin.
-
-## 2. Move the suite onto `claude plugin eval`
+## 1. Move the suite onto `claude plugin eval`
 
 Blocked on Anthropic, not on this repo.
 
@@ -63,12 +27,12 @@ Blocked on Anthropic, not on this repo.
 what has been built by hand here, including the two parts that were hardest: the
 baseline arm and bounding the spend.
 
-- [ ] migrate once it leaves early access. Still gated at CLI 2.1.223, re-probed on
-      2026-08-06 on both entry points: `claude plugin eval init --bare` and a run against
-      `myai@skills-dir` each answer "`plugin eval` is currently in early access", while
-      `--help` prints the full option list. Probe the version rather than the date next
-      time, since the help output has already moved once while the gate did not, and a
-      version bump is the thing that can change the answer.
+- [ ] migrate once it leaves early access. Still gated at CLI 2.1.224, re-probed on
+      2026-08-07: `claude plugin eval init --bare` answers "`plugin eval` is currently in
+      early access", exactly as it did at 2.1.223 the day before, while `--help` prints
+      the full option list. That is the first version bump probed under the rule this
+      entry set for itself, probe the version rather than the date, and it moved the
+      version without moving the gate.
 
 Two details in that help output worth carrying into the migration, because both are
 decisions this suite made by hand and could lose by accident. `--allow-tools`, with its
@@ -90,6 +54,44 @@ written into each scenario file are the specification those graders will want, w
 the part worth having either way.
 
 ## Completed
+
+**Close the dispatch gap, and give the suite the assertion that would have caught it.**
+Five of seven runs had dispatched a reviewer subagent. After the amendment, seven of
+seven.
+
+*What the gap was.* Non-negotiable 7 said to run `superpowers:requesting-code-review`
+first, and two runs did exactly that and no more: they loaded the skill, read
+`code-reviewer.md`, and then reviewed the diff themselves. Read literally the rule was
+satisfied, which is what made it worth rewriting rather than repeating.
+
+*The amendment, three lines.* Non-negotiable 7 now names the subagent rather than the
+skill, "Loading that skill is not the requirement, dispatching is". The opening of
+`Where the findings come from` says the same thing at the point of instruction. And a red
+flag names the shape the two runs took, the reviewer skill loaded and no subagent
+dispatched. The body went from 494 lines to 497, inside the six the previous entry had
+left.
+
+*E10, and it is the part worth keeping.* The suite had no way to see any of this: both
+failing runs produced clean reviews that passed E1 through E9 and every per-scenario
+check. E10 grades the dispatch from the run's own transcript, and the pattern was
+validated against the seven runs that exposed the gap, returning `1` for the five that
+dispatched and `0` for the two that did not, before it was written down as an assertion.
+
+*The result.* Seven of seven dispatched, scenarios 03 and 05 included, which are the two
+the amendment was written for. Everything else held: E1 through E9 clean across the suite,
+every line anchor verified at the head SHA, scenario 04's block back to `start_line: 5,
+line: 7` spanning all three replaced lines, scenario 07 appending under the seeded id with
+both seeded comments byte for byte.
+
+*One real miss, recorded rather than smoothed over.* Scenario 04 wrote "Nothing in this
+`Dockerfile` sets `USER`" with the filename unlinked in prose, which no exception covers.
+It is the first genuine E6 hit in either rerun, and it is left as a measurement rather
+than answered with a rule, since one occurrence is not a pattern.
+
+*A grading gap closed on the way past.* Three runs have now written the review payload
+outside the clone, where the recipe for grading an anchor looks. The eval `README.md` now
+says the transcript carries the `Write` call with its full contents, so an anchor is
+recoverable rather than lost.
 
 **Delegate the finding to `superpowers:requesting-code-review`, and make every comment
 pragmatic.** Three directives, requested together, and the rerun that measured them.

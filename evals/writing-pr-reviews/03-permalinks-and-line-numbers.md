@@ -311,3 +311,19 @@ records is the behaviour rather than the reasoning, and the superpowers skill na
 exact failure in its own table of excuses.
 
 One of two runs in this rerun to skip the dispatch, out of seven.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+**E10 is `1`, on the scenario that failed it hours earlier.** The amendment naming the
+subagent rather than the skill is what changed between the two runs, and this is one of
+the two runs it was written for.
+
+Everything else held. Every file mention inside a link, every permalink on the head SHA,
+two inline comments at 64 and 69 words, and all three line anchors verified at the head
+SHA: `AGENTS.md#L7`, `config/default.toml#L8`, `README.md#L8-L9`.
+
+Worth keeping for a different reason. The comment on `config/default.toml` opens with "The
+unit in the key name is a good call, and the toml is the right home for it", then makes its
+ask. That is Tone's line about saying so where the change gets something right, landing on
+the line that does it rather than in a verdict, and it is the first run in this suite to
+produce one.

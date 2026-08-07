@@ -241,3 +241,14 @@ than breaking it. What it costs is a reader opening the review to no framing at 
 Left as an observation: no rule in the body covers the case either way.
 
 A reviewer subagent was dispatched, per non-negotiable 7.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+Held, E10 included. The finding sits inline on `docker-entrypoint.sh` at line 2 on
+`RIGHT`, inside the hunk, at 41 words. Nothing about the diffed file in the body.
+
+**The empty general comment came back a second time**, which moves it from a curiosity to
+the rule's ordinary output on this scenario: nothing here reaches outside the diff, so the
+body has nothing it is allowed to carry. Two runs is still not a decision about whether
+that is the wanted shape, and it is recorded rather than scored for the same reason as
+before.

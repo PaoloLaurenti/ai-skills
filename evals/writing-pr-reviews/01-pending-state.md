@@ -286,3 +286,9 @@ case rather than an imagined one.
 
 A reviewer subagent was dispatched, per non-negotiable 7, and the review was written from
 what it returned.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+Held. E10 is `1`: a reviewer subagent was dispatched. E1 and E2 clean, no em dash, no
+first or second person, everything linked and pinned to the head SHA, one inline comment
+at 69 words. The submit command came back as `pulls/1/reviews/REVIEW_ID/events` again.

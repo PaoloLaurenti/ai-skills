@@ -214,3 +214,16 @@ One of two runs in this rerun to skip the dispatch, out of seven. Worth noting w
 03 and 05 are the scenarios whose findings sit largely outside the diff, in documentation,
 which is the material the reviewer subagent is least equipped to bring back. Whether that
 is the cause or a coincidence of two runs is not settled here.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+**E10 is `1`, on the second of the two scenarios that failed it hours earlier.** With 03,
+that is both runs the amendment was written for, corrected.
+
+Everything else held: `README.md` named twice in the body and the stale `8080` quoted
+twice, no inline comment on it, no generic "the docs", one inline comment at 49 words, no
+em dash, no first or second person, every permalink on the head SHA.
+
+E6 reported `config/default.toml`. It sits inside a sentence quoted verbatim from
+`README.md`, which is the "literal syntax quoted from a file" exception the skill body
+lists, and linking inside quoted material would corrupt the thing being quoted.

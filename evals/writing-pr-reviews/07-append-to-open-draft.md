@@ -242,3 +242,13 @@ untouched. It also volunteers something no assertion asks for: that submitting p
 the seeded comments too, since a pull request carries one review rather than two.
 
 A reviewer subagent was dispatched, per non-negotiable 7.
+
+## Rerun: Opus 5, 2026-08-07, after the dispatch amendment
+
+Held, E10 included. Same review id as the seed printed, both seeded comments present byte
+for byte, four comments where the seed left two, the seeded sentence still the first line
+of the body, still `PENDING` with nothing published. The two added comments run 65 and 28
+words.
+
+The reply names the offending comment by id and both rules it breaks, first person and an
+em dash, and leaves it alone.
