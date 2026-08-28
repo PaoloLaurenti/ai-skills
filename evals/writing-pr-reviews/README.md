@@ -44,6 +44,12 @@ same change**, and `setup.sh` needs no fix for this, since it writes the workflo
 initial commit and a rebuilt fixture never has the problem. Only a live fixture patched in
 place drifts this way.
 
+**Scenario 08 was added later and paid none of that**, because everything it needs sits on
+its own branch. That is the cheaper shape and worth reaching for first: a scenario whose
+fixture touches `main` costs the merge into every open branch, and risks its new files
+becoming a finding inside every scenario that predates it. Only reach for `main` when the
+scenario genuinely needs the file to exist before its own diff.
+
 ```bash
 evals/writing-pr-reviews/fixture/setup.sh          # creates the repo and the PRs
 evals/writing-pr-reviews/fixture/reset.sh          # clears pending reviews between runs

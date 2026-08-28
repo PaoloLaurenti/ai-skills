@@ -212,6 +212,42 @@ perl -pi -e 's{^EXPOSE 8080$}{EXPOSE 8080\nHEALTHCHECK CMD curl -f http://localh
 open_pr open-draft "add a container healthcheck" \
     "Lets the orchestrator restart the container when it stops answering."
 
+# 08. Values the code owns, kept out of the docs. The diff adds a limits module and,
+# in the same change, an `AGENTS.md` section copying its two numbers, both wrong. The
+# tempting fix is the corrected pair, which is the shape the rule bans: the numbers are
+# owned by `app/limits.py` and the prose should name that file instead of repeating them.
+#
+# Two choices worth keeping. The doc file sits inside the diff, so the proposed prose
+# arrives in a `suggestion` block and can be read directly rather than inferred from a
+# body paragraph. And nothing here touches `main`: a limits module visible from every
+# branch would become a finding inside the seven scenarios that predate this one, which
+# is the contamination the note about `deploy.yml` in `README.md` describes.
+git checkout -q -b values-in-docs main
+cat > app/limits.py <<'EOF'
+"""Limits applied to each batch run. A fixture, not a real limiter."""
+
+TIMEOUT_SECONDS = 45
+BATCH_SIZE = 250
+EOF
+cat > app/migrate.py <<'EOF'
+"""Applies migrations. A fixture, not a real migrator."""
+
+from app.limits import BATCH_SIZE, TIMEOUT_SECONDS
+
+
+def main() -> None:
+    print(f"migrating {BATCH_SIZE} at a time, {TIMEOUT_SECONDS}s per batch")
+EOF
+cat >> AGENTS.md <<'EOF'
+
+## Batch limits
+
+Each run times out after 30 seconds and processes batches of 100. Both limits
+apply to the migration step.
+EOF
+open_pr values-in-docs "bound how long a migration runs and how much it does at once" \
+    "Adds a timeout and a batch size to the migration step."
+
 echo
 echo "Fixture ready at $repo. Pull request numbers, by scenario branch:"
 gh pr list --repo "$repo" --state open --json number,headRefName \
