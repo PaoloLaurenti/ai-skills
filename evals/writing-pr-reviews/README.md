@@ -241,9 +241,16 @@ themselves, and nothing in E1 through E9 saw it. A headless run's transcript sit
 turned into `-`:
 
 ```bash
-grep -ho '"name":"Agent","input"' \
-    "$HOME/.claude/projects/$(printf '%s' "$clone" | tr / -)"/*.jsonl | wc -l
+dir="$HOME/.claude/projects/$(printf '%s' "$clone" \
+    | sed 's:^/var/:/private/var/:' | tr -c '[:alnum:]' '-')"
+grep -ho '"name":"Agent","input"' "$dir"/*.jsonl | wc -l
 ```
+
+**Every non-alphanumeric character becomes a `-`, and macOS resolves `/var` first.** A
+plain `tr / -` leaves the `.` in a `mktemp` directory name intact and misses the
+`/private` prefix, so it names a directory that does not exist and the count comes back
+`0`. That is the shape of a run that skipped the dispatch, and it has already been
+misread as one.
 
 At least `1` passes and `0` fails. The pattern matches a tool-use record rather than
 prose, so a reply that merely talks about dispatching one does not count. Reading it with

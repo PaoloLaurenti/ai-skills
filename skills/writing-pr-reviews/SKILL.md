@@ -60,8 +60,7 @@ being handed down.
 - Where the change gets something genuinely right, say so on the line that does
   it.
 - Drop blunt superlatives and flat verdicts. "The worst is", "nobody wrote this
-  down", "crash loop with no way in" all say the same thing more coldly than
-  needed.
+  down" and "crash loop with no way in" all say it more coldly than needed.
 
 Warmth never costs precision: the file, the line, and the concrete fix stay
 exactly as sharp as they were. It never becomes padding either. Cordiality comes
@@ -145,9 +144,8 @@ shape it arrives in survives:
   per Tone.
 - **Filter first, rewrite second.** A finding resolving to nothing to change, or a
   nit too small to earn attention, comes out here rather than getting reworded.
-  What survives is rewritten to these conventions: impersonal, one point per
-  comment, pragmatic, permalinked, carrying a proposal, and anchored inline
-  wherever its file sits in the diff.
+  What survives is rewritten to these conventions: impersonal, one point per comment,
+  pragmatic, permalinked, carrying a proposal, and anchored inline where its file sits.
 - **Its severity ranking decides nothing.** Critical or Minor says how the
   subagent ranked a finding, not whether it belongs in this review.
 
@@ -167,9 +165,8 @@ Find them first, at any depth, and read the parts the change touches:
 find . \( -name 'README.md' -o -name 'AGENTS.md' -o -name 'CLAUDE.md' \) -not -path '*/node_modules/*'
 ```
 
-Root and per-package `README.md`, plus `AGENTS.md` and `CLAUDE.md` wherever they
-sit. Read them at the PR head SHA, not from the working tree, so the comparison
-matches what the PR actually proposes.
+Root and per-package `README.md`, plus `AGENTS.md` and `CLAUDE.md` wherever they sit,
+read at the PR head SHA rather than the working tree, so the comparison matches the PR.
 
 Look in both directions:
 
@@ -183,15 +180,30 @@ Look in both directions:
   the code is fine on its own terms. If the change is right and the rule is what
   should move, say that instead.
 
+**Documentation does not carry values that live in the code.** A port, a coverage floor,
+a task name, a version, a count, a list of the places something appears: each is owned by
+the file that sets it, and prose repeating it is a copy with nothing keeping it true. It
+goes stale the next time the code moves, silently. So no comment proposes prose carrying
+such a value, in either direction: not when documenting something new, and not when a
+sentence has already drifted, where the fix is removing the value rather than updating
+it. Say what the thing does, name the file that sets it, and where a test holds the two
+sides together, point at the test instead of repeating what it asserts.
+
+The line is between a value and a claim. A value is a token copied out of the code, a
+number, an identifier, an entry in a list, that a routine change rewrites with no
+decision behind it. A claim about what the system does goes stale too, but only when the
+design moves, and stating those is what documentation is for. This binds what is
+proposed, never what the comment may cite: reading the owning file, quoting it and
+linking it are unchanged.
+
 **Never write "the docs" generically.** Name the files: the root `README.md`, a
 package's `README.md`, `AGENTS.md`. A reader cannot act on "the docs do not cover
 this" without first guessing which file is meant. Where a `CLAUDE.md` is only an
 `@AGENTS.md` include, say so, so nobody edits it twice.
 
-Report wording that has merely become misleading, not only outright
-contradictions. When a doc file is itself in the diff, comment inline with a
-`suggestion` block carrying the corrected prose. When it is not, the finding goes
-in the general comment.
+Report wording that has merely become misleading, not only outright contradictions.
+When a doc file is itself in the diff, comment inline with a `suggestion` block
+carrying the corrected prose; when it is not, the finding goes in the general comment.
 
 ## Verify every factual claim about the architecture
 
@@ -201,11 +213,10 @@ credentials are in play. Read the thing that defines each one before writing it.
 Never infer it from a crate name, a service name, or the shape of the diff.
 
 The failure mode is a claim that sounds obviously right and is wrong. A crate
-called `mia-identity` does not make the deployed container mia-identity's: the
-container name lives in the deploy workflow and the ECR repository, and the image
-may well be one per project rather than one per service. Nothing in the diff
-reveals that, and a wrong claim of this kind passes every mechanical check on the
-review, so only reading the source catches it.
+called `mia-identity` does not make the deployed container mia-identity's: that
+name lives in the deploy workflow and the ECR repository, and the image may be one
+per project rather than one per service. Such a claim passes every mechanical
+check on the review, so only reading the source catches it.
 
 | Claim about | Where the answer actually is |
 |---|---|
@@ -245,22 +256,19 @@ then adding a `CMD` cannot give anyone a way past a failed migration, however
 plausible that reads. Claiming a benefit the change does not deliver is worse
 than raising nothing, because the author acts on it and the problem stays.
 
-Check the direction of a robustness claim too, since it inverts easily. A
-relative path follows `WORKDIR`, an absolute one pins a location: proposing
-`/app/bin/x` over `./bin/x` "so it does not depend on WORKDIR" gets it backwards,
-because the relative form is the one that survives WORKDIR moving. Name the
-scenario the change protects against, then check whether anything actually
-produces that scenario.
+Check the direction of a robustness claim too, since it inverts easily. A relative
+path follows `WORKDIR` and an absolute one pins a location, so proposing
+`/app/bin/x` over `./bin/x` "so it does not depend on WORKDIR" gets it backwards.
+Name the scenario the change protects against, then check whether anything
+produces it.
 
 Where two edits only work as a pair, say so in both comments. A suggestion that
 breaks the build when committed on its own is worse than no suggestion.
 
 A proposal is finished when the reader knows what to do next without having to
-ask. For anything living outside this repo that means naming where to look and
-what to look for, not merely flagging that something needs attention. "Needs eyes
-on that side" is not a proposal. "Look up the value in Pulumi, bearing in mind a
-service behind a load balancer gets 0 when nobody sets it, then size it for the
-slowest migration you expect" is.
+ask. For anything outside this repo that means naming where to look and what to
+look for. "Needs eyes on that side" is not a proposal. "Look up the value in
+Pulumi, then size it for the slowest migration you expect" is.
 
 Where two answers are both reasonable, give both and say what each costs, rather
 than leaving the choice unstated.
@@ -272,17 +280,14 @@ message to the author, not a review comment. Either it converts into a real ask,
 most often "worth writing this down" folded into a documentation finding, or it
 comes out. Say it in the reply instead.
 
-If a comment opens with "nothing to change here", or explains a mechanism without
-ever asking for anything, it should not be in the review. Where the explanation
-is genuinely worth having, attach it to the comment that does carry an ask, as
-the reason behind it, rather than standing it up on its own.
+A comment opening with "nothing to change here", or explaining a mechanism without
+ever asking for anything, does not belong. Where the explanation is worth having,
+attach it to the comment that does carry an ask, as the reason behind it.
 
-**Quantify a nit before raising it, and drop it when the number is small.** Work
-out what the change actually buys: bytes saved, milliseconds, one layer, one
-fewer allocation. If the honest answer is "383 bytes and one layer in a
-hundred-megabyte image", it does not earn a comment, however correct it is.
-Reviews that spend the reader's attention on those lose it for the findings that
-matter.
+**Quantify a nit before raising it, and drop it when the number is small.** Work out
+what the change actually buys: bytes saved, milliseconds, one layer. If the honest
+answer is "383 bytes and one layer in a hundred-megabyte image", it does not earn a
+comment, however correct it is. Attention spent there is lost to what matters.
 
 Similarly, a comment is not needed for something the code already documents. If a
 comment two lines above the finding already explains the mechanism, a review
@@ -360,12 +365,11 @@ the first section title. It tells the reader what the sections below cover and i
 what order, so the body reads as a whole rather than as loose blocks. One or two
 sentences, no more.
 
-That opening sentence introduces the findings in the body. It is not a preamble
-about what was reviewed and not a verdict on the pull request, and the difference
-matters: "Everything below sits outside the diff: documentation the change has
-left behind, a suggestion on database credentials, and a couple of items for
-later" belongs there, while "The approach is sound" and "Reviewed the diff plus X"
-do not.
+That opening sentence introduces the findings in the body. It is not a preamble about
+what was reviewed and not a verdict on the pull request: "Everything below sits outside
+the diff: documentation the change has left behind, a suggestion on database
+credentials, and a couple of items for later" belongs there, while "The approach is
+sound" and "Reviewed the diff plus X" do not.
 
 Group under plain descriptive section titles when there is more than one kind of
 finding, for example "Docs to refresh" or "Two database users rather than one".
@@ -375,17 +379,14 @@ Prefer a title that says something over a one-word label.
 Bold reads as a section title without the visual weight a heading carries inside
 a review comment.
 
-Bullets are welcome wherever they genuinely help the reader: a set of parallel
-findings, the concrete steps of a proposal, options to weigh side by side. A list
-of four doc fixes reads far better as four bullets than as one dense paragraph.
-Reach for one when the content really is a list. Do not expect it to save words:
-a list trades the connective tissue between items for a self-contained sentence
-each, so the gain is in scanning and comprehension, not in length.
+Bullets are welcome wherever they genuinely help the reader: parallel findings, the
+steps of a proposal, options to weigh side by side. Reach for one when the content
+really is a list. Do not expect it to save words: a list trades connective tissue for
+a self-contained sentence each, so the gain is in scanning, not in length.
 
-What to avoid is the opposite extreme, a body made entirely of bold labels and
-terse bullets with no prose holding it together: readable as data, unreadable as
-an argument. Keep the sentences that explain and frame, and let the lists carry
-the enumerable parts.
+What to avoid is the opposite extreme, a body of bold labels and terse bullets with no
+prose holding it together: readable as data, unreadable as an argument. Keep the
+sentences that explain and frame, and let the lists carry the enumerable parts.
 
 The body never contains:
 
@@ -470,8 +471,7 @@ Any of these means the review is not ready:
 - A line number written from memory instead of checked at the pinned ref.
 - A body bullet whose file appears in the diff.
 - A verdict or summary paragraph opening the body.
-- An inline comment spelling out a concrete line edit in prose when a
-  `suggestion` block would have been committable.
+- A line edit spelled out in prose where a `suggestion` block was committable.
 - A `suggestion` block whose anchor range does not cover every replaced line.
 - The body opening with a description of what was reviewed.
 - A body that jumps straight into its first section title with no sentence
@@ -483,8 +483,9 @@ Any of these means the review is not ready:
 - A comment already in an open draft edited to satisfy these conventions, rather
   than left alone and raised in the reply.
 - No `README.md`, `AGENTS.md`, or `CLAUDE.md` was read before writing the review.
-- A body made entirely of bold labels and terse bullets, with no prose framing
-  it. Bullets themselves are fine and often better; the absence of prose is not.
+- A doc suggestion carrying a value the code owns: a port, a floor, a version, a
+  task name, a count.
+- A body made entirely of bold labels and terse bullets, with no prose framing it.
 - A blunt or judging phrase anywhere: "this is wrong", "the worst is", "nobody
   did X", or a heading that names a fault instead of a topic.
 - An architectural claim inferred from a name instead of read from the file that

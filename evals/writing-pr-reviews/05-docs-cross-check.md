@@ -27,7 +27,11 @@ change points at it.
 - **M** The word "docs" is not used generically in place of a filename:
   `printf '%s' "$body" | grep -niE 'the docs\b'` finds nothing.
 - **E** The finding says what the sentence should say now, not only that it is
-  stale.
+  stale, and what it should say no longer carries the port. The skill's rule that
+  documentation does not carry values the code owns applies to this sentence: it went
+  stale precisely because it copied one, so the proposal drops the number and names the
+  file that sets it rather than swapping 8080 for 3000. The runs recorded below predate
+  that rule and propose the swap.
 - **E** The fixture's `AGENTS.md` rule that documentation moves in the same change
   as the behaviour is either cited or satisfied by the proposal.
 - All of the every-run assertions in `README.md`.
@@ -227,3 +231,44 @@ em dash, no first or second person, every permalink on the head SHA.
 E6 reported `config/default.toml`. It sits inside a sentence quoted verbatim from
 `README.md`, which is the "literal syntax quoted from a file" exception the skill body
 lists, and linking inside quoted material would corrupt the thing being quoted.
+
+## Rerun: Opus 5, 2026-08-28, after the values-in-docs amendment
+
+Rerun against the amendment that documentation does not carry values the code owns. It is
+the amendment this scenario is most exposed to, because the planted finding *is* a copied
+value: the fixture's `README.md` went stale for exactly the reason the rule names.
+
+**The target behaviour changed and the run produced it.** Rather than swapping the number,
+the body asks for it to go: "Worth dropping the number from that first sentence rather
+than swapping it, and naming the file that sets the port instead." It then handles the
+ambiguity the fixture creates, since nothing reads the TOML, by making the file it names
+depend on the paired change proposed inline on `app/server.py:3`.
+
+**The failure mode the amendment risked did not happen, though the proposal came out a
+step short.** A rule against carrying a value can degrade a finding into "the README is
+stale" with no proposal, which would break Every observation carries a proposal. It did
+not: the finding stayed actionable and the pairing rule was applied without prompting.
+What it did not do is hand over the replacement wording the skill body asks for, giving a
+rule for constructing the sentence instead of the sentence. "The service listens on the
+port set in `config/default.toml`" was writable. The fixture's ambiguity about which file
+owns the port is real and the run handled it deliberately, so read this as a justified
+deviation rather than the shape to copy. Same register as the paraphrase near miss above.
+
+| | |
+|---|---|
+| E1, E2 | one review `PENDING`, `pulls/5/comments` length 0 |
+| E3, E4 | no em dash, no first or second person |
+| E6, E7 | nothing unlinked, every permalink on `121a5283` |
+| E9 | one inline comment, 69 words |
+| E10 | `1`, once the path was derived correctly |
+| M | `README.md` named in the body, `8080` present, no inline comment on it, no generic "the docs" |
+
+**E10 read `0` on the first attempt, and the command was wrong rather than the run.** The
+version this file carried built the transcript directory with `tr / -`, which leaves the
+`.` in a `mktemp` name alone and misses the `/private` prefix macOS resolves `/var` to.
+`README.md` now carries the corrected derivation. Worth noting as the second time a
+grading command, not a skill rule, produced a confident failure here.
+
+**The stale claim is paraphrased rather than quoted**, "still says the service listens on
+8080". The assertion passes because the port appears, and this is the same near miss the
+Sonnet run above recorded.
