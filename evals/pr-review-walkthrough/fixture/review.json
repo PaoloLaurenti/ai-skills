@@ -1,0 +1,14 @@
+[
+  {
+    "path": "temperature/convert.py",
+    "line": 9,
+    "side": "RIGHT",
+    "body": "Nothing calls `format_reading`, so as far as I can see it is dead code. I suggest removing it before this merges."
+  },
+  {
+    "path": "README.md",
+    "line": 10,
+    "side": "RIGHT",
+    "body": "The example above still shows `69.8 F`, but the tool now prints `69.8 °F`. The example should match what the tool prints."
+  }
+]

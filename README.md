@@ -7,6 +7,7 @@ the configuration directories of the individual tools.
 
 | Skill | What it covers |
 | --- | --- |
+| [`pr-review-walkthrough`](skills/pr-review-walkthrough/SKILL.md) | How to take the author of a pull request through the review comments left on it: one comment per turn, an opinion verified against the code, a reply for each, and nothing published before an explicit yes at the end. |
 | [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: where the findings come from, pending state, tone, shape of the general comment, permalinks, code suggestions. |
 
 ## How it is wired to Claude Code
