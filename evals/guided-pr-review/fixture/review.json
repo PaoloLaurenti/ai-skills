@@ -1,0 +1,8 @@
+[
+  {
+    "path": "stock/levels.py",
+    "line": 16,
+    "side": "RIGHT",
+    "body": "This compares with `<`, while the comment on `LOW_STOCK` and the description say at or below, so an item with exactly five units is not marked low. Worth `<=` here."
+  }
+]
