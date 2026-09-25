@@ -108,8 +108,10 @@ Consequences worth knowing before changing any of this:
 - **Skills are namespaced.** `skills/<name>/` is invoked as `/myai:<name>`. The
   namespace is deliberate: it groups these skills in a listing that also holds
   skills from other sources.
-- **Adding a skill needs no symlink work.** The plugin already covers everything
-  under `skills/`. A running session picks up an edit to a `SKILL.md` immediately;
+- **Adding a skill needs no symlink work for Claude Code.** The plugin already covers
+  everything under `skills/`. Codex and GitHub Copilot read each skill from its own link
+  in `~/.agents/skills/`, so a new or renamed skill needs that link made or moved, as the
+  `README.md` setup section shows. A running session picks up an edit to a `SKILL.md` immediately;
   anything structural, a new or renamed skill directory included, may need
   `/reload-plugins`.
 - **`claude plugin validate <repo-path>` warns that the root `CLAUDE.md` is not

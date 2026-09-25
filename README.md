@@ -54,6 +54,18 @@ The last line makes a commit run `tools/check.sh` first: formatting, lints and t
 checks over every skill. `.git/hooks` is not versioned, so each clone has to point
 at `.githooks/` itself.
 
+Codex and GitHub Copilot know nothing of Claude Code plugins. They read skills from
+`~/.agents/skills/`, one directory each, so every skill gets a link of its own there:
+
+```bash
+for skill in <repo-path>/skills/*/; do ln -s "${skill%/}" ~/.agents/skills/; done
+```
+
+A link rather than a copy keeps the repo the only copy there too. Those agents see each
+skill under its bare name, `writing-pr-reviews` rather than `myai:writing-pr-reviews`.
+Nothing is linked into `~/.claude/skills/`, where the plugin already loads every skill and
+a second link would list each one twice.
+
 ## Adding a skill
 
 ```bash
@@ -61,7 +73,9 @@ mkdir -p skills/<name>
 $EDITOR skills/<name>/SKILL.md
 ```
 
-No symlink work: the plugin already covers every skill under `skills/`.
+No symlink work for Claude Code: the plugin already covers every skill under `skills/`.
+For Codex and GitHub Copilot the new skill needs its link in `~/.agents/skills/`, as in
+the setup above.
 
 The frontmatter requires `name` and `description`, and `name` has to match the
 directory name, since for a plugin skill it supplies the last segment of the
