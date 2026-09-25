@@ -30,8 +30,11 @@ claude plugin disable "$plugin" >/dev/null 2>&1
 
 # The verification, printed rather than assumed. A baseline where the skill loaded after
 # all is worse than no baseline, because it reads like the rules holding on their own.
-loaded=$(claude plugin list | grep -A4 'Skills-directory' | grep -c 'loaded' || true)
-echo "skills-directory plugins reporting loaded: $loaded (expected 0)"
+# Read from the Status line of this plugin's own entry, found by name, since how many
+# lines separate it from the section header is the listing's layout to change.
+loaded=$(claude plugin list | awk -v p="$plugin" '$0 ~ p {f=1} f && /Status:/ {print; exit}' \
+    | grep -c 'loaded' || true)
+echo "$plugin reporting loaded: $loaded (expected 0)"
 [ "$loaded" -eq 0 ] || {
     echo "baseline: the plugin is still loaded, so this would not be a baseline" >&2
     exit 1
