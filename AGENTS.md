@@ -111,9 +111,9 @@ Consequences worth knowing before changing any of this:
 - **Adding a skill needs no symlink work for Claude Code.** The plugin already covers
   everything under `skills/`. Codex and GitHub Copilot read each skill from its own link
   in `~/.agents/skills/`, so a new or renamed skill needs that link made or moved, as the
-  `README.md` setup section shows. A running session picks up an edit to a `SKILL.md` immediately;
-  anything structural, a new or renamed skill directory included, may need
-  `/reload-plugins`.
+  `README.md` setup section shows. A running Claude Code session picks up an edit to
+  a `SKILL.md` immediately; anything structural, a new or renamed skill directory
+  included, may need `/reload-plugins`.
 - **`claude plugin validate <repo-path>` warns that the root `CLAUDE.md` is not
   loaded as plugin context.** That warning is expected and must not be "fixed":
   `CLAUDE.md` exists for agents working *on this repo*, and is nothing the plugin
