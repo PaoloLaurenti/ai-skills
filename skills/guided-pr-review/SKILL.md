@@ -13,10 +13,11 @@ description: >-
 
 The requester is about to review a pull request and wants to understand it first. The job
 is to explain the change one concept per turn, at the level the requester picked, and to
-turn each finding into a proposed review comment that enters the pending review only when
-the requester says yes to that comment.
+turn each finding into a proposed review comment that is collected only when the requester
+says yes to that comment. The collected review reaches GitHub once, at the last step, as a
+pending review holding every comment and the general comment.
 
-**One step per turn. No comment enters the review without its own yes. Nothing is ever
+**One step per turn. No comment is collected without its own yes. Nothing is ever
 published.** A walkthrough exists so that every concept is understood and every comment is
 decided. A message that explains the whole change, or a "go on" read as consent, removes
 exactly the reading the requester asked for.
@@ -25,20 +26,23 @@ exactly the reading the requester asked for.
 
 1. **One step per turn, then stop.** The turn has the shape given in
    [One step](#one-step) and ends on its questions, or on the invitation to go on.
-2. **A comment enters the pending review only after an explicit yes to that comment.**
+2. **A comment is collected only after an explicit yes to that comment.**
    A word that moves the walkthrough on, such as "avanti", "go", "ok, next", approves
    nothing. A yes covers the comments it names, or all the comments of the current step
    when it says so, and never a comment not yet shown.
-3. **Nothing is published.** The review stays `PENDING`. No submitted review, no published
-   comment, no reply, no general comment on the conversation, no edit to the pull request.
-   An approved comment is appended to the pending review and that is all. Submitting
-   happens only on an explicit request to submit or publish the review.
+3. **GitHub sees the review once, at the last step, and nothing is published.** An
+   approved comment goes into [the collected review](#the-collected-review) and that is
+   all. At the last step the pending review is created in one call, holding every
+   collected comment and the general comment, and it stays `PENDING`. No submitted review,
+   no published comment, no reply, no general comment on the conversation, no edit to the
+   pull request. Submitting happens only on an explicit request to submit or publish the
+   review.
 4. **The code is read, never changed.** Read it, run it to check a claim, and leave it as
    it is: no edit, no commit, no push, even where the fix is obvious and small. The
    requester is reviewing someone's change, not taking it over.
 5. **Every comment follows `myai:writing-pr-reviews`.** **REQUIRED SUB-SKILL:** load it
    before the first step. It decides where the findings come from, how each comment is
-   written, how it is anchored, and how it reaches the pending review. This skill does not
+   written, how it is anchored, and how the review reaches GitHub. This skill does not
    restate those rules, and where the two seem to disagree, that skill wins on the
    comment and this one on the conversation.
 6. **A point already raised is cited, not proposed again.** When a comment on the pull
@@ -67,6 +71,26 @@ In the first turn:
 Use the session's question widget where there is one. Otherwise ask in chat with lettered
 options. The level decides how every step is written, so no step comes before the answer.
 
+## The collected review
+
+The review is built in a local file until the last step. Created on GitHub only once it is
+whole, a draft never has to be deleted and recreated to take its general comment, which a
+draft created with an empty body cannot be given. Kept in a file rather than in the
+conversation, it survives a compacted context or a restarted session.
+
+- **Where**: `~/.claude/reviews/OWNER-REPO-N.json`, outside any session so that a later
+  one finds it. Written at the first approved comment and after every later one, and
+  deleted once the review is on GitHub.
+- **Shape**: the payload `writing-pr-reviews` posts. `commit_id` is the head SHA read
+  before step 1, `body` stays empty until the last step, and `comments` holds each approved
+  comment as `{path, line, side, body}`, with `start_line` and `start_side` for a range,
+  anchored as that skill anchors one.
+- **Held findings**: an approved finding outside the diff goes under a `held` key, its text
+  as approved. The last step turns them into the general comment and removes the key.
+- **A file left by an earlier session** for the same pull request is the review so far.
+  Step 1 says what it holds, and the walkthrough adds to it. When its `commit_id` is not the
+  current head, each anchor is checked against the new head before the last step uses it.
+
 ## Planning the steps
 
 - **One concept per step**, named the way a reviewer would name it: "the bar now remembers
@@ -90,7 +114,7 @@ Step 1 is these parts, in this order, and proposes no comment:
 3. **What it touches**: the changed files grouped by role, with the size of the change.
 4. **What is already known about it**: the checks, what the author says was tested by
    hand, and the review so far: an open pending draft and what it holds, the published
-   comments and who left them.
+   comments and who left them, and a collected review left by an earlier session.
 5. **The route**: every step, numbered, with its title.
 6. **The invitation** to go on, naming the next step.
 
@@ -117,14 +141,14 @@ Every later step is these parts, in this order:
 A step with no proposal has parts 1, 2, 4 when there is something set aside, and 6.
 
 A finding about a file outside the diff is shown in its step like any other, with the
-same menu, but it cannot be anchored: an approved one is held for the general comment and
-not sent yet. See [The last step](#the-last-step).
+same menu, but it cannot be anchored: an approved one is held for the general comment. See
+[The last step](#the-last-step).
 
 ## After an answer
 
-- **Add**: append the comment to the pending review exactly as `writing-pr-reviews`
-  delivers one, creating the draft when none is open and appending when one is. Read it
-  back, then say in one line that it is in and how many comments the draft now holds.
+- **Add**: write the comment into [the collected review](#the-collected-review), under
+  `comments`, or under `held` when its file is outside the diff. Read the file back, then
+  say in one line that the comment is collected and how many the review now holds.
 - **Add with a change**: apply the requester's change, check the result against
   `writing-pr-reviews` again (English, impersonal, no em dash, a proposal in it), show the
   final text, and add that.
@@ -141,17 +165,30 @@ opening with one line on what was added.
 
 ## The last step
 
-The last step is these parts, in this order:
+The last step is the only one that touches GitHub. It is these parts, in this order:
 
-1. **The general comment**, when findings outside the diff were approved: written once,
-   now, as `writing-pr-reviews` shapes it, and shown in full.
-2. **What the draft holds**: each comment added, one line each with its file and line,
-   and the total.
-3. **What was left alone**: comments of an earlier draft, untouched.
-4. **The submit command**, as `writing-pr-reviews` gives it, stated and never run.
-5. **The question on the general comment**, when there is one, closing the step like any
-   other: *add* / *add with this change* / *drop*. On yes the text becomes the body of the
-   pending review, after the body already there when the draft had one.
+1. **The general comment**, when findings were held: written once, now, from them, as
+   `writing-pr-reviews` shapes it, and shown in full.
+2. **What the review will hold**: each collected comment, one line each with its file and
+   line, and the total.
+3. **What was left alone**: a draft that was already open, and the comments it holds,
+   untouched.
+4. **The question on the general comment**, when there is one, closing the step like any
+   other: *add* / *add with this change* / *drop*.
+
+Once the general comment is decided, or at once when nothing was held, the review is
+delivered as `writing-pr-reviews` delivers one, in this order:
+
+1. **Settle the body**: the approved general comment, or empty when it was dropped or never
+   needed. Remove `held` from the file.
+2. **No draft open**: one `POST` of the file, which creates the pending review with every
+   comment and the body together. A `422` on an anchor creates nothing: fix that anchor
+   and send again.
+3. **A draft already open**: append each collected comment to it, and the body after its
+   own when it has one. When its body is empty, it cannot take one: say so and hand over
+   the text.
+4. **Read it back**, delete the local file, confirm that nothing was published, and state
+   the submit command, never run. Submit only on an explicit request to submit or publish.
 
 ## Red flags
 
@@ -160,7 +197,8 @@ Each of these means the walkthrough has gone wrong. Stop and return to the rule 
 | Thought | Reality |
 | --- | --- |
 | "They said 'avanti', so the comments I proposed are approved" | "Avanti" moves on. It approves nothing, and the step does not move on while a comment is undecided. |
-| "They said to add the comments, so I post them" | Adding appends to the pending review. Publishing needs an explicit request to publish. |
+| "They said add, so I send the comment to GitHub now" | Add writes it into the collected review. GitHub sees the review once, at the last step, still `PENDING`. |
+| "The general comment changed the draft, so I delete it and create it again" | The draft is created once, after the general comment is settled, so there is nothing to recreate. |
 | "The review looks complete, I will submit it" | Never. State the submit command. |
 | "The fixes are obvious, I will commit them for the author" | The requester is reviewing. The code is read and never changed. |
 | "The change is small, one message covers it" | Size does not change the rule. One concept per step. |
@@ -170,4 +208,5 @@ Each of these means the walkthrough has gone wrong. Stop and return to the rule 
 | "This point matters, I will propose it even though a comment covers it" | Cite the existing comment. A second one on the same point is noise. |
 
 Also a red flag: a step that ends without its questions while a comment is proposed, a
-comment added before its yes, and a total that changes more than once.
+comment collected before its yes, a call to GitHub that writes before the last step, and a
+total that changes more than once.

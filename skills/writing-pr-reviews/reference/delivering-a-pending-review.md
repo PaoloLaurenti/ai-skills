@@ -69,11 +69,9 @@ Both mutations leave the review `PENDING` and publish nothing.
 
 **A draft whose body is empty cannot be given one.** `updatePullRequestReview`, and the
 REST `PUT` on the review alike, answer `Could not edit a review with a missing body` when
-the draft was created with `""`. So a draft this run creates before its general comment is
-written, as a walkthrough that adds comments one at a time does, gets its body by being
-recreated, per the next section, with the body and every comment it already holds. Save
-those comments first, from `pulls/N/reviews/REVIEW_ID/comments`, and rebuild each anchor
-from the payload that sent it, since the read-back has `position` only. A draft that was
+the draft was created with `""`. So a draft gets its general comment in the `POST` that
+creates it: a review built up over several turns, as a guided walkthrough builds one, is
+collected locally and created once, after the general comment is settled. A draft that was
 already open with an empty body cannot take a general comment at all: say so in the reply
 and hand over its text.
 

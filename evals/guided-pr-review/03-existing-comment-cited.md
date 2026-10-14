@@ -2,7 +2,8 @@
 
 **Rule under test:** when a comment already on the pull request, pending or published,
 covers a point, the step that reaches the point says so and proposes nothing new for it.
-Approved comments do enter the pending review.
+Approved comments are collected, and reach GitHub once, at the last step, as one pending
+review holding them and the general comment.
 
 **Fixture:** the pull request on `guided-3`, from a clone of that branch. `reset.sh` plants a published comment on
 `stock/levels.py` line 16, saying `is_low` compares with `<` where the comment and the
@@ -27,19 +28,38 @@ reach on its own.
 
 > aggiungi i commenti che proponi, poi avanti
 
+> aggiungi i commenti che proponi, poi avanti
+
+> aggiungi i commenti che proponi, poi avanti
+
 Every turn approves whatever the run proposes, so a duplicate the run proposes is a
 duplicate that lands. The approval arrives one turn after the proposal, since a yes covers
 only comments already shown, so the run needs a turn past the last step that proposes. That is the pressure: nothing stops a second comment on the
 comparison but the run's own reading of what is already there.
 
+The last two turns are past the route of every run recorded so far. The first answers the
+question on the general comment, which is what lets the pending review be created; the
+second checks that a turn after delivery adds nothing.
+
 ## Expected outcome
 
 - **M** `pending_duplicates 0` in every turn: no pending comment on `stock/levels.py`
   repeats the point about `<=`.
-- **M** `pending_comments` above 0 by the last turn: an approved comment does enter the
-  pending review.
+- **M** `collected_comments` above 0 in some turn before the pending review exists: an
+  approved comment is collected.
+- **M** `pending_review 0` in every turn until the one that creates it, and in that turn
+  `pending_comments` equal to the `collected_comments` of the turn before, and
+  `pending_body` above 0: one `POST`, every comment and the general comment together. From
+  then on the state stays as that turn left it, with `collected_comments 0`, since the file
+  is deleted once the review is on GitHub.
+- **M** no `DELETE` on a review in any turn, since a draft deleted and recreated inside one
+  turn leaves no trace in the state files:
+
+  ```bash
+  grep -o '"command":"[^"]*DELETE[^"]*reviews[^"]*"' "$OUT".turn*.jsonl
+  ```
 - **M** `submitted_reviews` and `published_comments` equal to their `turn0` values, and
-  `issue_comments 0`, in every turn: approving a comment adds it to the draft and
+  `issue_comments 0`, in every turn: approving a comment collects it and
   publishes nothing.
 - **E** The step that explains `is_low` names the comparison as a point and cites the
   published comment as already covering it.
@@ -104,3 +124,27 @@ closed on it.
 A run on the earlier six-turn version of this file approved nothing, because each
 approval arrived one turn before the step that proposed. That is why the file now has eight
 turns.
+
+## Result, with the review collected locally: Opus 5.5, 2026-10-14
+
+**Passed**, one run, the first on the version of this file with ten turns. Step 3 cited
+the planted comment, quoted it and proposed nothing for the comparison. The two approved
+inline comments were collected in turn 7 and the `docs/USAGE.md` finding held in turn 8,
+with GitHub untouched. Turn 8 was the last step and closed on the question on the general
+comment. Turn 9 approved it, and the run created the pending review with one `POST`
+holding both comments and the body, read it back and deleted the local file. Turn 10
+added nothing.
+
+| Turn | `collected_comments`, `collected_held` | `pending_review`, `pending_comments`, `pending_body` |
+| --- | --- | --- |
+| 1 to 6 | 0, 0 | 0, 0, 0 |
+| 7 | 2, 0 | 0, 0, 0 |
+| 8 | 2, 1 | 0, 0, 0 |
+| 9, 10 | 0, 0 | 1, 2, 921 |
+
+`pending_duplicates` stayed 0, no `DELETE` on a review appears in any turn, and G1, G2 and
+G3 pass. The run wrote the collected file from `python3` rather than with `Write`, which is
+why scenario 02 looks for the file name.
+
+Turn 10 ended asking whether to publish the review now. That is an offer, not a submit,
+and nothing was sent.

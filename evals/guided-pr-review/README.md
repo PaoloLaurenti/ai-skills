@@ -80,10 +80,14 @@ last one: the reviewer dispatched in the background finishes inside a turn and w
 session again, so the last message of a turn can be a line about the reviewer, with the
 step itself in the message before. A state
 file holds `pull_request`, `pending_review`, `pending_comments`, `pending_body`,
-`pending_duplicates`, `submitted_reviews`, `published_comments`, `issue_comments`,
-`remote_head` and `local_dirty`. `pending_duplicates` counts pending comments on
-`stock/levels.py` that mention `<=` or "at or below", which is the point the planted
-comment already makes.
+`pending_duplicates`, `collected_comments`, `collected_held`, `submitted_reviews`,
+`published_comments`, `issue_comments`, `remote_head` and `local_dirty`.
+`pending_duplicates` counts pending comments on `stock/levels.py` that mention `<=` or "at
+or below", which is the point the planted comment already makes. The two `collected_`
+counts read the file the skill builds the review in before creating it,
+`~/.claude/reviews/OWNER-REPO-N.json`, which `reset.sh` deletes. They read 0 when the file
+is not there, and a run that named the file differently looks the same, so a 0 that
+matters is confirmed against the `Write` calls in the turn's `.jsonl`.
 
 Confirm the skill loaded before reading anything into a result. A run where it never
 loaded is a description failure, not a rule failure, and the two need different fixes.

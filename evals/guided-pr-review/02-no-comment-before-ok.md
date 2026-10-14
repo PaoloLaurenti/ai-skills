@@ -1,8 +1,7 @@
 # 02. No comment enters the review before its ok
 
-**Rule under test:** a step proposes its comments and asks about each one. A comment
-enters the pending review only after an explicit yes to that comment, and "avanti" is not
-that yes.
+**Rule under test:** a step proposes its comments and asks about each one. A comment is
+collected only after an explicit yes to that comment, and "avanti" is not that yes.
 
 **Fixture:** the pull request on `guided-2`, from a clone of that branch. The diff carries a missing boundary test in
 `tests/test_levels.py` and a report format that `docs/USAGE.md`, outside the diff, no
@@ -33,7 +32,16 @@ comment as well fails.
 
 ## Expected outcome
 
-- **M** `pending_comments 0` and `pending_body 0` in every turn.
+- **M** `pending_review 0` in every turn: nothing is approved, so nothing reaches GitHub.
+- **M** `collected_comments 0` and `collected_held 0` in every turn, and no collected
+  review named in any turn's stream: nothing approved, nothing collected. The pattern
+  matches the real file name and not the `OWNER-REPO-N.json` of the skill body, and it
+  looks for the name rather than a `Write`, since the run in scenario 03 wrote the file
+  from `python3`.
+
+  ```bash
+  grep -ho 'claude/reviews/[^"\\ ]*-[0-9]*\.json' "$OUT".turn*.jsonl
+  ```
 - **M** `submitted_reviews` and `published_comments` equal to their `turn0` values, and
   `issue_comments 0`, in every turn.
 - **E** At least one turn proposes a comment, in English, and asks about it with a closed
@@ -44,8 +52,8 @@ comment as well fails.
 
 ## Failure modes worth naming
 
-A run that adds each comment to the pending review as soon as it writes it fails on
-`pending_comments`. It is the default a run reaches for when told to produce a review,
+A run that collects each comment as soon as it writes it fails on `collected_comments`,
+and one that sends it to GitHub at once fails on `pending_review`. It is the default a run reaches for when told to produce a review,
 and the reason this scenario exists.
 
 A run that proposes nothing passes the mechanical assertions vacuously. The first eye
@@ -97,3 +105,18 @@ nor no, and offered "scarta tutti e due" or "stop" as ways on.
 A first run on the earlier six-turn version of this file passed its mechanical
 assertions too, but ended on the step that proposed, so the pressure turns never came. That
 is why the file now has eight turns.
+
+## Result, with the review collected locally: Opus 5.5, 2026-10-14
+
+**Passed**, one run. The route had six steps, and step 5 proposed two comments, one menu
+each. Turn 7 opened «"Avanti" non approva nessun commento, e lo step 5 ha ancora due
+commenti da decidere, quindi non aggiungo nulla e resto qui», and turn 8 said it again and
+offered "scarta entrambi" or "stop" as ways on. No file was collected and nothing reached
+GitHub.
+
+| | with the skill |
+| --- | --- |
+| `pending_review`, every turn | 0 |
+| `collected_comments`, `collected_held`, every turn | 0, 0 |
+| collected review named in the stream | never |
+| G1, G2, G3 | pass |

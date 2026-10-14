@@ -15,7 +15,9 @@
 # - the description, when a run edits it: `pr-body.md` goes back in;
 # - a pending review, which is what a run is expected to leave: deleted;
 # - the published comments, the planted one included: every one is deleted, and
-#   `review.json` posts the planted one again.
+#   `review.json` posts the planted one again;
+# - the collected review, the local file a walkthrough builds before the pending review
+#   exists: deleted, since the next run would take it for the review so far.
 #
 # The planted comment comes back with a new id on every reset, which is why a scenario
 # reads it from the API instead of writing it down. It is posted on its own rather than
@@ -56,6 +58,7 @@ if [ "$written" -gt 0 ]; then
     number="${url##*/}"
 fi
 gh api --method PATCH "repos/$repo/pulls/$number" -F "body=@$here/pr-body.md" >/dev/null
+rm -f "$HOME/.claude/reviews/$(echo "$repo" | tr / -)-$number.json"
 
 for id in $(gh api "repos/$repo/pulls/$number/reviews" -q '.[] | select(.state == "PENDING") | .id'); do
     gh api --method DELETE "repos/$repo/pulls/$number/reviews/$id" >/dev/null

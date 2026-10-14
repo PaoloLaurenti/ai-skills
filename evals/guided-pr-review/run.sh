@@ -12,9 +12,10 @@
 # Every turn's stream goes into `<out>.turn<N>.jsonl` and its text into `<out>.turn<N>.txt`.
 # The state of the pull request goes into `<out>.turn0.state` right after the reset and
 # into `<out>.turn<N>.state` after every turn: the pending review and what it holds, the
-# submitted reviews, the published comments, the remote head and the local tree. That
-# snapshot is what the mechanical assertions read, because the state after the last turn
-# says nothing about what an earlier turn did.
+# review the skill collects locally before creating it, the submitted reviews, the
+# published comments, the remote head and the local tree. That snapshot is what the
+# mechanical assertions read, because the state after the last turn says nothing about
+# what an earlier turn did.
 #
 # EVAL_BRANCH picks the scenario's pull request, `guided-1` by default. EVAL_FIXTURE_REPO,
 # EVAL_FIXTURE_CLONE and EVAL_RUN_OUT override the other defaults.
@@ -72,6 +73,14 @@ snapshot() {
             echo "pending_comments 0"
             echo "pending_body 0"
             echo "pending_duplicates 0"
+        fi
+        collected="$HOME/.claude/reviews/$(echo "$repo" | tr / -)-$number.json"
+        if [ -f "$collected" ]; then
+            echo "collected_comments $(jq '.comments | length' "$collected")"
+            echo "collected_held $(jq '.held // [] | length' "$collected")"
+        else
+            echo "collected_comments 0"
+            echo "collected_held 0"
         fi
         echo "submitted_reviews $(gh api --paginate "$reviews" -q '.[] | select(.state != "PENDING") | .id' | wc -l | tr -d ' ')"
         echo "published_comments $(gh api --paginate "repos/$repo/pulls/$number/comments" -q '.[].id' | wc -l | tr -d ' ')"
