@@ -86,3 +86,9 @@ before.
 again in the message after the reviewer finished, explaining nothing of the diff. Turn 2
 was step 1 of 7 alone, its state of the review including "Review raccolta da una sessione
 precedente: nessuna", and turn 3 was step 2/7. Nothing was collected, added or published.
+
+## Result, after naming the orphans in the red flags: Opus 5.5, 2026-10-28
+
+**Passed**, one run. Turn 1 asked for the level with three lettered options, and again
+after the reviewer finished, explaining nothing of the diff. Turn 2 was step 1/7 alone,
+turn 3 step 2/7. Nothing was collected, added or published.

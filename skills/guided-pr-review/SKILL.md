@@ -198,7 +198,7 @@ Each of these means the walkthrough has gone wrong. Stop and return to the rule 
 | --- | --- |
 | "They said 'avanti', so the comments I proposed are approved" | "Avanti" moves on. It approves nothing, and the step does not move on while a comment is undecided. |
 | "They said add, so I send the comment to GitHub now" | Add writes it into the collected review. GitHub sees the review once, at the last step, still `PENDING`. |
-| "The general comment changed the draft, so I delete it and create it again" | The draft is created once, after the general comment is settled, so there is nothing to recreate. |
+| "The general comment changed the draft, so I delete it and create it again" | The draft is created once, after the general comment is settled, so there is nothing to recreate. A deleted draft leaves its inline comments behind as orphans. |
 | "The review looks complete, I will submit it" | Never. State the submit command. |
 | "The fixes are obvious, I will commit them for the author" | The requester is reviewing. The code is read and never changed. |
 | "The change is small, one message covers it" | Size does not change the rule. One concept per step. |

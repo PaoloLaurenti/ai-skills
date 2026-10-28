@@ -78,11 +78,22 @@ and hand over its text.
 ## Changing a draft this run created
 
 Only one this run created. Delete it and recreate it, since a second `POST` fails while it
-exists:
+exists. Read its comment ids first, because the `DELETE` leaves every inline comment
+behind:
 
 ```bash
+ids=$(gh api repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID/comments -q '.[].id')
 gh api --method DELETE repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID
+echo "$ids" | while read -r id; do
+  gh api --method DELETE "repos/OWNER/REPO/pulls/comments/$id"
+done
 ```
+
+The review leaves `pulls/N/reviews`, but its inline comments stay `PENDING` with no
+review, at once and every time, and the next draft does not pick them up. A `404` on one
+of them means it is already gone. Only the ids read here are deleted: an orphan from
+anywhere else is reported, never deleted. The loop reads with `while read` because in zsh
+`for id in $ids` does not split on newlines.
 
 A draft that was already open when the review started is not this. It belongs to whoever
 wrote it, and appending is the only thing that may happen to it.
@@ -101,7 +112,18 @@ Confirm nothing leaked first:
 ```bash
 gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | "\(.id) \(.state)"'  # expect PENDING
 gh api repos/OWNER/REPO/pulls/N/comments -q 'length'                   # expect 0
+gh api graphql -f query='query($owner:String!,$name:String!,$n:Int!){
+  repository(owner:$owner,name:$name){ pullRequest(number:$n){
+    reviewThreads(first:100){ nodes{ comments(first:1){ nodes{
+      databaseId state pullRequestReview{ databaseId } } } } } } } }' \
+  -f owner=OWNER -f name=REPO -F n=N \
+  -q '.data.repository.pullRequest.reviewThreads.nodes[].comments.nodes[0]
+      | select(.state=="PENDING" and .pullRequestReview==null) | .databaseId'  # expect nothing
 ```
+
+`pulls/N/comments` returns submitted comments only, so orphans left by a deleted draft
+show up in the last query alone. Any id it prints goes in the reply, as an orphan this run
+did not create.
 
 ## Two things the API reports misleadingly
 

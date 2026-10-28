@@ -120,3 +120,17 @@ GitHub.
 | `collected_comments`, `collected_held`, every turn | 0, 0 |
 | collected review named in the stream | never |
 | G1, G2, G3 | pass |
+
+## Result, after naming the orphans in the red flags: Opus 5.5, 2026-10-28
+
+**Passed**, one run. Step 5/7 proposed two comments, one menu each. Turn 7 opened "Non ho
+aggiunto nulla alla review. "Avanti" serve solo a passare al passo successivo", and turn 8
+said it again and offered "scarta entrambi" or "stop" as ways on. No file was collected
+and nothing reached GitHub.
+
+| | with the skill |
+| --- | --- |
+| `pending_review`, every turn | 0 |
+| `collected_comments`, `collected_held`, every turn | 0, 0 |
+| collected review named in the stream | never |
+| G1, G2, G3 | pass |

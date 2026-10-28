@@ -6,8 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open, and it is blocked on Anthropic rather than on this repo. Nothing here
-is waiting on a decision.
+Four things are open. The first is blocked on Anthropic rather than on this repo; the
+other three come out of a guided review run on another repository, were decided in a
+grilling session afterwards, and are ready to apply. Nothing here is waiting on a
+decision.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -52,6 +54,117 @@ queued here as the obvious next tool, and `claude plugin eval` shipping graders 
 `graders/*.md` with a judge model makes it work to be thrown away. The assertions
 written into each scenario file are the specification those graders will want, which is
 the part worth having either way.
+
+## 2. Clean up the inline comments a deleted draft leaves behind
+
+*What happened.* A draft review was created before a guided walkthrough ended, then
+deleted with `DELETE repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID` and recreated three
+times. Each `DELETE` succeeded and the review left `pulls/N/reviews`, but about an hour
+later the GraphQL `reviewThreads` still listed 24 inline comments in state `PENDING` with
+`pullRequestReview: null`. Five, from the oldest draft, already answered `404`; the other
+19 needed `DELETE repos/OWNER/REPO/pulls/comments/COMMENT_ID` each. "Confirm nothing
+leaked" missed them, because `pulls/N/comments` returns submitted comments only.
+
+*Decided.* Delete-and-recreate stays the one way to change a draft this run created:
+collecting a guided review locally makes it rare, and one path with a cleanup step is
+simpler than a second path of in-place GraphQL edits. The cleanup is narrow, so
+non-negotiable 2 holds: the draft's comment ids are read before the `DELETE`, and only
+those are deleted after it, a `404` counting as already gone. Orphans of any other origin
+are reported, never deleted.
+
+- [x] Prove it on the fixture first, outside the suite: create a draft with two inline
+      comments, delete it, query the orphans at once, run the cleanup, run the check.
+      Write the outcome next to the cleanup step, orphans or not and after how long, so
+      the step says when it is needed. No eval scenario: this checks commands rather than
+      agent behaviour, and a prompt would have to force a path the skills now avoid.
+
+      Done on 2026-10-28, on fixture PR 7, twice. Every `DELETE` left both inline
+      comments as orphans at once, not after a delay, so the cleanup is needed every
+      time. They did not attach to the draft created next, which took only its own
+      comments. Deleting the ids read before the `DELETE` removed them, and the orphan
+      query then returned nothing. One more zsh trap surfaced: `for id in $IDS` does not
+      split on newlines in zsh, so the loop reads the ids with `while read -r id`.
+- [x] In `reference/delivering-a-pending-review.md`, "Changing a draft this run
+      created": read `pulls/N/reviews/REVIEW_ID/comments` ids before the `DELETE`, delete
+      those after it.
+- [x] In "Reporting back", a third check beside the two that exist, expecting no output:
+      the `reviewThreads` query filtered on `state=="PENDING"` and `pullRequestReview==null`.
+      `reviewThreads(first:100)` without pagination is accepted.
+- [x] In `guided-pr-review`, complete the red-flag row "The general comment changed the
+      draft, so I delete it and create it again" with the consequence: a recreated draft
+      leaves its inline comments behind as orphans. The rule is already there; the reason
+      is what makes it hold under pressure.
+
+## 3. Take the hunks from GitHub's diff, not from a local one
+
+*What happened.* A review `POST` failed with `422 Line could not be resolved` for two
+comments on a file the pull request renamed and edited. `git diff BASE HEAD` showed the
+file as entirely new, so every line looked anchorable; GitHub applied rename detection and
+showed a few small hunks, and the two lines sat outside them. Why the two diffs disagreed
+is not known: `git diff` detects renames by default, so a different base (base tip against
+merge base) or a different similarity threshold are both plausible.
+
+- [ ] Reword in place the body bullet "Anchor inline comments inside a diff hunk" in
+      `writing-pr-reviews`: the hunks are the ones `gh pr diff N` shows, since a local
+      `git diff` can disagree on renames. At most one line, inside the budget.
+- [ ] Put the listing in the reference, beside the sentence on hunks that is already
+      there: `gh pr diff N | awk '/^diff --git/{f=$4} /^@@/{print f" "$0}'`.
+- [ ] Try to reproduce the disagreement on a fixture branch of its own. Only if it
+      reproduces, add a scenario asserting no `422` and every anchor inside a
+      `gh pr diff` hunk. If it does not, record the cause as open here.
+
+## 4. Follow up on a review already submitted
+
+*What happened.* After a review was submitted, the request was to check the author's
+replies and the new commits. `pr-review-walkthrough` loaded, matched by phrasings such as
+"guarda i commenti della review sulla PR", but it is written for the author answering a
+review, and its turn shape did not fit. The work was done by hand.
+
+*Decided.* No new skill: the follow-up writes text that ends up on GitHub, under the same
+rules, by the same role, so it belongs in `writing-pr-reviews`.
+
+- [ ] Descriptions: add follow-up phrasings to `writing-pr-reviews`, in both languages
+      ("l'autore ha risposto alla mia review", "controlla le risposte e i nuovi commit",
+      "follow up on my review of PR #N"), and to `pr-review-walkthrough` an exclusion,
+      "Not for following up on a review the requester wrote", on the model of
+      `guided-pr-review`.
+- [ ] Non-negotiable 1 extended to the follow-up explicitly. Replies go into a pending
+      draft through `addPullRequestReviewThreadReply` with a `pullRequestReviewId`, to be
+      verified on the fixture, never through `pulls/N/comments/ID/replies`, which
+      publishes at once. Resolving a thread is the only immediate action, done right
+      after an explicit yes to that thread's question; `unresolveReviewThread` undoes it.
+- [ ] Scope: every unresolved thread opened by the requester's own review, replied to or
+      not, ordered by file and line, is one turn, and N counts them. A thread with a
+      change and no reply gets its turn, since it may be resolvable. Threads with neither
+      a reply nor a change stay out of N.
+- [ ] Turn shape, one thread per turn, opening with "Thread n of N": the original comment
+      and the reply quoted; what changed on the thread's lines at the new head, with a
+      head-SHA permalink; one outcome among accepted, partly accepted, not accepted or
+      unchanged, with what was checked; the proposed action, resolve, reply with its text,
+      or leave open; one question on that action. The total changing more than once is a
+      red flag, as in `guided-pr-review`.
+- [ ] Final turn: the threads with neither reply nor change, whether the pull request
+      description still matches the head, and the commits or files changed since the
+      reviewed SHA that touch no thread, with the question whether to review them. A yes
+      means a normal review of `reviewed SHA..head`, non-negotiable 7 included.
+- [ ] Replies collected in the same local file `guided-pr-review` uses, in the same
+      payload shape, and turned into one pending draft after the last turn, then the leak
+      check and the submit command stated, never run.
+- [ ] Commands in a new `reference/following-up-a-review.md`, linked from the section by
+      an instruction with its reason: the reviewed SHA from the submitted review's
+      `commit_id`, the threads query rewritten for the reviewer's role rather than copied
+      from `pr-review-walkthrough`, `resolveReviewThread`, the pending reply. A file read
+      at a pinned SHA is written `git show "${SHA}:path"`, with half a line on why: in
+      zsh `$SHA:a` expands as a path modifier.
+- [ ] Body budget: write the section first, measure the overflow, then move out in this
+      order: the "Claim about / Where the answer actually is" table to a reference of its
+      own, the `find` command for the docs, and only then prose that repeats the
+      delivery reference. The `suggestion` example stays, being the model of the shape.
+- [ ] A new scenario with a `seed-submitted-review.sh`: a submitted review with three
+      threads (reply and change, change and no reply, neither), a commit fixing the
+      first two, and a changed file no thread touches. After the first turn: no thread
+      resolved, no comment published, no non-pending review, and "1" of a total of 2 in
+      the text. The final turn graded separately.
 
 ## Completed
 

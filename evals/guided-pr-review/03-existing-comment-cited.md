@@ -148,3 +148,20 @@ why scenario 02 looks for the file name.
 
 Turn 10 ended asking whether to publish the review now. That is an offer, not a submit,
 and nothing was sent.
+
+## Result, after naming the orphans in the red flags: Opus 5.5, 2026-10-28
+
+**Passed**, one run. Step 3 cited the planted comment as already covering the comparison,
+quoted it and proposed nothing for it. The two approved inline comments were collected in
+turn 7 and the `docs/USAGE.md` finding held in turn 8. Turn 9 created the pending review
+with one `POST` holding both comments and the body, and turn 10 added nothing.
+
+| Turn | `collected_comments`, `collected_held` | `pending_review`, `pending_comments`, `pending_body` |
+| --- | --- | --- |
+| 1 to 6 | 0, 0 | 0, 0, 0 |
+| 7 | 2, 0 | 0, 0, 0 |
+| 8 | 2, 1 | 0, 0, 0 |
+| 9, 10 | 0, 0 | 1, 2, 919 |
+
+`pending_duplicates` stayed 0, no `DELETE` on a review appears in any turn, and G1, G2 and
+G3 pass.
