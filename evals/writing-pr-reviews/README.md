@@ -65,6 +65,10 @@ pull request, so every run leaves one behind and the next `POST` fails while it 
 there. A failed second run reads exactly like a skill failure, which is the trap
 `reset.sh` exists to remove. Run it before every run, including the first.
 
+It also deletes the fixture's collected reviews, `~/.claude/reviews/<owner>-<repo>-N.json`.
+A review walked one point at a time and a follow-up's replies are kept there before any
+draft exists, and a file an earlier run left is, to the next one, the review so far.
+
 **Scenario 07 is the exception, and it inverts two of the rules on this page.** It tests
 what happens to a draft that is already open, so it needs one to exist when the run
 starts. `fixture/seed-open-draft.sh` puts it there, and it has to land after `reset.sh`
@@ -112,7 +116,20 @@ evals/writing-pr-reviews/baseline.sh opus "dammi un parere sulla PR #5"
 
 `run.sh` clones the fixture, clears the previous pending review, runs the prompt, retries
 while the API is overloaded, and prints where it left the output, the log and the clone.
-`baseline.sh` takes the same two arguments and hands them straight to `run.sh` with the
+
+More prompts after the first make a conversation, for the rules that only act after an
+answer: the first turn starts the session and each later one continues it with
+`--continue` from the same clone. Turn N writes its reply to `run.turn<N>.txt` and the
+state of the pull request right after it to `run.turn<N>.state`, one `key value` per
+line: `pending_reviews`, `pending_comments`, `submitted_reviews`, `published_comments`,
+`resolved_threads`, and `collected_comments`, `collected_held` and `collected_replies`
+from the collected review, `-` where there is no draft or no file. The state after the
+last turn cannot show what an earlier turn did, such as a thread resolved before its
+yes. The pull request comes from the first `#<number>` in the first prompt, and a
+conversation without one stops before it starts. A single prompt still writes `run.txt`
+and no state.
+
+`baseline.sh` takes the same arguments and hands them straight to `run.sh` with the
 plugin disabled, so a baseline and the run it is compared against differ in one thing
 only. Both leave the clone in place, because the payload the skill posted from is in it.
 
@@ -127,15 +144,17 @@ git clone "git@github.com:$EVAL_FIXTURE_REPO.git" /tmp/fixture-clone
 evals/writing-pr-reviews/fixture/reset.sh
 cd /tmp/fixture-clone
 claude -p "$prompt" --model "$model" \
-    --allowedTools Read Write Grep Glob Agent Skill \
-    "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)"
+    --allowedTools Read Write Edit Grep Glob Agent Skill \
+    "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)" "Bash(jq:*)"
 ```
 
 The tool list is deliberate rather than a bypass. `--dangerously-skip-permissions`
 would be shorter, and the `gh` token reaches every repo the account can see, so a
 sandbox fixture is not a reason to widen what a headless run may do. `Write` is on
 the list because the delivery mechanism needs it: the review is posted from a JSON
-file, per the skill body.
+file, per the skill body. `Edit` and `jq` are there for the collected review and the
+delivery of a follow-up's replies. A probe on 2026-10-29 found `jq` running without being
+listed, so something outside this script allowed it; it is named rather than left to that.
 
 `Agent` and `Skill` are on it for non-negotiable 7, which sends the finding to
 `superpowers:requesting-code-review` and so needs a subagent dispatched. Without

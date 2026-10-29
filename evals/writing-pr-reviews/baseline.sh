@@ -1,7 +1,7 @@
 #!/bin/sh
 # Runs one scenario with the plugin disabled, which is what makes a baseline a baseline.
 #
-#   baseline.sh <model> <prompt>
+#   baseline.sh <model> <prompt> [<next prompt>...]
 #
 # Takes the same arguments as run.sh and hands them straight over, so a baseline and the
 # run it is compared against differ in one thing only.
@@ -15,8 +15,8 @@
 # symlink loads it in every session on this machine.
 set -eu
 
-[ "$#" -eq 2 ] || {
-    echo "usage: baseline.sh <model> <prompt>" >&2
+[ "$#" -ge 2 ] || {
+    echo "usage: baseline.sh <model> <prompt> [<next prompt>...]" >&2
     exit 2
 }
 

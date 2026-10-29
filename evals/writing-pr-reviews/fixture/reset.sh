@@ -35,6 +35,17 @@ for number in $(gh pr list --repo "$repo" --state open --json number -q '.[].num
     done
 done
 
+# A review walked one point at a time, and a follow-up's replies, are collected in a local
+# file before any draft exists, the file guided-pr-review keeps. A file left by an earlier
+# run is the review so far to the next one, which would then deliver comments it never
+# added. Only the fixture's files match, never a review of another repo.
+for file in "$HOME/.claude/reviews/${repo%/*}-${repo#*/}-"*.json; do
+    [ -e "$file" ] || continue
+    rm "$file"
+    echo "cleared collected review $file"
+    cleared=$((cleared + 1))
+done
+
 if [ "$cleared" -eq 0 ]; then
-    echo "no pending reviews to clear"
+    echo "nothing to clear"
 fi

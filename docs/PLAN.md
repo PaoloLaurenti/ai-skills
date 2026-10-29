@@ -284,11 +284,19 @@ turn: the follow-up's final turn and its replies delivered into a pending draft 
 09), and the one-at-a-time walk once it is chosen (scenario 10). Both stop on a question,
 and grading what follows needs an answer to it.
 
-- [ ] Give `run.sh` the shape `pr-review-walkthrough`'s has: `run.sh <model> <prompt>
+- [x] Give `run.sh` the shape `pr-review-walkthrough`'s has: `run.sh <model> <prompt>
       [<next prompt>...]`, the first turn starting the session and each later one
       continuing it with `--continue` from the same clone, and the fixture's state
       written after every turn, since the state after the last turn says nothing about
       what an earlier one did. A single prompt keeps working as today.
+
+      Done on 2026-10-29. Several prompts write `run.turn<N>.txt` and `.state`, the
+      pull request taken from the first prompt's `#<number>`; one prompt still writes
+      `run.txt`. `baseline.sh` takes the same arguments. `Edit` and `Bash(jq:*)` joined
+      the tool list, and `reset.sh` now deletes the fixture's collected reviews in
+      `~/.claude/reviews/`, which a later run would otherwise read as the review so far.
+      Checked with a two-turn run on haiku: the second turn remembered the first, and
+      both states were written.
 - [ ] Scenario 09, extended: answer yes to both threads, then to the final turn's question.
       Graded after each turn: the first thread resolved only after its yes, no reply
       published at any point, one pending draft holding the replies after the final
