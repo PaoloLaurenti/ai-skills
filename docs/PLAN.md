@@ -84,6 +84,9 @@ are reported, never deleted.
       comments. Deleting the ids read before the `DELETE` removed them, and the orphan
       query then returned nothing. One more zsh trap surfaced: `for id in $IDS` does not
       split on newlines in zsh, so the loop reads the ids with `while read -r id`.
+      Revised by the probe under item 4: on the fixture the orphans were gone five
+      seconds later by themselves, so the cleanup is insurance for the times GitHub's own
+      does not happen, as in the run above, rather than needed every time.
 - [x] In `reference/delivering-a-pending-review.md`, "Changing a draft this run
       created": read `pulls/N/reviews/REVIEW_ID/comments` ids before the `DELETE`, delete
       those after it.
@@ -104,14 +107,40 @@ showed a few small hunks, and the two lines sat outside them. Why the two diffs 
 is not known: `git diff` detects renames by default, so a different base (base tip against
 merge base) or a different similarity threshold are both plausible.
 
-- [ ] Reword in place the body bullet "Anchor inline comments inside a diff hunk" in
+- [x] Reword in place the body bullet "Anchor inline comments inside a diff hunk" in
       `writing-pr-reviews`: the hunks are the ones `gh pr diff N` shows, since a local
       `git diff` can disagree on renames. At most one line, inside the budget.
-- [ ] Put the listing in the reference, beside the sentence on hunks that is already
+- [x] Put the listing in the reference, beside the sentence on hunks that is already
       there: `gh pr diff N | awk '/^diff --git/{f=$4} /^@@/{print f" "$0}'`.
-- [ ] Try to reproduce the disagreement on a fixture branch of its own. Only if it
+- [x] Try to reproduce the disagreement on a fixture branch of its own. Only if it
       reproduces, add a scenario asserting no `422` and every anchor inside a
       `gh pr diff` hunk. If it does not, record the cause as open here.
+
+      Done on 2026-10-28, on fixture PR 9 (`rename-head` into `rename-base`, so `main`
+      is untouched), with four files renamed at about 70, 45, 30 and 15 percent
+      similarity. GitHub's threshold is git's: `gh pr diff` and the files API saw only
+      the 70 percent file as a rename, exactly as a local `git diff` did, so the threshold
+      hypothesis is out. The disagreement reproduces another way: `git diff BASE HEAD --
+      <new path>`, and `git show HEAD -- <new path>` alike, show the renamed file as
+      entirely new, one hunk from line 1, because rename detection needs the old path
+      inside the pathspec too. The whole diff and `gh pr diff` both showed one hunk,
+      lines 26 to 40. An anchor on line 5 got `422 Line could not be resolved`, one on
+      line 30 was accepted. That the original run diffed one path at a time is the
+      likely cause, not a verified one.
+
+      No scenario came of it, because no baseline fell for it. A draft scenario 09 put a
+      40-line file on a base branch, renamed it, and added a handler at its end, leaving
+      one hunk, lines 33 to 43, and a docstring above it to anchor wrongly. Opus with the
+      plugin disabled was asked twice, for an opinion on the whole pull request and on
+      `app/routes.py` alone. Both times it read the pull request from GitHub first, whose
+      file list marks the rename, used `gh pr diff` (the second time after `gh pr diff N
+      -- path` refused the path), never diffed one path locally, cited only lines inside
+      the hunk, and posted nothing. A scenario that passes without the skill tests
+      nothing, so the draft was dropped and its fixture branches deleted. The original
+      failure came deep into a guided review, reading code locally one file per step; a
+      `guided-pr-review` scenario with a renamed file is the place to try next, only if
+      the rule ever proves fragile. The run with the skill anchored both findings inside
+      the hunk, using the listing from the reference.
 
 ## 4. Follow up on a review already submitted
 
@@ -123,7 +152,7 @@ review, and its turn shape did not fit. The work was done by hand.
 *Decided.* No new skill: the follow-up writes text that ends up on GitHub, under the same
 rules, by the same role, so it belongs in `writing-pr-reviews`.
 
-- [ ] Descriptions: add follow-up phrasings to `writing-pr-reviews`, in both languages
+- [x] Descriptions: add follow-up phrasings to `writing-pr-reviews`, in both languages
       ("l'autore ha risposto alla mia review", "controlla le risposte e i nuovi commit",
       "follow up on my review of PR #N"), and to `pr-review-walkthrough` an exclusion,
       "Not for following up on a review the requester wrote", on the model of
@@ -133,6 +162,29 @@ rules, by the same role, so it belongs in `writing-pr-reviews`.
       verified on the fixture, never through `pulls/N/comments/ID/replies`, which
       publishes at once. Resolving a thread is the only immediate action, done right
       after an explicit yes to that thread's question; `unresolveReviewThread` undoes it.
+
+      Verified on 2026-10-29, on fixture PR 11 (`followup-probe-head` into
+      `followup-probe-base`, both deleted afterwards), against a submitted review holding
+      one inline thread. A draft made with `addPullRequestReview` took a reply through
+      `addPullRequestReviewThreadReply` with its `pullRequestReviewId`: the reply came back
+      `PENDING`, sat second in the thread with `replyTo` on the original comment, was
+      listed by `pulls/N/reviews/REVIEW_ID/comments` with `in_reply_to_id`, and was absent
+      from `pulls/N/comments`, which shows submitted comments only. `resolveReviewThread`
+      and `unresolveReviewThread` both worked on the requester's own thread while the
+      reply was pending. Two consequences for the items below. A reply cannot travel in
+      the REST payload that creates a draft, whose comments carry no `in_reply_to`, so the
+      draft is created first and each reply added to it by one GraphQL call. And the leak
+      check from item 2 reads `comments(first:1)`, the first comment of each thread only,
+      which a reply never is, so it would miss an orphaned reply; it has to read every
+      comment of every thread.
+
+      The same probe revisited item 2. Deleting a draft orphaned its reply and its
+      comments at once, exactly as on PR 7, but three times out of three, for drafts made
+      by GraphQL and by the REST payload alike, the orphans were gone five seconds later
+      without any cleanup, and stayed gone at two minutes. The PR 7 probe ran its cleanup
+      right after the query, so it never saw that. The run that opened item 2 still found
+      19 orphans an hour after its deletes, so GitHub's own cleanup is not reliable, only
+      usually quick.
 - [ ] Scope: every unresolved thread opened by the requester's own review, replied to or
       not, ordered by file and line, is one turn, and N counts them. A thread with a
       change and no reply gets its turn, since it may be resolvable. Threads with neither

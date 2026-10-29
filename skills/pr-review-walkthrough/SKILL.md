@@ -5,7 +5,8 @@ description: >-
   on a pull request, including phrasings like "fammi il walkthrough dei commenti
   della PR #N", "guarda i commenti della review sulla PR", "rispondi ai commenti
   della PR", "cosa mi hanno chiesto nella review", "walk me through the review on PR
-  82", or "help me address the feedback on this PR".
+  82", or "help me address the feedback on this PR". Not for following up on a
+  review the requester wrote.
 ---
 
 # PR Review Walkthrough

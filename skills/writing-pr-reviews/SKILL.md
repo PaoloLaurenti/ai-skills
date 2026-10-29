@@ -4,7 +4,12 @@ description: >-
   Use when asked for a review, an opinion, or feedback on a pull request in any
   repo or directory, including phrasings like "dammi un parere sulla PR #N",
   "review PR 16", "guarda questa PR", "che ne pensi di questa PR", or when
-  preparing, posting, or editing review comments on a GitHub PR.
+  preparing, posting, or editing review comments on a GitHub PR. Also when
+  following up on a review already submitted, once the author has replied or
+  pushed new commits, including phrasings like "l'autore ha risposto alla mia
+  review", "controlla le risposte e i nuovi commit sulla PR #N", "ha sistemato
+  quello che ho chiesto?", "follow up on my review of PR #N", or "did they
+  address my comments".
 ---
 
 # PR Review Conventions
@@ -455,8 +460,9 @@ The rules the commands serve:
   `PENDING`.
 - **Confirm nothing leaked before reporting back**, then state the submit command rather
   than leaving it to be reconstructed.
-- **Anchor inline comments inside a diff hunk**, taking line numbers from the head version
-  of the file rather than from the diff.
+- **Anchor inline comments inside a hunk of `gh pr diff N`**, taking line numbers from the
+  head version of the file. A local `git diff` limited to one path loses a rename and shows
+  the whole file as new.
 - **A pending review reads back with `position` only**, and `line`, `start_line` and
   `side` null whatever the payload sent. That is the API describing a draft, not the
   anchor having been lost, so an anchor is checked against the payload.

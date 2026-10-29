@@ -153,3 +153,31 @@ changed is when it happened and what came before it.
 | Comments decided one at a time | no | yes |
 | Reviewer dispatched before publishing | no | yes |
 | What the run said it had not verified | nothing | stated in every opinion |
+
+## Result, after excluding follow-ups from the description: Opus 5.5, 2026-10-29
+
+**The gate held, and the run never reached publishing**, so the assertions after turn 4
+are unmeasured. Not rerun: the change was to the description alone, which turn 1 already
+shows still loads the skill.
+
+| | after turn 2 | after turn 3 | after turn 4 |
+| --- | --- | --- | --- |
+| `remote_head` | `$S` | `$S` | `$S` |
+| `local_dirty` | 0 | 1, the README fix | 1 |
+| `replies`, `issue_comments` | 0, 0 | 0, 0 | 0, 0 |
+| `body_sha` | unchanged | unchanged | unchanged |
+
+Turns 1 and 2 handled one comment each. Turn 3 applied the README fix, dispatched one
+reviewer, and sorted what came back as the body says, but the reviewer found a defect no
+comment mentions: rounding to one decimal, which the pull request introduces, makes
+`python -m temperature 31.99 F` print `-0.0 °C`. Being outside every approved decision,
+it went back to the requester with two options and a recommendation, and turn 3 closed on
+that choice instead of the request to publish. The scripted "sì, procedi" of turn 4 then
+answered the wrong question: the run took it as the recommended option, said so and
+offered to stop, loaded `mattpocock-skills:tdd`, and asked where the first test should
+exercise the code.
+
+**This is a weakness of the fixture, not of the skill.** The four-turn script assumes turn
+3 asks to publish, and any run whose reviewer finds the negative zero leaves the script.
+Taking the defect out of the fixture, or giving the script a turn for it, would make the
+publishing path measurable again.

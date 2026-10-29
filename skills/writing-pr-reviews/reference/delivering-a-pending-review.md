@@ -90,7 +90,8 @@ done
 ```
 
 The review leaves `pulls/N/reviews`, but its inline comments stay `PENDING` with no
-review, at once and every time, and the next draft does not pick them up. A `404` on one
+review. GitHub usually removes them within seconds, but not always: a real run found most
+of them still there an hour later. The next draft does not pick them up. A `404` on one
 of them means it is already gone. Only the ids read here are deleted: an orphan from
 anywhere else is reported, never deleted. The loop reads with `while read` because in zsh
 `for id in $ids` does not split on newlines.
@@ -114,15 +115,16 @@ gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | "\(.id) \(.state)"'  # expect 
 gh api repos/OWNER/REPO/pulls/N/comments -q 'length'                   # expect 0
 gh api graphql -f query='query($owner:String!,$name:String!,$n:Int!){
   repository(owner:$owner,name:$name){ pullRequest(number:$n){
-    reviewThreads(first:100){ nodes{ comments(first:1){ nodes{
+    reviewThreads(first:100){ nodes{ comments(first:100){ nodes{
       databaseId state pullRequestReview{ databaseId } } } } } } } }' \
   -f owner=OWNER -f name=REPO -F n=N \
-  -q '.data.repository.pullRequest.reviewThreads.nodes[].comments.nodes[0]
+  -q '.data.repository.pullRequest.reviewThreads.nodes[].comments.nodes[]
       | select(.state=="PENDING" and .pullRequestReview==null) | .databaseId'  # expect nothing
 ```
 
 `pulls/N/comments` returns submitted comments only, so orphans left by a deleted draft
-show up in the last query alone. Any id it prints goes in the reply, as an orphan this run
+show up in the last query alone. It reads every comment of every thread, since an
+orphaned reply is never a thread's first. Any id it prints goes in the reply, as an orphan this run
 did not create.
 
 ## Two things the API reports misleadingly
@@ -132,5 +134,14 @@ Reading a pending review back shows `position` and `original_position` only, wit
 draft, not evidence the anchor was lost. Grade an anchor from the payload rather than from
 the read-back.
 
-Inline comments only attach to lines inside a diff hunk, and line numbers come from the
-head version of the file rather than from the diff.
+Inline comments only attach to lines inside a hunk as GitHub shows it, and line numbers
+come from the head version of the file rather than from the diff. List the hunks per file
+from the pull request itself:
+
+```bash
+gh pr diff N | awk '/^diff --git/{f=$4} /^@@/{print f" "$0}'
+```
+
+A local `git diff BASE HEAD -- path` on a renamed file shows it as entirely new, since
+rename detection needs the old path inside the pathspec too, and an anchor outside
+GitHub's hunks gets `422 Line could not be resolved`.

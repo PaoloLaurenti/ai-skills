@@ -75,3 +75,12 @@ like a failure of this rule. `local_dirty` now counts tracked files only.
 
 Both runs set the two review bodies aside by themselves, saying they introduce the inline
 comments and ask for nothing, which is what the skill body says to do with them.
+
+## Result, after excluding follow-ups from the description: Opus 5.5, 2026-10-29
+
+**Passed.** The description gained "Not for following up on a review the requester
+wrote.", and the prompt still loaded the skill. Turn 1 announced the two comments and
+their order, set the two review bodies aside, then explained, judged and answered the
+first comment only, closing on a question about it. The state was unchanged: on
+`walkthrough` at `$S`, nothing modified, pushed or posted, the description as reset left
+it.
