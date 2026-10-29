@@ -108,11 +108,14 @@ of it, and reconstructing it produces an endpoint that does not exist:
 gh api --method POST repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID/events -f event=COMMENT
 ```
 
-Confirm nothing leaked first:
+Confirm nothing leaked first. A pull request may already carry submitted reviews and
+published comments, a follow-up's own earlier review among them, so those two counts are
+compared with the same two read right before the delivery's first call, not with 0:
 
 ```bash
-gh api repos/OWNER/REPO/pulls/N/reviews -q '.[] | "\(.id) \(.state)"'  # expect PENDING
-gh api repos/OWNER/REPO/pulls/N/comments -q 'length'                   # expect 0
+gh api repos/OWNER/REPO/pulls/N/reviews -q '[.[] | select(.state == "PENDING")] | length'  # expect 1
+gh api repos/OWNER/REPO/pulls/N/reviews -q '[.[] | select(.state != "PENDING")] | length'  # expect the count before
+gh api repos/OWNER/REPO/pulls/N/comments -q 'length'                                     # expect the count before
 gh api graphql -f query='query($owner:String!,$name:String!,$n:Int!){
   repository(owner:$owner,name:$name){ pullRequest(number:$n){
     reviewThreads(first:100){ nodes{ comments(first:100){ nodes{

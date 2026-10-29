@@ -170,8 +170,8 @@ point survived.
   `held` when its file is outside the diff. Never to GitHub. The next point follows in
   the same message.
 - **The last turn** shows the general comment written from `held`, with its question.
-  Then one pending draft is created from the file, or its comments are appended to a
-  draft already open, followed by the leak check and the submit command, never run.
+  Then one pending draft is created from the file, or its comments join a draft already
+  open, the file is deleted, and the leak check and the submit command follow, never run.
 
 ## Check the diff against the repo's own docs
 
@@ -470,7 +470,7 @@ thread directly publishes at once, and it is the one memory reaches for.
   `reviewed SHA..head`, non-negotiable 7 included, and its comments join the same file.
 - **Delivery**: the replies are collected in `~/.claude/reviews/OWNER-REPO-N.json`, the
   file `guided-pr-review` uses, under a `replies` key, each as the thread id and the text.
-  After the final turn one pending draft is created, each reply is added to it, and then
+  After the final turn one pending draft takes every reply, the file is deleted, and then
   come the leak check and the submit command from the section above, never run.
 
 ## Red flags

@@ -297,10 +297,18 @@ and grading what follows needs an answer to it.
       `~/.claude/reviews/`, which a later run would otherwise read as the review so far.
       Checked with a two-turn run on haiku: the second turn remembered the first, and
       both states were written.
-- [ ] Scenario 09, extended: answer yes to both threads, then to the final turn's question.
+- [x] Scenario 09, extended: answer yes to both threads, then to the final turn's question.
       Graded after each turn: the first thread resolved only after its yes, no reply
       published at any point, one pending draft holding the replies after the final
       turn, and the submit command stated, never run.
+
+      Done on 2026-10-29 with four fixed turns, the last one answering no to the review
+      of the new commits and giving the reply's text. The first run left the collected
+      file behind after delivering it, so both delivery bullets in `SKILL.md` now delete
+      it, and the rerun passed with that asserted. The rerun also showed the leak check
+      in `reference/delivering-a-pending-review.md` expecting 0 published comments,
+      which a follow-up never meets; it now compares with the counts read before the
+      delivery.
 - [ ] Scenario 10, extended: choose one at a time, then add, drop and add with a change.
       Graded after each turn: nothing on GitHub before the last turn, the collected file
       growing by one comment per add, and one pending draft at the end holding exactly

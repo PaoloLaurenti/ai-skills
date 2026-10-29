@@ -66,14 +66,60 @@ skill loads for the way this is actually asked.
   outcome, accepted, proposes resolving, and ends on one question about that.
 - The every-run assertions in `README.md` grade a review, and this turn writes none. E3
   to E5 apply to any reply text the turn proposes. E10 does not apply: the reviewer is
-  dispatched only when the final turn's yes asks for a review of the new commits.
+  dispatched only when the final turn's yes asks for a review of the new commits, and the
+  conversation below answers no.
 
-## What this does not grade
+## The rest of the conversation
 
-The final turn, the reply delivered into a pending draft, and the review of the new
-commits. `run.sh` takes a single prompt, and reaching them takes a conversation of one
-turn per thread plus the final one. Grading them needs `run.sh` to continue a session the
-way `pr-review-walkthrough`'s does, which is worth building once the first turn holds.
+The same seed, then four turns with fixed answers, so the run reaches the final turn and
+the delivery of a reply:
+
+```bash
+evals/writing-pr-reviews/fixture/reset.sh
+evals/writing-pr-reviews/fixture/seed-submitted-review.sh
+EVAL_SKIP_RESET=1 evals/writing-pr-reviews/run.sh opus "<the prompt above>" \
+    "sì" \
+    "sì" \
+    'no, niente review dei nuovi commit. Sul thread dei due decimali aggiungi questa risposta: "Still worth formatting the total with two decimals." Poi crea il draft.'
+```
+
+Turn 1 is graded as above, from `run.turn1.txt`. Each assertion below reads the state the
+turn left, `run.turn<N>.state`, and the reply it gave, `run.turn<N>.txt`. Set `s` to the
+state file of the turn being graded, and read a key with `awk '$1 == "<key>" {print $2}' "$s"`.
+
+- **M** After turn 2: `resolved_threads 1`, `pending_reviews 0`, `published_comments` and
+  `submitted_reviews` as the seed printed. The yes resolved the line 8 thread at once and
+  nothing else.
+- **M** After turn 2, the line 14 thread follows in the same message:
+  `grep -cE '2 (of|di) 2' run.turn2.txt` is at least `1`.
+- **M** After turn 3: `resolved_threads 2`, `pending_reviews 0`, the two seed counts
+  unchanged.
+- **E** Turn 3 is the final turn: it names the line 18 thread as untouched and
+  `app/currency.py` as changed by no thread, and asks whether to review the new commits.
+- **M** After turn 4: `pending_reviews 1`, `pending_comments 1`, `resolved_threads 2`, and
+  the two seed counts unchanged. One draft holds the reply, and nothing was published or
+  submitted.
+- **M** The pending reply answers the line 18 thread:
+  ```bash
+  id=$(gh api "repos/$R/pulls/$N/reviews" -q '.[] | select(.state == "PENDING") | .id')
+  gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[].in_reply_to_id'
+  ```
+  equals
+  `gh api "repos/$R/pulls/$N/comments" -q '.[] | select(.body | startswith("Worth formatting the total")) | .id'`.
+- **M** Turn 4 states the submit command: `grep -c '/events' run.turn4.txt` is at least
+  `1`.
+- **M** The collected file is gone once the draft holds the reply: after turn 4
+  `collected_replies` is `-`. A file left behind is, to the next session on this pull
+  request, a reply still to deliver.
+
+**A run that leaves the script is inconclusive, not failed**, when the states show nothing
+published or resolved early. A confirmation asked for the reply text at turn 4 is the
+likely one: the draft is then missing because the run is waiting, not because it erred.
+
+The reply's text comes from the prompt, in English and impersonal already, so the style
+rules are not what this conversation tests. "No" to reviewing the new commits keeps a
+second reviewer and a whole review of `app/currency.py` out of a scenario about the
+follow-up; scenarios 01 to 08 cover that review.
 
 ## Failure modes worth naming
 
@@ -131,3 +177,39 @@ opens on one paragraph saying how many threads have a reply or a change and that
 untouched one comes at the end, then gives the line 8 thread in the same shape as the
 first run: the comment and the reply quoted, a permalink at the head SHA, "Esito:
 accettato", resolving proposed with no reply, and "Risolvo il thread 1?".
+
+## Result, the four-turn conversation: Opus 5.5, 2026-10-29
+
+**The first run passed every mechanical assertion it was graded on, and left the
+collected file behind.** Each turn followed the script, and the states read:
+
+| after turn | `resolved_threads` | `pending_reviews` | `pending_comments` | submitted / published |
+| --- | --- | --- | --- | --- |
+| 1 | 0 | 0 | - | 2 / 4 |
+| 2 | 1 | 0 | - | 2 / 4 |
+| 3 | 2 | 0 | - | 2 / 4 |
+| 4 | 2 | 1 | 1 | 2 / 4 |
+
+Turn 2 resolved the line 8 thread and gave "Thread 2 di 2", the line 14 thread, with the
+commit message standing in for the missing reply. Turn 3 resolved it and gave the final
+turn: the line 18 thread untouched, the description no longer mentioning the currency,
+`app/currency.py` changed by no thread and used by no file, and the question whether to
+review the new commits. Turn 4 created the draft holding the one reply, with
+`in_reply_to_id` on the line 18 comment, and stated the submit command.
+
+`~/.claude/reviews/<owner>-ai-skills-eval-fixture-13.json` was still there afterwards,
+holding a reply already delivered, which a later session on the pull request reads as the
+review so far. Neither the follow-up's delivery nor the last turn of the one-at-a-time walk
+said to delete it, while `guided-pr-review` does. Both now do, and `collected_replies` at
+`-` after turn 4 is the assertion added for it.
+
+**The rerun passed every assertion, the new one included.** The same states after each
+turn, `collected_replies` at `-` after turn 4, and the reply saying the file was deleted.
+
+Two more things from the two runs. Both closed turn 4 on whether the requester would
+submit the draft or have it submitted; that reads as an offer rather than the closing move
+scenario 01 rules out, and is accepted here. And the rerun's leak check reported 4
+published comments "instead of the 0 the guide expects": the delivery reference compared
+with 0, which never holds on a pull request already carrying a submitted review. It now
+compares the submitted reviews and the published comments with the counts read right
+before the delivery.
