@@ -6,7 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open, and it is blocked on Anthropic rather than on this repo.
+Two things are open. The first is blocked on Anthropic rather than on this repo; the
+second, grading `writing-pr-reviews` past its first turn, is decided and ready to build.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -275,6 +276,27 @@ shape for that turn, so the same prompt produced two behaviours.
 
       Done on 2026-10-29: 10 first, then 01 to 08 on their new prompts, then 09. Every
       one passed, 08 graded by eye as its file allows, and each records the run.
+
+## 6. Grade the turns after the first in writing-pr-reviews
+
+`run.sh` takes a single prompt, so two rules have never been exercised past their first
+turn: the follow-up's final turn and its replies delivered into a pending draft (scenario
+09), and the one-at-a-time walk once it is chosen (scenario 10). Both stop on a question,
+and grading what follows needs an answer to it.
+
+- [ ] Give `run.sh` the shape `pr-review-walkthrough`'s has: `run.sh <model> <prompt>
+      [<next prompt>...]`, the first turn starting the session and each later one
+      continuing it with `--continue` from the same clone, and the fixture's state
+      written after every turn, since the state after the last turn says nothing about
+      what an earlier one did. A single prompt keeps working as today.
+- [ ] Scenario 09, extended: answer yes to both threads, then to the final turn's question.
+      Graded after each turn: the first thread resolved only after its yes, no reply
+      published at any point, one pending draft holding the replies after the final
+      turn, and the submit command stated, never run.
+- [ ] Scenario 10, extended: choose one at a time, then add, drop and add with a change.
+      Graded after each turn: nothing on GitHub before the last turn, the collected file
+      growing by one comment per add, and one pending draft at the end holding exactly
+      the comments added.
 
 ## Completed
 
