@@ -6,8 +6,7 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open. The first is blocked on Anthropic rather than on this repo; the
-second, grading `writing-pr-reviews` past its first turn, is decided and ready to build.
+One thing is open, and it is blocked on Anthropic rather than on this repo.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -309,10 +308,16 @@ and grading what follows needs an answer to it.
       in `reference/delivering-a-pending-review.md` expecting 0 published comments,
       which a follow-up never meets; it now compares with the counts read before the
       delivery.
-- [ ] Scenario 10, extended: choose one at a time, then add, drop and add with a change.
+- [x] Scenario 10, extended: choose one at a time, then add, drop and add with a change.
       Graded after each turn: nothing on GitHub before the last turn, the collected file
       growing by one comment per add, and one pending draft at the end holding exactly
       the comments added.
+
+      Done on 2026-10-29 with five fixed turns: one at a time, drop, add without the last
+      sentence, add. The draft is graded at the turn it appears, since the reviewer's
+      points vary between two and three on this branch. The run kept three and passed;
+      the two-point branch, where the fifth turn must change nothing, is still
+      unexercised.
 
 ## Completed
 
