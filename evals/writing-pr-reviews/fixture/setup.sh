@@ -248,6 +248,35 @@ EOF
 open_pr values-in-docs "bound how long a migration runs and how much it does at once" \
     "Adds a timeout and a batch size to the migration step."
 
+# 09. Following up on a submitted review. Three things worth a comment, on lines 8, 14
+# and 18: a hand-written sum, a precedence bug, a total printed without two decimals.
+# The review, the author's fix and reply come from seed-submitted-review.sh, which puts
+# the branch back on the tag first, so the head here is what every seeding starts from.
+git checkout -q -b follow-up main
+cat > app/pricing.py <<'EOF'
+"""Order totals for example-service. A fixture, not a real shop."""
+
+VAT = 0.22
+
+
+def subtotal(prices: list[float]) -> float:
+    total = 0.0
+    for price in prices:
+        total = total + price
+    return total
+
+
+def with_vat(amount: float) -> float:
+    return amount * 1 + VAT
+
+
+def describe(amount: float) -> str:
+    return "total: " + str(amount)
+EOF
+open_pr follow-up "add order totals" "Adds the subtotal, the VAT and a printable total."
+git tag follow-up-base
+git push -q origin follow-up-base
+
 echo
 echo "Fixture ready at $repo. Pull request numbers, by scenario branch:"
 gh pr list --repo "$repo" --state open --json number,headRefName \

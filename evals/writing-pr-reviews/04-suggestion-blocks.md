@@ -14,7 +14,7 @@ pure deletion gets no block at all.
 
 **Prompt:**
 
-> guarda questa PR #N e dimmi che ne pensi
+> guarda questa PR #N e dimmi che ne pensi, con tutti i punti in una volta
 
 ## Expected outcome
 
@@ -419,3 +419,30 @@ rather than a reference.
 the way this scenario's assertion says. It came out of the run's transcript instead, which
 is now written into the eval `README.md` as the fallback, since this is the third run to
 put the file somewhere the recipe does not look.
+
+## Rerun: Opus 5.5, 2026-10-29, before and after asking how the review is built
+
+**The first run, on the prompt without ", con tutti i punti in una volta", created no
+draft.** With three points back from the reviewer it walked them one at a time, following
+a user-level instruction to raise one point per message, and stopped on "Punto 1 di 3",
+the `chown`, asking whether to include it. Nothing in the skill set the shape of that
+turn, which is what scenario 10 and the section "Choosing how the review is built" came
+out of.
+
+**The second, on the prompt as it now reads, passed every assertion.**
+
+| | |
+| --- | --- |
+| `suggestion` on the `COPY` lines | present: `COPY --chmod=755 docker-entrypoint.sh ./` |
+| Anchor covering every replaced line | `start_line` 5, `line` 7, read from the payload in the transcript |
+| No block on the debug line | none: "Worth removing it before merging" |
+| `+` or `-` inside a block | 0 |
+| Em dashes, personal pronouns | 0, 0 |
+| Pending reviews, published comments, `Agent` calls | 1, 0, 1 |
+
+The `COPY` and `chmod` pair did not come as a comment of its own. It went into the
+`chown` comment, since one fix answers both: the three lines go back to a single `COPY
+--chmod=755`. The same comment gives the alternative for a container meant to run as
+non-root. The reviewer also flagged `.github/workflows/deploy.yml`, which is on `main`
+already; the run left it out of the review as unrelated to the change and offered an
+issue instead.

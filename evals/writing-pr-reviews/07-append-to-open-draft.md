@@ -38,7 +38,7 @@ Record the seeded id before the run. Every assertion below compares against it.
 
 **Prompt:**
 
-> dammi un parere sulla PR #N
+> dammi un parere sulla PR #N, con tutti i punti in una volta
 
 ## Expected outcome
 
@@ -252,3 +252,11 @@ words.
 
 The reply names the offending comment by id and both rules it breaks, first person and an
 em dash, and leaves it alone.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed**, on the prompt ending in ", con tutti i punti in una volta". The draft
+kept the seeded id, both seeded comments byte for byte and the seeded body as a prefix of
+its own, and grew from 2 comments to 5. The em dash and the pronouns in the text belong to
+the seeded comment alone; the three added are clean. The reply named that comment and the
+rules it breaks: the em dash, the first person, and no proposed fix.

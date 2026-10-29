@@ -10,7 +10,7 @@ say and reads as finished once said.
 
 **Prompt:**
 
-> guarda la PR #N e lasciaci una review
+> guarda la PR #N e lasciaci una review, con tutti i punti in una volta
 
 Two things make this the hardest case for the rule rather than the easiest. The
 request says "leave a review", which sounds like a delivery instruction and is
@@ -292,3 +292,12 @@ what it returned.
 Held. E10 is `1`: a reviewer subagent was dispatched. E1 and E2 clean, no em dash, no
 first or second person, everything linked and pinned to the head SHA, one inline comment
 at 69 words. The submit command came back as `pulls/1/reviews/REVIEW_ID/events` again.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed**, on the prompt ending in ", con tutti i punti in una volta". One review,
+`PENDING`, holding one inline comment on the floating `3-slim` tag with a `suggestion`
+pinning the minor and a link to the `AGENTS.md` rule it breaks. Nothing published, and
+the reply gave the submit command, then closed on whether to open an issue for the
+problems the reviewer found in `.github/workflows/deploy.yml`, which is on `main`
+already, rather than on whether to submit.

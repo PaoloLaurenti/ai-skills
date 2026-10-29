@@ -6,10 +6,7 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Four things are open. The first is blocked on Anthropic rather than on this repo; the
-other three come out of a guided review run on another repository, were decided in a
-grilling session afterwards, and are ready to apply. Nothing here is waiting on a
-decision.
+One thing is open, and it is blocked on Anthropic rather than on this repo.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -157,7 +154,7 @@ rules, by the same role, so it belongs in `writing-pr-reviews`.
       "follow up on my review of PR #N"), and to `pr-review-walkthrough` an exclusion,
       "Not for following up on a review the requester wrote", on the model of
       `guided-pr-review`.
-- [ ] Non-negotiable 1 extended to the follow-up explicitly. Replies go into a pending
+- [x] Non-negotiable 1 extended to the follow-up explicitly. Replies go into a pending
       draft through `addPullRequestReviewThreadReply` with a `pullRequestReviewId`, to be
       verified on the fixture, never through `pulls/N/comments/ID/replies`, which
       publishes at once. Resolving a thread is the only immediate action, done right
@@ -185,38 +182,99 @@ rules, by the same role, so it belongs in `writing-pr-reviews`.
       right after the query, so it never saw that. The run that opened item 2 still found
       19 orphans an hour after its deletes, so GitHub's own cleanup is not reliable, only
       usually quick.
-- [ ] Scope: every unresolved thread opened by the requester's own review, replied to or
+- [x] Scope: every unresolved thread opened by the requester's own review, replied to or
       not, ordered by file and line, is one turn, and N counts them. A thread with a
       change and no reply gets its turn, since it may be resolvable. Threads with neither
       a reply nor a change stay out of N.
-- [ ] Turn shape, one thread per turn, opening with "Thread n of N": the original comment
+- [x] Turn shape, one thread per turn, opening with "Thread n of N": the original comment
       and the reply quoted; what changed on the thread's lines at the new head, with a
       head-SHA permalink; one outcome among accepted, partly accepted, not accepted or
       unchanged, with what was checked; the proposed action, resolve, reply with its text,
       or leave open; one question on that action. The total changing more than once is a
       red flag, as in `guided-pr-review`.
-- [ ] Final turn: the threads with neither reply nor change, whether the pull request
+- [x] Final turn: the threads with neither reply nor change, whether the pull request
       description still matches the head, and the commits or files changed since the
       reviewed SHA that touch no thread, with the question whether to review them. A yes
       means a normal review of `reviewed SHA..head`, non-negotiable 7 included.
-- [ ] Replies collected in the same local file `guided-pr-review` uses, in the same
+- [x] Replies collected in the same local file `guided-pr-review` uses, in the same
       payload shape, and turned into one pending draft after the last turn, then the leak
       check and the submit command stated, never run.
-- [ ] Commands in a new `reference/following-up-a-review.md`, linked from the section by
+
+      Changed on the way, after the probe on PR 11: the file is the same and so are
+      `commit_id`, `body` and `comments`, but replies sit under a `replies` key as a
+      thread id and a text, since the REST payload cannot carry them. Delivery is the
+      `POST` without that key, then one GraphQL reply per entry.
+- [x] Commands in a new `reference/following-up-a-review.md`, linked from the section by
       an instruction with its reason: the reviewed SHA from the submitted review's
       `commit_id`, the threads query rewritten for the reviewer's role rather than copied
       from `pr-review-walkthrough`, `resolveReviewThread`, the pending reply. A file read
       at a pinned SHA is written `git show "${SHA}:path"`, with half a line on why: in
       zsh `$SHA:a` expands as a path modifier.
-- [ ] Body budget: write the section first, measure the overflow, then move out in this
+
+      Every command in it ran in zsh on 2026-10-29 against fixture PR 12 (a submitted
+      review with two threads, a commit fixing one, a reply on it; closed and its branches
+      deleted afterwards): the reviewed SHA, the threads query returning both with the
+      fixed one `isOutdated`, a draft created from an empty body and no comments, both
+      replies landing `PENDING` in their threads with newlines intact, resolve and
+      unresolve. It links no other reference file, so the delivery checks are named
+      rather than linked.
+- [x] Body budget: write the section first, measure the overflow, then move out in this
       order: the "Claim about / Where the answer actually is" table to a reference of its
       own, the `find` command for the docs, and only then prose that repeats the
       delivery reference. The `suggestion` example stays, being the model of the shape.
-- [ ] A new scenario with a `seed-submitted-review.sh`: a submitted review with three
+
+      Done on 2026-10-29. With the follow-up written the body stood at 540. The table
+      and the `find` went to `reference/reading-the-repo.md`, linked from both sections.
+      The rest came from repetition inside the body rather than of the reference: the
+      section "Where each finding goes", restated by "What the general comment contains"
+      and a red flag; a second telling of "The approach is sound"; the bullets on
+      delete-and-recreate and on a draft reading back with `position` only, restating
+      non-negotiable 2 and the delivery reference; and four closing or overlapping
+      paragraphs compressed. The body is now exactly 500, the limit, so the next rule
+      added to it costs another move first.
+- [x] A new scenario with a `seed-submitted-review.sh`: a submitted review with three
       threads (reply and change, change and no reply, neither), a commit fixing the
       first two, and a changed file no thread touches. After the first turn: no thread
       resolved, no comment published, no non-pending review, and "1" of a total of 2 in
       the text. The final turn graded separately.
+
+      Done on 2026-10-29 as scenario 09, with its baseline and result recorded there.
+      The count assertion now accepts "di" as well as "of", since the turn follows the
+      prompt's language.
+
+## 5. Ask how a review is built
+
+The 2026-10-29 rerun of scenario 04 created no draft. With three findings it walked
+them one at a time, following a user-level instruction to raise one point per message,
+while the seven other runs with the skill created the draft at once. The skill set no
+shape for that turn, so the same prompt produced two behaviours.
+
+- [x] Decided: once the findings are filtered, the skill asks whether to create the
+      draft now or go through the points one at a time, naming how many there are and
+      the weightiest. The question is skipped when the request already says which, or
+      when a single point survived. One at a time reuses `guided-pr-review`'s collected
+      review and last step, so a session left halfway is picked up by either skill.
+
+      Done on 2026-10-29 as the section "Choosing how the review is built" plus one red
+      flag, 23 lines. The same 23 came out of passages repeating a rule stated
+      elsewhere in the body: the paragraph on a comment justifying itself, the one on
+      when a suggestion earns its place, the one on what the opening sentence is not,
+      four pairs of red flags, a sentence restating non-negotiable 7, and two shortened
+      paragraphs. The body is back at 500.
+- [x] Scenarios 01 to 08 run on a single prompt, so the question would stop every run
+      before a draft exists. Their prompts need to name the approach.
+
+      Done on 2026-10-29: each ends on ", con tutti i punti in una volta", a phrase that
+      names neither the draft nor pending, so scenario 01 still grades a pending state
+      nobody asked for. The scenarios `README.md` says so.
+- [x] A scenario for the question itself: a prompt naming no approach on a branch with
+      several findings, expecting the question with the count and no draft created.
+
+      Done on 2026-10-29 as scenario 10, on scenario 04's branch and original prompt.
+- [x] Rerun the scenarios after the edit, as `AGENTS.md` asks.
+
+      Done on 2026-10-29: 10 first, then 01 to 08 on their new prompts, then 09. Every
+      one passed, 08 graded by eye as its file allows, and each records the run.
 
 ## Completed
 

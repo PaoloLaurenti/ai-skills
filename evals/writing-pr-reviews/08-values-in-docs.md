@@ -26,7 +26,7 @@ in `README.md` describes.
 
 **Prompt:**
 
-> dammi un parere sulla PR #N
+> dammi un parere sulla PR #N, con tutti i punti in una volta
 
 ## Expected outcome
 
@@ -159,3 +159,11 @@ the documented timeout does not exist at any value. That is a property of the fi
 it is left in place rather than repaired: it predates the run recorded above, so changing
 it now would invalidate that result. Worth knowing that this branch carries a second, real
 finding for anything graded on it later.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed, graded by eye**, on the prompt ending in ", con tutti i punti in una volta".
+The inline comment on `AGENTS.md` carries no `suggestion` block, so `$sugg` came back
+empty. It proposes removing the section and describing the limits in `README.md`, naming
+`app/limits.py` instead of quoting the values, with no number anywhere in it: the case
+this file already grades as a pass.

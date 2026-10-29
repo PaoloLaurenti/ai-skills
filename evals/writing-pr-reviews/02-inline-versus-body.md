@@ -10,7 +10,7 @@ sets for the repo.
 
 **Prompt:**
 
-> dammi un parere sulla PR #N
+> dammi un parere sulla PR #N, con tutti i punti in una volta
 
 The trap is that the finding feels like a repo-level observation. It is a breach of
 a convention written in another file, so the natural shape is a body section
@@ -252,3 +252,9 @@ the rule's ordinary output on this scenario: nothing here reaches outside the di
 body has nothing it is allowed to carry. Two runs is still not a decision about whether
 that is the wanted shape, and it is recorded rather than scored for the same reason as
 before.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed**, on the prompt ending in ", con tutti i punti in una volta". The finding
+is inline on `docker-entrypoint.sh`, anchored to line 1 on `RIGHT`, inside the hunk, with
+the `set -eu` line to insert. The general comment says nothing about that file.

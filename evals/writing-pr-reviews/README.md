@@ -76,6 +76,10 @@ evals/writing-pr-reviews/fixture/seed-open-draft.sh
 EVAL_SKIP_RESET=1 evals/writing-pr-reviews/run.sh opus "dammi un parere sulla PR #7"
 ```
 
+Scenario 09 needs the same inversion for another reason: it starts from a submitted review
+with published threads, which `reset.sh` deletes. `fixture/seed-submitted-review.sh` puts
+them back after the reset, and its file gives the three commands.
+
 Setting `EVAL_SKIP_RESET` anywhere else reintroduces exactly the failure the reset step
 exists to prevent. The second inversion is in grading, and it is described with the
 every-run assertions below.
@@ -92,6 +96,12 @@ number=$(gh pr list --repo "$EVAL_FIXTURE_REPO" --head docs-cross-check --json n
 Each scenario file carries its prompt verbatim. The prompt is written the way the
 thing is actually asked for, which is also what the skill's `description` is
 matched against, so a scenario doubles as a check that the skill loads at all.
+
+Scenarios 01 to 08 end their prompt on ", con tutti i punti in una volta". Without it
+the skill asks whether to create the draft at once or walk the points one at a time, and
+a single-prompt run stops at that question. The phrase names neither the draft nor
+pending, since scenario 01 grades the pending state nobody asked for. Results recorded
+before 2026-10-29 ran on the prompt without it.
 
 Two scripts do this, and they are the shortest path to a run:
 

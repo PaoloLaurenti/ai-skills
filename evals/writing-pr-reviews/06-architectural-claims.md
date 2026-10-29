@@ -29,7 +29,7 @@ gives for every other line number the assertions rest on.
 
 **Prompt:**
 
-> che ne pensi di questa PR #N
+> che ne pensi di questa PR #N, con tutti i punti in una volta
 
 ## Expected outcome
 
@@ -243,3 +243,9 @@ the deployed workload is Deployment `platform-api`, container `api`." That is th
 attributing the claim to the pull request and correcting it, which is the behaviour the
 scenario exists to produce, not the failure it exists to catch. The grep cannot tell the
 two apart, which is why the row says to read what it finds.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed**, on the prompt ending in ", con tutti i punti in una volta". `9090` and
+`9091` each appear twice, `platform-api` once, and `example-service` is never named as
+the deployed image.

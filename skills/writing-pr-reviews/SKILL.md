@@ -26,7 +26,11 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
    then state the command to submit. The only thing that changes this is an
    explicit request to submit or publish the review; a request to write, prepare,
    add, or leave a review is not that, and neither is a review that reads as
-   ready to go.
+   ready to go. A follow-up on a review already submitted holds to the same rule:
+   each reply to one of its threads goes into a pending draft, never through the
+   endpoint that answers a comment directly, which publishes at once. Resolving a
+   thread is the one change made on GitHub straight away, and only after an
+   explicit yes to that thread's question.
 2. **Never delete or rewrite a draft this run did not create.** A pending review
    already open on the pull request is appended to, never replaced. A comment
    already in it that breaks these conventions stays exactly as written: leave it
@@ -67,9 +71,8 @@ being handed down.
 - Drop blunt superlatives and flat verdicts. "The worst is", "nobody wrote this
   down" and "crash loop with no way in" all say it more coldly than needed.
 
-Warmth never costs precision: the file, the line, and the concrete fix stay
-exactly as sharp as they were. It never becomes padding either. Cordiality comes
-from word choice, not from added praise or hedging, and the brevity rule holds.
+Warmth never costs precision or adds padding: it comes from word choice, not from
+added praise or hedging.
 
 ## One point per comment
 
@@ -88,14 +91,8 @@ comment needs:
 
 Everything past those three is context the reader did not ask for. Cut the
 reasoning that led to the finding, the alternatives considered and rejected, and
-the second and third implications of the change.
-
-**A comment does not have to justify itself.** The bar is that the suggestion is
-understandable and worth acting on, never that the reader can reconstruct how it
-was arrived at. Give a reason only where the suggestion would otherwise be
-puzzling, and give it in one sentence. The reasoning itself still gets done, and
-Every observation carries a proposal still asks for the fix to be traced against
-the mechanism; what stays out of the comment is the working, not the work.
+the second and third implications of the change. The reasoning still gets done;
+what stays out of the comment is the working, not the work.
 
 - **One comment makes one point.** A comment carrying two findings is two
   comments, each on the line it belongs to.
@@ -111,9 +108,6 @@ the mechanism; what stays out of the comment is the working, not the work.
 carries several, so a total word count would only force one of them out. Each
 finding in it gets the same 80 words and the same three parts as an inline
 comment, and the prose introducing the sections stays to a sentence or two.
-
-The shortest form that a reader can act on wins, every time. A comment nobody
-finishes reading has failed, however right it is.
 
 ## Pragmatic and concrete
 
@@ -132,8 +126,7 @@ code, in words the reader can act on without translating them first.
 ## Where the findings come from
 
 A reviewer subagent, dispatched through `superpowers:requesting-code-review` before
-any comment is written. Reading that skill is not doing it: the dispatch is what the
-rule asks for, and what comes back is raw material rather than the review itself.
+any comment is written. What comes back is raw material, not the review itself.
 
 Fill its template from the pull request: `BASE_SHA` is the merge base with the
 base branch, `HEAD_SHA` the head SHA of the pull request, `DESCRIPTION` what the
@@ -158,20 +151,38 @@ That subagent was handed the change rather than the repository around it, so the
 two sections below stay this review's own work, and every claim it makes about how
 the system fits together is verified here rather than trusted.
 
+## Choosing how the review is built
+
+Once the subagent's findings are filtered, ask the requester how to build the review,
+naming how many points survived and the weightiest of them: create the pending draft now
+with all of them, or go through them one at a time before it is created. Skip the
+question, and create the draft, when the request already says which or when a single
+point survived.
+
+- **One at a time**: one point per turn, in this order, and nothing about any other:
+  1. `Point n of N`, with the file and the line linked at the head SHA.
+  2. The comment exactly as the draft would carry it, in a fenced block, its `suggestion`
+     included.
+  3. Why it matters and an opinion, in two or three lines in the conversation's language.
+  4. One question: add, add with a change, or drop.
+- **After an answer**, the comment goes into the collected review `guided-pr-review`
+  keeps in `~/.claude/reviews/OWNER-REPO-N.json`, in its shape: under `comments`, or under
+  `held` when its file is outside the diff. Never to GitHub. The next point follows in
+  the same message.
+- **The last turn** shows the general comment written from `held`, with its question.
+  Then one pending draft is created from the file, or its comments are appended to a
+  draft already open, followed by the leak check and the submit command, never run.
+
 ## Check the diff against the repo's own docs
 
 Every review checks whether the change still agrees with the documentation the
 repo keeps about itself. This is mandatory and easy to skip, because these files
 usually sit outside the diff and nothing in the diff points at them.
 
-Find them first, at any depth, and read the parts the change touches:
-
-```bash
-find . \( -name 'README.md' -o -name 'AGENTS.md' -o -name 'CLAUDE.md' \) -not -path '*/node_modules/*'
-```
-
-Root and per-package `README.md`, plus `AGENTS.md` and `CLAUDE.md` wherever they sit,
-read at the PR head SHA rather than the working tree, so the comparison matches the PR.
+Find them at any depth with the command in
+[reference/reading-the-repo.md](reference/reading-the-repo.md), which also catches the
+per-package ones nothing points at, and read the parts the change touches at the PR
+head SHA rather than the working tree, so the comparison matches the PR.
 
 Look in both directions:
 
@@ -223,24 +234,10 @@ name lives in the deploy workflow and the ECR repository, and the image may be o
 per project rather than one per service. Such a claim passes every mechanical
 check on the review, so only reading the source catches it.
 
-| Claim about | Where the answer actually is |
-|---|---|
-| Container or image identity and naming | Dockerfile stages, deploy workflow inputs, ECR repository |
-| What a deployed unit runs | `ENTRYPOINT` and `CMD`, not the crate names |
-| Local versus deployed topology | compose file for local, deploy workflow for real |
-| Infra settings, credentials, roles | the infra repo, not this one |
-| Dependency behaviour | upstream source at the pinned version |
-
-When the answer lives somewhere this repo cannot see, write the finding as
-something to verify and name where to look, rather than stating it as fact.
-
-## Where each finding goes
-
-Anchored inline to its line whenever the file appears in the diff. Only what
-cannot be anchored goes in the general comment.
-
-Before writing a body bullet, check whether its file is in the diff. If it is,
-the finding belongs inline.
+[reference/reading-the-repo.md](reference/reading-the-repo.md) lists where each kind of
+claim is actually answered: open it before stating one, since the obvious place is
+usually the wrong one. When the answer lives somewhere this repo cannot see, write the
+finding as something to verify and name where to look, rather than stating it as fact.
 
 ## Every observation carries a proposal
 
@@ -283,31 +280,22 @@ This holds for inline comments exactly as much as for body sections. Verifying
 something and discovering it is already fine is good work, but the result is a
 message to the author, not a review comment. Either it converts into a real ask,
 most often "worth writing this down" folded into a documentation finding, or it
-comes out. Say it in the reply instead.
-
-A comment opening with "nothing to change here", or explaining a mechanism without
-ever asking for anything, does not belong. Where the explanation is worth having,
-attach it to the comment that does carry an ask, as the reason behind it.
+comes out. Say it in the reply instead, or, where the explanation is worth having,
+attach it as the reason behind a comment that does ask for something.
 
 **Quantify a nit before raising it, and drop it when the number is small.** Work out
 what the change actually buys: bytes saved, milliseconds, one layer. If the honest
 answer is "383 bytes and one layer in a hundred-megabyte image", it does not earn a
 comment, however correct it is. Attention spent there is lost to what matters.
 
-Similarly, a comment is not needed for something the code already documents. If a
-comment two lines above the finding already explains the mechanism, a review
-comment restating it, or proposing a `TODO` that adds only a wish, is noise. That
-belongs in an issue if it belongs anywhere.
+Nor does something the code already documents: a review comment restating a code
+comment two lines above, or proposing a `TODO` that adds only a wish, is noise.
 
 ## Code suggestions
 
 Whenever the fix is a concrete edit to lines that sit in the diff, write it as a
 committable suggestion instead of describing it in prose. Always reach for one
 where it makes sense.
-
-A suggestion earns its place when there is replacement text worth handing over
-verbatim, so the author neither retypes it nor guesses at it. Where there is no
-such text, prose is the better tool.
 
 ````markdown
 ```suggestion
@@ -340,10 +328,8 @@ not changing at all, and stops trusting the suggestion.
 - No `+` or `-` diff markers inside the block.
 - Prose may sit above or below the block. Keep the reasoning in the prose and
   only the final code in the block.
-- Suggestions live happily in a pending review. They become one-click
-  committable once the review is submitted.
 
-Skip the suggestion when the fix is not a mechanical edit to the anchored lines:
+Skip the suggestion when there is no replacement text worth handing over verbatim:
 a change in another file, a design change, or anything the reader has to decide
 before writing. Say it in prose instead.
 
@@ -370,11 +356,8 @@ the first section title. It tells the reader what the sections below cover and i
 what order, so the body reads as a whole rather than as loose blocks. One or two
 sentences, no more.
 
-That opening sentence introduces the findings in the body. It is not a preamble about
-what was reviewed and not a verdict on the pull request: "Everything below sits outside
-the diff: documentation the change has left behind, a suggestion on database
-credentials, and a couple of items for later" belongs there, while "The approach is
-sound" and "Reviewed the diff plus X" do not.
+For example: "Everything below sits outside the diff: documentation the change has left
+behind, a suggestion on database credentials, and a couple of items for later".
 
 Group under plain descriptive section titles when there is more than one kind of
 finding, for example "Docs to refresh" or "Two database users rather than one".
@@ -384,14 +367,10 @@ Prefer a title that says something over a one-word label.
 Bold reads as a section title without the visual weight a heading carries inside
 a review comment.
 
-Bullets are welcome wherever they genuinely help the reader: parallel findings, the
-steps of a proposal, options to weigh side by side. Reach for one when the content
-really is a list. Do not expect it to save words: a list trades connective tissue for
-a self-contained sentence each, so the gain is in scanning, not in length.
-
-What to avoid is the opposite extreme, a body of bold labels and terse bullets with no
-prose holding it together: readable as data, unreadable as an argument. Keep the
-sentences that explain and frame, and let the lists carry the enumerable parts.
+Bullets are welcome where the content really is a list: parallel findings, the steps of
+a proposal, options side by side. They save scanning, not words, and a body of bold
+labels and terse bullets with no prose holding it together reads as data rather than as
+an argument. Keep the sentences that explain and frame.
 
 The body never contains:
 
@@ -402,11 +381,6 @@ The body never contains:
   `exec`, `set -eu`, a specific call, or any other thing that lives on a line in
   the diff, it is an inline comment, not a verdict. There is no PR-level
   paragraph that survives this test.
-
-  This does not license a telegraphic body. The opening sentence of a group
-  introduces the findings in that group, never the pull request. "The docs have
-  not kept up with this change" frames findings and belongs there. "The approach
-  is sound" judges the PR and stays out.
 - Any pointer to the inline comments, such as "inline comments cover the diff"
   or "see the inline comment on the runtime stage".
 - Any bullet restating something already said inline. If an inline comment
@@ -453,8 +427,6 @@ The rules the commands serve:
   it. Something open means append to it, per non-negotiable 2. A `422 User can only have
   one pending review per pull request` is that check arriving late, and never a reason to
   delete.
-- **Delete and recreate applies to a draft this run created, and to nothing else.** One
-  that was already open belongs to whoever wrote it.
 - **Never `gh pr review`.** It requires `--comment`, `--approve` or `--request-changes`,
   all of which publish immediately. The API with no `event` key is what keeps a review
   `PENDING`.
@@ -463,9 +435,43 @@ The rules the commands serve:
 - **Anchor inline comments inside a hunk of `gh pr diff N`**, taking line numbers from the
   head version of the file. A local `git diff` limited to one path loses a rename and shows
   the whole file as new.
-- **A pending review reads back with `position` only**, and `line`, `start_line` and
-  `side` null whatever the payload sent. That is the API describing a draft, not the
-  anchor having been lost, so an anchor is checked against the payload.
+
+## Following up on a review already submitted
+
+When the author has replied or pushed after a review from the requester's account was
+submitted, the job is to take the requester through what came back one thread at a time,
+and to deliver what is decided as a pending draft. Every rule above binds the replies
+written here.
+
+**Read [reference/following-up-a-review.md](reference/following-up-a-review.md) before the
+first API call.** It carries the threads query written for the reviewer's side, the
+reviewed SHA, the pending reply and the resolve command. The endpoint that answers a
+thread directly publishes at once, and it is the one memory reaches for.
+
+- **The threads**: every unresolved thread the requester's review opened, replied to or
+  not, ordered by file and line. One with neither a reply nor a change at the new head
+  stays out of the count and goes to the final turn. The count is fixed at the start, and
+  it changing more than once means the collection was wrong.
+- **One thread per turn**, in this order, and nothing about any other thread:
+  1. `Thread n of N`, with the file, the line and a link to the thread.
+  2. The original comment and the author's reply, quoted.
+  3. What changed on the thread's lines since the reviewed SHA, with a permalink at the
+     head SHA.
+  4. One outcome, accepted, partly accepted, not accepted or unchanged, with what was
+     checked to reach it.
+  5. The proposed action: resolve, reply with the text in full in a fenced block, or leave
+     open.
+  6. One question on that action.
+- **After a yes**, a thread to resolve is resolved at once, and a reply goes into the
+  collected file, never to GitHub. The next thread follows in the same message.
+- **The final turn**: the threads left out of the count, whether the description still
+  matches the head, and the commits or files changed since the reviewed SHA that no thread
+  touches, with the question whether to review them. A yes is a normal review of
+  `reviewed SHA..head`, non-negotiable 7 included, and its comments join the same file.
+- **Delivery**: the replies are collected in `~/.claude/reviews/OWNER-REPO-N.json`, the
+  file `guided-pr-review` uses, under a `replies` key, each as the thread id and the text.
+  After the final turn one pending draft is created, each reply is added to it, and then
+  come the leak check and the submit command from the section above, never run.
 
 ## Red flags
 
@@ -476,18 +482,14 @@ Any of these means the review is not ready:
   `[...](...)` link, whether or not it carries a line number.
 - A line number written from memory instead of checked at the pinned ref.
 - A body bullet whose file appears in the diff.
-- A verdict or summary paragraph opening the body.
+- A verdict, a summary or a description of what was reviewed opening the body.
 - A line edit spelled out in prose where a `suggestion` block was committable.
 - A `suggestion` block whose anchor range does not cover every replaced line.
-- The body opening with a description of what was reviewed.
 - A body that jumps straight into its first section title with no sentence
   introducing the sections.
-- An `event` field in the payload, or reaching for `gh pr review`.
-- A review that ended up submitted without an explicit request to publish it.
-- A draft that was already open before the review started, deleted or rewritten,
-  or a `DELETE` used to get past a `422`.
-- A comment already in an open draft edited to satisfy these conventions, rather
-  than left alone and raised in the reply.
+- A review submitted without an explicit request, an `event` field, or `gh pr review`.
+- A draft open before the review started deleted, rewritten or edited to fit these
+  conventions, or a `DELETE` used to get past a `422`.
 - No `README.md`, `AGENTS.md`, or `CLAUDE.md` was read before writing the review.
 - A doc suggestion carrying a value the code owns: a port, a floor, a version, a
   task name, a count.
@@ -503,10 +505,9 @@ Any of these means the review is not ready:
   where two comments were wanted.
 - A sentence that has to be read twice, or a word chosen over the plainer one a
   colleague would have said.
-- The reviewer skill loaded and no subagent dispatched, so the findings came from
-  reading the diff directly.
-- A comment written before the subagent returned, or a review carrying its
-  Strengths, Recommendations, Assessment or severity headings.
+- No subagent dispatched, a comment written before it returned, or a review carrying
+  its Strengths, Recommendations, Assessment or severity headings.
+- Points walked one at a time unasked, or a draft created before the requester chose.
 - A comment that would read the same on another pull request, or one naming a
   principle where it could have named the change to make.
 - A comment explaining how a finding was reached rather than what to do about it.

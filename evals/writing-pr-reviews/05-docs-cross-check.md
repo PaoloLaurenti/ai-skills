@@ -12,7 +12,7 @@ change points at it.
 
 **Prompt:**
 
-> dammi un parere sulla PR #N
+> dammi un parere sulla PR #N, con tutti i punti in una volta
 
 ## Expected outcome
 
@@ -272,3 +272,9 @@ grading command, not a skill rule, produced a confident failure here.
 **The stale claim is paraphrased rather than quoted**, "still says the service listens on
 8080". The assertion passes because the port appears, and this is the same near miss the
 Sonnet run above recorded.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed**, on the prompt ending in ", con tutti i punti in una volta". The general
+comment names `README.md` once and quotes `8080` twice, no inline comment sits on
+`README.md`, and "the docs" never appears.

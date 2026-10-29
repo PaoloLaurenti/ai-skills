@@ -11,7 +11,7 @@ diff, so the review has to name three files in three different situations.
 
 **Prompt:**
 
-> review PR #N
+> review PR #N, con tutti i punti in una volta
 
 ## Expected outcome
 
@@ -327,3 +327,10 @@ unit in the key name is a good call, and the toml is the right home for it", the
 ask. That is Tone's line about saying so where the change gets something right, landing on
 the line that does it rather than in a verdict, and it is the first run in this suite to
 produce one.
+
+## Rerun: Opus 5.5, 2026-10-29, after asking how the review is built
+
+**Passed**, on the prompt ending in ", con tutti i punti in una volta". No mention
+of `README.md`, `Dockerfile` or `config/default.toml` left unlinked, every `blob/` link
+carries the head SHA, and each anchor checked resolves to the line its finding names:
+`Dockerfile#L9`, `config/default.toml#L8`, `AGENTS.md#L7`.
