@@ -319,6 +319,51 @@ and grading what follows needs an answer to it.
       the two-point branch, where the fifth turn must change nothing, is still
       unexercised.
 
+## 7. Rename the skills to one scheme
+
+The four names follow four shapes, `writing-pr-reviews`, `guided-pr-review`,
+`pr-review-walkthrough`, `tdd`, and two of them do not say what the skill is for. A
+reader of the `README.md` could not tell `guided-pr-review` from `writing-pr-reviews`.
+
+Decided:
+
+- [x] One scheme: a gerund and its object, the form Anthropic's skill guidance
+      recommends and the one this repo adopted when it named `writing-pr-reviews`, so a
+      name alone says what the skill does. The `myai:` namespace already groups them.
+- [x] "pull-requests" written out in every name: a name is there to be understood, and
+      the triggers in each description keep "PR".
+- [x] `writing-pr-reviews` becomes `reviewing-pull-requests`: the skill does the whole
+      review, finding the problems and following up, not only the writing.
+
+- [x] `guided-pr-review` becomes `walking-through-and-reviewing-pull-requests`: the
+      name carries both halves of the job, the step-by-step explanation and the review
+      it produces. "Explaining" alone lost the review, and "pair" put the accent on the
+      pairing rather than on the two activities.
+
+- [x] `pr-review-walkthrough` becomes `addressing-pull-request-reviews`: the author goes
+      through a review received, and the skill handles each comment to the end, the reply
+      and the change to the code alike, which "addressing" covers and "answering" does
+      not. "Walking through" is left to the skill above, so the two are not confused
+      again.
+
+- [x] `tdd` becomes `developing-with-tdd`: the one name outside the scheme would have
+      been the one breaking the uniformity sought. "TDD" stays abbreviated, unlike "pr":
+      it is the name the practice goes by everywhere, Kent Beck's book included, so the
+      abbreviation is the clearest form rather than a shortcut.
+
+- [x] The rename itself, in one change: the skill and eval directories moved, the `name`
+      fields, the headings, the cross-references between skills, `README.md`,
+      `AGENTS.md`, the eval READMEs, scenarios and scripts. The recorded results inside
+      the scenario files keep the names of their day, since they quote what the runs
+      did then, and so do the entries under Completed here; the fixture repos on GitHub
+      keep their names, since renaming them means rebuilding them. Outside this repo:
+      the links in `~/.agents/skills/`, the two places in `~/.claude/CLAUDE.md` naming
+      skills, and the reminder in `~/.claude/code-principles.md`.
+
+- [x] One scenario per skill rerun with the skill, the first of each, baselines being
+      untouched by a name. All four passed on 2026-10-30, each skill loading under its new
+      name, and the walking-through skill loading the reviewing one in turn.
+
 ## Completed
 
 **Add the `tdd` skill, designed in an interview and measured against a baseline.** The

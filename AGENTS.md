@@ -131,13 +131,13 @@ directory name: for a plugin skill it supplies the last segment of the command,
 so a mismatch means the command stops matching the directory it lives in.
 
 The `description` decides when the skill gets loaded, so it describes the
-activation conditions only, never the procedure. A description that summarises
-the workflow makes the agent follow the summary instead of reading the body.
-Include the phrasings actually used to ask for the thing, in both English and
-Italian, since those are what the description is matched against. A skill whose
-main condition covers a request in any language may carry English phrasings only,
-once a scenario shows it firing on an Italian request without them: `tdd` is one,
-and its scenario 1 is that evidence.
+activation conditions only, never the procedure. A description that summarises the
+workflow makes the agent follow the summary instead of reading the body. Include
+the phrasings actually used to ask for the thing, in both English and Italian,
+since those are what the description is matched against. A skill whose main
+condition covers a request in any language may carry English phrasings only, once
+a scenario shows it firing on an Italian request without them:
+`developing-with-tdd` is one, and its scenario 1 is that evidence.
 
 The body is the instructions themselves. It is read by an agent that will act on
 it, so it states what to do rather than describing what the skill is about.

@@ -5,12 +5,12 @@ the configuration directories of the individual tools.
 
 ## Skills
 
-| Skill | What it covers |
-| --- | --- |
-| [`guided-pr-review`](skills/guided-pr-review/SKILL.md) | How to take a reviewer through a pull request before they review it: one concept per turn at the level they pick, each finding proposed as a comment that is collected only after a yes to that comment, the pending review created once at the end, and nothing published. |
-| [`pr-review-walkthrough`](skills/pr-review-walkthrough/SKILL.md) | How to take the author of a pull request through the review comments left on it: one comment per turn, an opinion verified against the code, a reply for each, and nothing published before an explicit yes at the end. |
-| [`tdd`](skills/tdd/SKILL.md) | How to develop production code test-first: a plan of pending tests the requester approves, one red-green-refactor cycle at a time against the public surface, dumb tests whose expected values trace back to Arrange, and a stop wherever a decision about the design belongs to the requester. |
-| [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: where the findings come from, pending state, tone, shape of the general comment, permalinks, code suggestions. |
+| Skill | What it is for | Ask for it with |
+| --- | --- | --- |
+| [`walking-through-and-reviewing-pull-requests`](skills/walking-through-and-reviewing-pull-requests/SKILL.md) | **You** review someone else's pull request, and the agent teaches it to you first. It explains the change one concept at a time, at the level of detail you choose, and suggests review comments along the way, written and delivered by the rules of `reviewing-pull-requests`, which it loads. You approve each one; at the end they are saved on GitHub as a draft review that only you can publish. | "walk me through PR 94, I have to review it" |
+| [`addressing-pull-request-reviews`](skills/addressing-pull-request-reviews/SKILL.md) | Answering the review comments left on your own pull request. The agent goes through them one at a time, checks each one against the code, tells you whether it agrees, and drafts a reply. Nothing is posted until you say so. | "help me address the feedback on PR 82" |
+| [`developing-with-tdd`](skills/developing-with-tdd/SKILL.md) | Developing code with Test-Driven Development, the tests driving the design. The agent first proposes the list of behaviours to test and waits for your approval, then builds them one at a time: a failing test, the least code that makes it pass, a refactoring. It stops and asks whenever a decision about the design is yours. | "let's TDD this", or any request to add or change a feature or fix a bug |
+| [`reviewing-pull-requests`](skills/reviewing-pull-requests/SKILL.md) | **The agent** reviews a pull request for you. It looks for problems, writes short comments with links to the code and suggested fixes, and leaves the review on GitHub as a draft for you to publish; you can also go through its findings one at a time first. It also follows up once the author has replied. | "review PR 16" |
 
 ## How it is wired to Claude Code
 
@@ -33,7 +33,7 @@ full when creating the symlink, because the link gets resolved from
 `~/.claude/skills/` and not from this repo.
 
 Every skill is then invoked under the plugin namespace, so
-`skills/writing-pr-reviews/` becomes `/myai:writing-pr-reviews`. The namespace is
+`skills/reviewing-pull-requests/` becomes `/myai:reviewing-pull-requests`. The namespace is
 what makes these skills recognisable in a list alongside skills from other
 sources.
 
@@ -63,9 +63,9 @@ for skill in <repo-path>/skills/*/; do ln -s "${skill%/}" ~/.agents/skills/; don
 ```
 
 A link rather than a copy keeps the repo the only copy there too. Those agents see each
-skill under its bare name, `writing-pr-reviews` rather than `myai:writing-pr-reviews`.
-Nothing is linked into `~/.claude/skills/`, where the plugin already loads every skill and
-a second link would list each one twice.
+skill under its bare name, `reviewing-pull-requests` rather than
+`myai:reviewing-pull-requests`. Nothing is linked into `~/.claude/skills/`, where the
+plugin already loads every skill and a second link would list each one twice.
 
 ## Adding a skill
 
