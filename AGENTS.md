@@ -23,6 +23,7 @@ docs/PLAN.md                    queued work, with the reasoning behind each item
 LICENSE                         MIT, and one of the two places allowed to name the owner
 tools/skill-check/              the checks over every SKILL.md and over the tree, as cargo tests
 tools/check.sh                  formatting, lints and those tests, in one command
+tools/link-skills.sh            links the skills where agents read them, for whoever develops them
 .githooks/pre-commit            runs that command before a commit, once a clone points at it
 .github/workflows/checks.yml    the same command on every push, plus the plugin validation
 .tool-versions                  the Rust version asdf resolves for this repo
@@ -64,8 +65,8 @@ included.
   refer to the person making the request, an impersonal construction covers it:
   "the requester", "an explicit request to publish", the passive voice. Two
   places are exceptions, both because naming the owner is what makes them true:
-  this repo's own clone URL in `README.md`, which is the address the repo
-  actually lives at, and the copyright holder line in `LICENSE`, which has to
+  this repo's own GitHub URL in `README.md`, in the clone and the install
+  commands alike, which is the address the repo actually lives at, and the copyright holder line in `LICENSE`, which has to
   identify who holds the copyright for the grant to mean anything. No other URL,
   path, or sentence gets to name anyone.
 - **No machine-local paths.** `~/.claude/skills/` is a Claude Code convention and
@@ -131,13 +132,24 @@ directory name: for a plugin skill it supplies the last segment of the command,
 so a mismatch means the command stops matching the directory it lives in.
 
 The `description` decides when the skill gets loaded, so it describes the
-activation conditions only, never the procedure. A description that summarises
-the workflow makes the agent follow the summary instead of reading the body.
-Include the phrasings actually used to ask for the thing, in both English and
-Italian, since those are what the description is matched against.
+activation conditions only, never the procedure. A description that summarises the
+workflow makes the agent follow the summary instead of reading the body. Include
+the phrasings actually used to ask for the thing, in both English and Italian,
+since those are what the description is matched against. A skill whose main
+condition covers a request in any language may carry English phrasings only, once
+a scenario shows it firing on an Italian request without them:
+`developing-with-tdd` is one, and its scenario 1 is that evidence.
 
 The body is the instructions themselves. It is read by an agent that will act on
 it, so it states what to do rather than describing what the skill is about.
+
+**Name another skill of this repo by its bare name** inside a skill body,
+`reviewing-pull-requests`, adding the plugin form `myai:reviewing-pull-requests` beside
+it where the body asks to load it. The namespace exists only when the repo is loaded as
+a Claude Code plugin: Codex, Copilot and an `npx skills` install see the bare name, and
+a body naming `myai:` alone sends them looking for a skill they do not have. A skill
+from another source is named the same way, bare with its source beside it:
+superpowers' `requesting-code-review`, not `superpowers:requesting-code-review`.
 
 **Quote a description that contains a `#`.** In an unquoted YAML scalar a `#`
 preceded by a space opens a comment, so everything after it is silently dropped
@@ -230,6 +242,28 @@ passes with warnings and matching their text would break on the next CLI release
 The Rust version comes from `.tool-versions`, so asdf resolves it for this
 directory with nothing installed globally, and the workflow installs the version
 that file names.
+
+## Releasing
+
+`main` is what users get: `npx skills update` installs whatever each skill folder holds
+there, so only finished, checked work is merged into it. A GitHub release is how users
+hear about it, since watching a repo's releases notifies and a commit does not.
+
+One version covers the whole repo, and it lives in `.claude-plugin/plugin.json` alone.
+It is read from the point of view of whoever uses the skills:
+
+- **major**: a user has to change something, because a skill was renamed or removed, or
+  the way to work with one changed, such as an opening question added or dropped;
+- **minor**: something new that breaks nothing, a new skill or a new rule in one;
+- **patch**: a fix that leaves behaviour as it was, wording, a typo, a reference.
+
+A pull request that changes anything under `skills/` always earns at least a patch,
+since `npx skills update` offers whatever changed in a skill's folder, and a user who
+watches the releases must not miss it. One that leaves `skills/` alone earns no version
+and no release, since no user receives it. The pull request that earns a new version
+bumps it in `plugin.json`. Once it is merged,
+the merge commit gets the tag `vX.Y.Z`, and the release carries a few lines on what
+changes for a user. No changelog file: it would be a second copy of the release notes.
 
 ## Evaluating a skill
 

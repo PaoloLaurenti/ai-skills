@@ -1,81 +1,148 @@
 # ai-skills
 
-Skills for AI agents, kept under version control here instead of scattered across
-the configuration directories of the individual tools.
+Agent skills for everyday software development: reviewing pull requests, answering the
+reviews you receive, and developing code with Test-Driven Development.
+
+A skill is a set of instructions that an AI coding agent loads when a request matches it,
+so the agent works the same way every time instead of improvising. These work with Claude
+Code, Codex, GitHub Copilot and the other agents the [`npx skills`](https://skills.sh/)
+installer supports. You trigger them by asking in plain words, as the table below shows;
+each one stops and asks you before any step that is yours to decide.
 
 ## Skills
 
-| Skill | What it covers |
-| --- | --- |
-| [`guided-pr-review`](skills/guided-pr-review/SKILL.md) | How to take a reviewer through a pull request before they review it: one concept per turn at the level they pick, each finding proposed as a comment that is collected only after a yes to that comment, the pending review created once at the end, and nothing published. |
-| [`pr-review-walkthrough`](skills/pr-review-walkthrough/SKILL.md) | How to take the author of a pull request through the review comments left on it: one comment per turn, an opinion verified against the code, a reply for each, and nothing published before an explicit yes at the end. |
-| [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: where the findings come from, pending state, tone, shape of the general comment, permalinks, code suggestions. |
+| Skill | What it is for | Ask for it with |
+| --- | --- | --- |
+| [`reviewing-pull-requests`](skills/reviewing-pull-requests/SKILL.md) | When you want **the agent** to review a pull request for you. It looks for problems, writes short comments with links to the code and suggested fixes, and leaves the review on GitHub as a draft for you to publish. It can show you its findings one at a time before the draft is made, and it follows up once the author has replied. | "review PR 16"; "review PR 16, one point at a time"; "the author replied to my review on PR 16" |
+| [`walking-through-and-reviewing-pull-requests`](skills/walking-through-and-reviewing-pull-requests/SKILL.md) | When **you** have to review someone else's pull request and want to understand it first. The agent explains the change one concept at a time, at the level of detail you choose, and suggests review comments along the way. You approve each one; at the end they are saved on GitHub as a draft review that only you can publish. | "walk me through PR 94, I have to review it" |
+| [`addressing-pull-request-reviews`](skills/addressing-pull-request-reviews/SKILL.md) | When your own pull request has been reviewed and you have to answer. The agent goes through the comments one at a time, checks each one against the code, tells you whether it agrees, and drafts a reply and the change. Nothing is posted until you say so. | "help me address the feedback on PR 82" |
+| [`developing-with-tdd`](skills/developing-with-tdd/SKILL.md) | When you develop code with Test-Driven Development, the tests driving the design. The agent first proposes the list of behaviours to test and waits for your approval, then builds them one at a time: a failing test, the least code that makes it pass, a refactoring. It stops and asks whenever a decision about the design is yours. | "let's TDD this". Asked to add a feature or fix a bug without a word about TDD, it first asks whether you want to work in TDD, and does nothing else until you answer. |
 
-## How it is wired to Claude Code
+## Using the skills
 
-This repo is a Claude Code plugin named `myai`, declared by
-[`.claude-plugin/plugin.json`](.claude-plugin/plugin.json). A single symlink puts
-the whole repo under `~/.claude/skills/`, where Claude Code discovers any folder
-carrying a plugin manifest and loads it as `myai@skills-dir`. No marketplace and
-no install step are involved, and the plugin is read in place rather than copied
-into a cache, so the repo working tree stays the only copy of every file: editing
-a skill during a session edits the repo directly, and all that remains is
-committing it.
+### Requirements
 
-```
-<repo-path>/            the real directory, holding .claude-plugin/plugin.json
-~/.claude/skills/myai   symlink to the above
-```
+- [Node.js](https://nodejs.org/) 22.20 or later, for `npx skills`.
+- The three pull request skills act on GitHub through the
+  [GitHub CLI](https://cli.github.com/), `gh`, signed in with `gh auth login` to an
+  account that can read the repository and comment on it.
+- They also load two skills from [superpowers](https://github.com/obra/superpowers):
+  `requesting-code-review`, which finds the problems in a change, and
+  `receiving-code-review`, which checks a comment before agreeing with it. Install
+  superpowers in the same agents, as
+  [its installation guide](https://github.com/obra/superpowers#installation) explains
+  for each one.
 
-`<repo-path>` is wherever this repo is checked out. It has to be spelled out in
-full when creating the symlink, because the link gets resolved from
-`~/.claude/skills/` and not from this repo.
+`developing-with-tdd` needs nothing beyond the agent.
 
-Every skill is then invoked under the plugin namespace, so
-`skills/writing-pr-reviews/` becomes `/myai:writing-pr-reviews`. The namespace is
-what makes these skills recognisable in a list alongside skills from other
-sources.
-
-## Setting up a new machine
-
-Clone the repo, then link it once:
+### Installing
 
 ```bash
-git clone git@github.com:PaoloLaurenti/ai-skills.git <repo-path>
-ln -s <repo-path> ~/.claude/skills/myai
-git config core.hooksPath .githooks
+npx skills add https://github.com/PaoloLaurenti/ai-skills -g
 ```
 
-The plugin loads on the next session. `claude plugin list` shows it under
-"Skills-directory plugins", and `claude plugin validate <repo-path>` checks the
-manifest.
+[`npx skills`](https://skills.sh/) asks which agents to install into, Claude Code,
+Codex, GitHub Copilot and many others, and `-g` makes the skills available in every
+project rather than the current one.
 
-The last line makes a commit run `tools/check.sh` first: formatting, lints and the
-checks over every skill. `.git/hooks` is not versioned, so each clone has to point
-at `.githooks/` itself.
+You use a skill by asking in plain words, as the table shows. To call one by name, it is
+the name in the table, with no prefix: `/reviewing-pull-requests` in Claude Code.
 
-Codex and GitHub Copilot know nothing of Claude Code plugins. They read skills from
-`~/.agents/skills/`, one directory each, so every skill gets a link of its own there:
+Installing every skill is the safe choice: `walking-through-and-reviewing-pull-requests`
+loads `reviewing-pull-requests` for its rules on writing comments, so the first does not
+work fully without the second. To install only some of them, name each with `--skill`,
+as in `npx skills add https://github.com/PaoloLaurenti/ai-skills --skill developing-with-tdd -g`.
+
+### What they do on your behalf
+
+- **On GitHub**, the review skills only ever create draft reviews:
+  `reviewing-pull-requests` and `walking-through-and-reviewing-pull-requests` never
+  submit or publish one unless you ask in so many words. `addressing-pull-request-reviews`
+  commits, pushes and posts its replies only after a final yes to a list of exactly what
+  it will do.
+- **In your code**, `developing-with-tdd` edits files but never commits on its own.
+- **Language**: ask in any language and they answer in it; what they write on GitHub,
+  comments and replies, is always in English.
+- **Tested** with Claude Code. Codex, GitHub Copilot and the other agents read the same
+  files, but the skills have not been run there.
+
+### Updating
 
 ```bash
-for skill in <repo-path>/skills/*/; do ln -s "${skill%/}" ~/.agents/skills/; done
+npx skills check        # says whether any installed skill has an update
+npx skills update -g    # installs them, for the skills installed with -g
 ```
 
-A link rather than a copy keeps the repo the only copy there too. Those agents see each
-skill under its bare name, `writing-pr-reviews` rather than `myai:writing-pr-reviews`.
-Nothing is linked into `~/.claude/skills/`, where the plugin already loads every skill and
-a second link would list each one twice.
+Every change to a skill reaches you as a release: whenever the `main` branch changes a
+skill, it is tagged and released with a few lines on what changed. The CLI sends no
+notification, so to hear about one, watch this repository on GitHub and pick "Releases"
+under "Custom". `npx skills check` and `npx skills update -g` work whether you watch the releases or not.
 
-## Adding a skill
+### Uninstalling
+
+```bash
+npx skills remove -g
+```
+
+It lists the skills installed globally and removes the ones you pick; `-g` matches the
+`-g` they were installed with.
+
+## Developing the skills
+
+Whoever edits the skills works on a clone, linked into the places agents read skills
+from rather than installed, so the working tree stays the only copy of every file: a
+skill edited during a session is the skill the next prompt uses, and all that remains
+is committing it.
+
+### Setting up
+
+```bash
+git clone https://github.com/PaoloLaurenti/ai-skills.git <repo-path>
+<repo-path>/tools/link-skills.sh
+```
+
+`<repo-path>` is wherever you want the clone. Remove an installation made with
+`npx skills` first, with `npx skills remove -g`: the script leaves its copies alone and
+reports them as conflicts.
+
+`tools/link-skills.sh` creates the links that are missing and removes the ones a
+renamed skill left behind, so it is run again after a skill is added or renamed. It
+links the whole repo as `~/.claude/skills/myai`, so Claude Code loads it as a plugin
+called `myai`, declared by [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json),
+and each skill gets the prefix `myai:`, as in `/myai:reviewing-pull-requests`. It links
+each skill into `~/.agents/skills/` for Codex and GitHub Copilot, which use the skill's
+name with no prefix. It leaves alone every link and directory there that belongs to
+something else. And it points git at `.githooks/`, so a commit runs `tools/check.sh`
+first.
+
+`claude plugin list` shows the plugin under the heading "Skills-directory plugins", and
+`claude plugin validate <repo-path>` checks its manifest.
+
+### Adding a skill
+
+From the root of your clone:
 
 ```bash
 mkdir -p skills/<name>
 $EDITOR skills/<name>/SKILL.md
+tools/link-skills.sh
 ```
 
-No symlink work for Claude Code: the plugin already covers every skill under `skills/`.
-For Codex and GitHub Copilot the new skill needs its link in `~/.agents/skills/`, as in
-the setup above.
+`tools/link-skills.sh` gives the new skill its link for Codex and GitHub Copilot; Claude
+Code already loads it through the plugin. A `SKILL.md` starts from this shape:
+
+```markdown
+---
+name: <name>
+description: >-
+  Use when <the situations that call for it>, including phrasings like
+  "<how people ask for it>".
+---
+
+# <Title>
+
+<What the agent must do, written as rules it can follow.>
+```
 
 The frontmatter requires `name` and `description`, and `name` has to match the
 directory name, since for a plugin skill it supplies the last segment of the
@@ -83,5 +150,42 @@ command. The `description` decides when the skill gets loaded, so it describes t
 activation conditions only and not the procedure: if it summarises the workflow,
 the agent tends to follow the summary instead of reading the body.
 
-All content in this repo is written in English, and stays free of personal names
-and machine-local paths. See [`AGENTS.md`](AGENTS.md).
+The skill also needs a row in the table at the top of this file, which `tools/check.sh`
+enforces, and its scenarios under `evals/<name>/`, run before the change is proposed, as
+the next section explains.
+
+### Evaluations
+
+`tools/check.sh` checks the shape of a skill, never whether its rules hold. That is what
+`evals/<name>/` is for: one file per scenario, each giving a prompt, the rule it puts
+under pressure, and the outcome expected, checked by command wherever possible.
+
+Every scenario is run twice, once with the skill and once without it, as a baseline: a
+rule that the agent follows anyway adds nothing, and only the pair shows the difference
+the skill makes. The results of both runs are recorded in the scenario file, with
+quotes from the transcripts.
+
+A run costs model calls, and most suites drive a test repository on GitHub, with pull
+requests prepared for the scenarios, so the scenarios stay out of `tools/check.sh` and
+the commit hook: whoever changes a skill runs them. Each
+`evals/<name>/README.md` holds the fixture, the commands and how a run is graded.
+
+### Contributing
+
+Pull requests are welcome. Every rule a change follows is in [`AGENTS.md`](AGENTS.md);
+these are the ones a first change meets:
+
+- everything is written in English, and names no person and no path that exists on one
+  machine only; the repository's own GitHub URL, in the commands above, is the one
+  exception;
+- `tools/check.sh` passes before a commit, which the hook set by `tools/link-skills.sh`
+  enforces;
+- a change to a skill comes with its scenarios under `evals/<name>/`, run with and
+  without the skill, and their results recorded;
+- a change to a skill bumps the version in `.claude-plugin/plugin.json`; once it is
+  merged, the maintainer tags it and publishes the release, as "Releasing" in `AGENTS.md`
+  explains.
+
+## License
+
+MIT, see [LICENSE](LICENSE).

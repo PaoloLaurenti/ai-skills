@@ -115,8 +115,8 @@ fn owner_name_leaks(files: &[(String, String)]) -> Vec<RepoProblem> {
                 problems.push(RepoProblem {
                     file: file.clone(),
                     message: format!(
-                        "line {} names the owner, which only the clone URL in README.md and the \
-                         copyright line in LICENSE are allowed to do",
+                        "line {} names the owner, which only the repo's GitHub URL in README.md \
+                         and the copyright line in LICENSE are allowed to do",
                         number + 1
                     ),
                 });
@@ -158,9 +158,9 @@ fn normalized(text: &str) -> String {
 }
 
 /// The two places `AGENTS.md` allows the owner's name, both because naming the
-/// owner is what makes them true: the clone URL in the README, which is the
-/// address the repo lives at, and the copyright line in `LICENSE`, which has to
-/// say who holds the copyright.
+/// owner is what makes them true: the repo's GitHub URL in the README, in the
+/// clone and install commands alike, which is the address the repo lives at,
+/// and the copyright line in `LICENSE`, which has to say who holds the copyright.
 fn names_the_owner_by_right(file: &str, line: &str) -> bool {
     match file {
         "README.md" => line.contains("github.com"),
