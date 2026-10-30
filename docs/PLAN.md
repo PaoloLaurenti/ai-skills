@@ -6,7 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open, and it is blocked on Anthropic rather than on this repo.
+Two things are open: the move to `claude plugin eval`, blocked on Anthropic rather
+than on this repo, and the `tdd` skill, being designed in entry 7.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -318,6 +319,403 @@ and grading what follows needs an answer to it.
       points vary between two and three on this branch. The run kept three and passed;
       the two-point branch, where the fifth turn must change nothing, is still
       unexercised.
+
+## 7. Add the `tdd` skill
+
+A skill teaching an agent the practice of test-driven development as it is done here,
+not as a generic red-green loop. Two sources: the slides of the "TDD & Hexagonal
+Architecture" workshop, and a written description of the practice given in the session
+that opened this item. The decisions are taken one at a time in an interview and
+recorded below as they are made, so the skill can be written from this entry alone.
+
+Decided:
+
+- [x] The skill replaces `mattpocock-skills:tdd` rather than coexisting with it. The two
+      disagree on the core of the practice: that one keeps refactoring out of the loop
+      and treats tests written ahead as horizontal slicing, while this practice
+      refactors in every cycle and starts from a plan of empty tests. Two skills firing
+      on the same phrasings would leave the agent to reconcile them. Outside this repo,
+      the line in `~/.claude/CLAUDE.md` that mandates `mattpocock-skills:tdd` moves to
+      the new skill once it exists.
+- [x] The skill says nothing about hexagonal architecture. The surface under test is
+      the public API in generic terms, what calling code can see and touch, so the
+      rule holds in a codebase with no ports. Ports and adapters, and the integration
+      and acceptance tests that go with them, are left to a separate skill, not queued
+      yet.
+- [x] The skill is self-contained: it restates every rule on tests it relies on
+      rather than pointing to a user-level file such as `~/.claude/code-principles.md`,
+      which Codex and Copilot never read. The rules stay in the body; the catalogue of
+      test doubles may move to a `reference/` file linked from it. The cost is the same
+      rules living in two places, so a change to one has to be carried to the other.
+- [x] A test's name, which is also its entry in the plan, states the behaviour in
+      domain words, as short as still tells it apart from the other entries. No class,
+      method or other technical detail, and no concrete value, which belongs in
+      Arrange. The condition goes in only when it is what distinguishes the scenario,
+      as in `rejects a booking outside opening hours` against `accepts a booking within
+      opening hours`. The casing and phrasing follow the project and its test framework.
+      Names are reread at every refactoring step like the rest of the code. The slides'
+      bad example, `Should_cart_aggregate_apply_20_percent_discount_based_on_promo_when_updating_with_its_code`,
+      fails on the technical name, the value and the mechanism, not on length alone.
+- [x] Test doubles: the slides' definitions, without their "order of complexity",
+      since a fake is often more complex than a stub and the order would imply a rule
+      that does not hold. The usage and naming rules come from `code-principles.md`:
+      replace only boundaries the project owns and keep real domain and value objects;
+      a dummy proves nothing, so a call that must not happen is checked with a spy that
+      received none; a spy is the usual choice for outgoing commands, a mock only when
+      the exact protocol of calls is the behaviour under test; a double is named after
+      its kind, with the `Double` suffix when it plays more than one role. The usage
+      rules stay in the body; the definitions and naming conventions go to
+      `reference/test-doubles.md`.
+- [x] Where the agent stops and asks. Always: after writing the plan of empty tests,
+      before the first red; whenever it wants to change the plan (add, delete, reorder
+      or rewrite a test); when green does not come from a small, direct change, saying
+      what blocks it and proposing how to change the test or the plan; and when a
+      refactoring would touch structure (a new type, an abstraction, moving a
+      responsibility) rather than names or local duplication, proposing it, or
+      proposing to wait for the next tests, instead of doing it. At the start the
+      requester also chooses whether the agent pauses after every red-green-refactor
+      cycle; the question is skipped when the request already says. A pause on every
+      cycle stays opt-in because on a plan of ten or fifteen tests it turns into a
+      confirmation given without reading.
+- [x] The plan lives in the test file as pending tests: each entry is a test with its
+      final name and an empty body, marked with the framework's own mechanism
+      (`it.todo`, `@Disabled`, `#[ignore]`, `t.Skip`, `pytest.mark.skip`). Adding or
+      deleting an entry happens where the tests are, the approved name is already the
+      test's name, and the state of the plan is read from the runner, so a new session
+      picks it up without memory. A pending test carries only a title, which is why
+      the plan is not horizontal slicing. No fallback for a framework without pending
+      tests until one turns up.
+- [x] The skill is named `tdd`: `skills/tdd/`, invoked as `/myai:tdd`, and seen as
+      `tdd` by Codex and Copilot. The namespace tells it apart from
+      `mattpocock-skills:tdd` in Claude Code, and `~/.agents/skills/` holds no other
+      `tdd`, so the link there collides with nothing.
+- [x] The skill is independent of language and framework: it speaks of pending tests,
+      the runner and assertions, and leaves the translation to the project's stack.
+      One or two short pseudocode examples are allowed where prose alone does not
+      carry a rule, such as a bad and a good test side by side showing how a value in
+      Assert traces back to a name in Arrange. They sit in the body next to the rule
+      they illustrate, since they are part of it.
+- [x] How the plan is built. First a few lines of upfront design, presented with the
+      plan for the same approval: the entry point the tests call in Act, the external
+      dependencies that become test doubles, and the observable reactions (returned
+      value, state read through the public API, calls to dependencies). Then the
+      happy paths, simplest first: fewer moving parts means fewer inputs that vary,
+      fewer dependencies involved, fewer business rules applied together, and on a tie
+      the one whose green needs less production code. Degenerate or empty cases, such
+      as an empty cart totalling zero, close the happy paths rather than open them,
+      even though they have the fewest moving parts: with nothing moving they drive no
+      design, and they are often green before any production code exists. After the
+      happy paths come domain errors, then input validation, then edge cases.
+- [x] The red step. The agent takes the first pending test of the plan and only that
+      one. It writes the body by wishful thinking, in final form rather than as a
+      draft: Act calls the API as it would like to use it, Arrange holds only the data
+      that matters to the behaviour, Assert compares the whole expected value. It makes
+      the test compile with the least production code, signatures and types, whose
+      body returns a trivial wrong value so the test fails on the assertion; never a
+      thrown "not implemented", which proves nothing about the assertion. In a dynamic
+      language the same holds: the first failure is the assertion, not a missing
+      function. It runs the tests and reads the output: the new test fails on its
+      assertion, for the expected reason, with a message that says what is missing,
+      and every other test stays green. An unclear message is fixed before moving on.
+      A new test that passes at once stops the cycle: the behaviour already exists or
+      the test does not check what its name says, and the agent proposes deleting or
+      rewriting it, which is a change to the plan.
+- [x] The green step. The least production code that makes this test pass, sins
+      allowed: hardcoded values, duplication, specific branches, provisional names.
+      Nothing for behaviour that belongs to a later pending test, even when the agent
+      can see it coming: code turns generic only when a later test forces it, because
+      a hardcoded answer no longer satisfies two tests at once, or in refactoring, when
+      the duplication between test data and code is removed. The obvious
+      implementation is allowed when it is as short as the hardcoded one and covers no
+      behaviour named by a pending test, and the agent says so to the requester each
+      time it takes it, since a pending test has an empty body and cannot be run to
+      prove the implementation stayed narrow. All tests run: the new one green, every
+      other one still green. An old test turning red is fixed in production code; a
+      change to a test already green is a change to the plan. Green that does not come
+      from a small, direct change triggers the stop already decided.
+- [x] The refactor step, after every green. In production code: duplication,
+      including between test data and code, which is where a hardcoded value turns
+      generic; names; the rules of simple design. In tests: names, Arrange-Act-Assert,
+      the link from Assert back to Arrange, no logic. Refactoring changes no behaviour:
+      nothing new in production code, and a test changes shape, never what it checks.
+      Small steps, with every test run after each one rather than at the end. A step
+      that turns anything red is undone back to the last green, never fixed forward,
+      and retried smaller or by a longer path that stays green (add the new beside the
+      old, move one caller at a time, remove the old). Fixing forward would work
+      without the safety net exactly when the step has shown it was needed, and
+      "small and obvious" is a judgement an agent stretches; back to green is
+      checkable.
+- [x] The review of the plan that closes each cycle. Missing tests: a behaviour the
+      cycle brought out that no entry covers, proposed with its name and its place in
+      the plan's order. Redundant tests: one is redundant when another checks the same
+      behaviour and would fail for the same reason, so deleting it loses nothing; the
+      usual case is an early simple test that later, more specific ones include. The
+      deletion is proposed naming the test that already covers it. With nothing to
+      change the agent moves to the next pending test without stopping, unless the
+      requester chose a pause on every cycle. A refactoring deferred by agreement is
+      not recorded anywhere: the smell stays visible in the code, every later refactor
+      step reconsiders it, and the last refactor step of the plan proposes it, a stop
+      since a deferred refactoring is always structural; a local one is never
+      deferred. A `TODO` or a list would be a second
+      copy that outlives the code it describes.
+- [x] Bug fixes. The plan opens with a test that reproduces the bug through the public
+      surface, named after the correct behaviour (`applies the discount to discounted
+      items too`), never after the bug or an issue number, and placed in the test file
+      of the behaviour it concerns. It goes through the plan approval like any other
+      plan, even with one entry. Red must show the bug: the test fails on its
+      assertion, the actual value being the wrong behaviour reported. A test that
+      passes means the bug is not reproduced: no production code is touched, and the
+      agent stops, says what it tried, and asks for details or proposes another
+      scenario. Needing internals to reproduce it, a private method or the database
+      instead of the API, is a signal about the surface or the design and a reason to
+      stop, never a licence to test the inside. Then the cycle is the usual one, and
+      the plan review also asks whether the same defect can show up in nearby cases.
+- [x] The anatomy of a test. Three visible blocks in order, Arrange, Act, Assert, with
+      a single Act; no branch, loop or computation in a test. Arrange keeps the data
+      that matters to the behaviour, and irrelevant setup goes to builders or object
+      mothers named for what they prepare. By default one whole expected value,
+      compared by equality; several assertions only when the behaviour has distinct
+      observable reactions that do not fit one value, such as a returned value and a
+      call recorded by a spy, each about the same behaviour. Literals are welcome when
+      their link to Arrange shows inside the test: the expected value is built from
+      Arrange's names, or is a literal whose link is plain at a glance, a price of 100
+      with a 20% discount expecting 80. Never an expected value computed with the
+      production formula, which passes by construction, and never a literal repeating
+      data hidden inside a helper. This is where the pseudocode bad and good example
+      goes. Failure messages are specific. No comments by default, unless the
+      project's rules ask for them, so the blocks are told apart by blank lines rather
+      than `// Arrange` markers; a comment that survives either clarifies a detail the
+      test's code cannot express, or is a very short description of the scenario.
+- [x] No commit on the agent's own initiative. Undoing a refactor step means reversing
+      the edits of that step, which the agent has just made and which the rules keep
+      small; the undo is checked by every test being green again, and anything else
+      stops the cycle. When the requester or the project asks for commits, there is one
+      per completed cycle, after refactoring with every test green, in the project's
+      message format.
+- [x] When the skill applies. It activates on any change to production code that adds
+      or alters behaviour, a feature, a behaviour change or a bug fix, whether or not
+      the request names TDD; not on refactoring that keeps behaviour, documentation,
+      configuration, or tests added to code already written. Its first turn asks
+      whether to proceed with TDD at all, and a no sends the agent back to working
+      without the skill. Only after a yes, in a turn of its own, comes the question on
+      a pause after every cycle decided above. Two questions rather than one with
+      three answers: the first decides whether the skill runs, the second how. Either
+      is skipped when the request or the project's rules already answer it. The
+      description:
+
+      ```yaml
+      description: >-
+        Use when about to write or change production code that adds or alters behaviour,
+        such as a feature, a behaviour change or a bug fix, and when asked for TDD,
+        including phrasings like "facciamo TDD", "sviluppiamolo in TDD", "partiamo dai
+        test", "scrivi prima il test", "fixa il bug partendo da un test che fallisce",
+        "implementa questa funzionalità", "red-green-refactor", "let's TDD this",
+        "test-first", "drive this with tests", or "reproduce the bug with a failing test
+        before fixing it". Not for refactoring that keeps behaviour, documentation,
+        configuration, or adding tests to code that already exists.
+      ```
+- [x] The fixture for `evals/tdd/`: a small local Rust crate, no GitHub, created by
+      `fixture/setup.sh` in a temporary directory and rebuilt from scratch before
+      every run. The domain is the slides' cart with a promo code discount. Two states:
+      an empty module with only its test file, for scenarios on a new feature, and an
+      implemented module carrying one known bug, for scenarios on bug fixes. Rust
+      because every clone already has the toolchain `tools/skill-check` needs, pinned
+      by `.tool-versions`, and because `cargo test` counts passed, failed and ignored
+      tests, so the state of the plan is graded by command rather than judgement.
+
+- [x] The scenarios under `evals/tdd/`, each also run without the skill so the value
+      of its rule is seen rather than assumed. M marks an assertion graded by command,
+      E one graded by judgement.
+
+      1. The two opening questions. "implementa lo sconto con codice promozionale sul
+         carrello", naming no TDD: turn 1 asks whether to proceed with TDD, turn 2,
+         "sì", asks about the pause on every cycle in a turn of its own. M: `git status`
+         clean after both.
+      2. The plan and its stop. A prompt answering both questions. M: `cargo test`
+         reports 0 passed, 0 failed, N ignored, and nothing outside the test file
+         changed. E: behaviour names with no technical detail, the empty cart closing
+         the happy paths, errors and validation after them.
+      3. One cycle at a time, nothing anticipated. As 2, with the pause on every cycle,
+         and a second turn "ok, procedi". M: 1 passed, 0 failed, N-1 ignored. E: an
+         obvious implementation, if taken, is reported.
+      4. A bug that does not reproduce. Implemented module, a reported bug the code
+         does not have. M: the production file unchanged. E: the agent says the test
+         passed and stops.
+      5. A bug that reproduces. Implemented module, the known bug. M: every test green
+         at the end, and the new test's name holds none of `bug`, `issue`, `fix`,
+         `regression`. E: the red shown carries the wrong value reported.
+      6. The skill does not fire. "rinomina `total` in `total_price`". M: the reply
+         never mentions TDD, the rename is done, every test green.
+      7. The plan review closing a cycle. A third fixture state, halfway through a
+         plan: `totals the price of a single item` green, `totals the prices of all
+         items` pending next, production returning the first item's price, the rest
+         pending. Turn 1, "continuiamo in TDD il carrello, il piano è nel file di
+         test", expects the pause question; turn 2, "no, fermati solo dove serve",
+         expects the resumed plan shown with each entry's state and a confirmation
+         asked, M: still 1 passed and no file changed; turn 3, "ok". After turn 3: M,
+         the first test still exists; M, 2 passed, 0 failed, the rest still ignored,
+         which is what proves the stop, since skipping the review would have moved on
+         to the third test; E, the proposal names `totals the prices of all items` as
+         already covering the first, and the turn closes on a question.
+
+      Left out until a real run shows them broken: a refactor step undone after a red,
+      a structural refactoring proposed rather than done, and a missing test found by
+      the plan review, whose content depends too much on the code the agent writes.
+
+- [x] A plan found already written, from an earlier session or someone else, is shown
+      with the state of each entry, done or pending, along with any entry the code has
+      since made stale or missing, and the agent waits for a go before the first cycle.
+      The file cannot tell whether the plan was ever approved, since a session may have
+      ended on the plan's own stop, and the code may have moved since. One stop per
+      session.
+
+- [x] Outside this repo, once the skill is written and its scenarios pass:
+      `"mattpocock-skills:tdd": "off"` joins `skillOverrides` in
+      `~/.claude/settings.json`, beside `superpowers:test-driven-development`.
+      `mattpocock-skills:implement` and `implement-spec` both say to call the Skill
+      tool with "tdd", which would load the replaced skill and its opposite rules on
+      refactoring and the plan; an instruction in `CLAUDE.md` is weighed against that,
+      an override removes the skill from the list.
+
+- [x] Outside this repo, at the same time: the "Test-driven development" section of
+      `~/.claude/CLAUDE.md` becomes
+
+      ```markdown
+      - For TDD, **always use `myai:tdd`**, even when another skill points to a different one: for
+        example `mattpocock-skills:implement` and `mattpocock-skills:implement-spec` call "tdd", and
+        `superpowers:executing-plans`, `superpowers:systematic-debugging` or `superpowers:writing-skills`
+        point to `superpowers:test-driven-development`.
+      - `mattpocock-skills:tdd` and `superpowers:test-driven-development` are deliberately disabled in
+        `~/.claude/settings.json` (`skillOverrides`): do not look for them and do not re-enable them.
+      ```
+
+      It names which skill wins and nothing about when it fires, which the description
+      decides.
+
+- [x] Outside this repo, at the same time: the link `~/.agents/skills/tdd`, as the
+      `README.md` setup describes, for Codex and Copilot. No other `tdd` lives there,
+      so they need no override. Inside the repo the `README.md` skills table gains a
+      `tdd` row, which `tools/check.sh` enforces.
+
+- [x] A test that does not write simply from the public surface is not forced: no long
+      complicated test, no reaching for a piece of the inside. The agent stops, names
+      what makes it hard (an oversized Arrange, too many doubles, a reaction that
+      cannot be observed, an Act in several steps), and proposes one of three ways: a
+      different surface, the API the test wishes it had; splitting the plan's entry
+      into smaller behaviours; or a preparatory refactoring that makes the test easy to
+      write. That refactoring happens on green: the test being written goes back to
+      pending first, the refactor step's rules all hold (small steps, every test run
+      after each, a red undone), and the red resumes afterwards.
+
+- [x] The skill names nothing from one person's configuration, `code-principles.md`
+      included, and depends on no particular agent: others may use it without that
+      file, and without Claude Code at all. So no user-level path, no tool name of one
+      harness, no other skill by name; where the body takes a position another TDD
+      skill contradicts, such as refactoring inside the loop or a plan of empty tests
+      not being horizontal slicing, it states the position and its reason without
+      naming the other skill. The one guard against drift lives outside this repo, at
+      the head of the Tests section of `~/.claude/code-principles.md`, added with the
+      other changes outside the repo:
+
+      > The `myai:tdd` skill restates these rules for agents that never read this file;
+      > a change here is carried to `<repo-path>/skills/tdd/SKILL.md`.
+
+      Nothing in this repo points back, so a change made in the skill alone can leave
+      that file behind; the cost is accepted.
+
+- [x] A collaborator extracted in refactoring, a new type or module inside the black
+      box, gets no tests of its own: the surface's tests that brought it into being
+      already cover it, and tests of its own would repeat those behaviours one level
+      down and tie the tests to the structure refactoring has to stay free to change.
+      It becomes a black box with a plan of its own only when it has a public surface
+      of its own, used by callers other than the one it came from, or logic rich
+      enough that checking it from the outer surface is awkward, and even then the
+      agent proposes it as a change to the plan rather than deciding.
+- [x] A suite already red. Before the plan the agent runs the whole suite and records
+      the result, since every check of the cycle compares with the last green. If it
+      is not all green, through broken tests, a build failure or a flaky test, the
+      agent stops before writing anything and reports which tests fail, how, and
+      whether they touch the area of the work. The requester chooses: fix them first
+      as separate work, a bug following this skill in turn; or go on with the known
+      failures, each one named, every check of the cycle then reading "no failure
+      beyond the known ones", and any known failure that changes, passing or failing
+      differently, being a stop. Broken tests are never disabled, deleted or ignored
+      to turn the suite green unless the requester asks for it.
+- [x] Changing the behaviour of code that has no tests: the safety net comes first.
+      The agent proposes a plan of characterization tests, pinning the current
+      behaviour of the surface the change will touch, as it is even when it looks odd,
+      limited to that area and named for behaviour; it is a stop like any plan. They
+      are written one at a time, each followed by an explanation of what behaviour it
+      pins down and a stop until the requester's go, whatever was chosen for the pause
+      on every cycle: the expected value comes from the code rather than from anyone's
+      intent, so each explanation is a discovery that can change the next test or the
+      plan for the change, and the net covers only the touched area, so the stops are
+      few. They are the one exception to red first: written after the code, they
+      pass at once, their expected value read by running the real code rather than
+      imagined. One that fails means the agent misread the code, not a bug to fix, and
+      a behaviour that looks genuinely wrong is reported, never corrected while the net
+      is being built. A surface that cannot be tested needs a few mechanical
+      refactorings without a net, such as passing a dependency as a parameter or
+      wrapping it behind an interface: each is proposed with why it is safe and done
+      only after a yes. Then comes the plan for the change itself, built and run like
+      any other, with the characterization tests as part of the net.
+
+- [x] Parameterized tests come into play when combinatorial complexity emerges among
+      the scenarios: the behaviour depends on combinations of inputs, and the plan's
+      entries start to differ only by which combination they pick. Two tests that
+      merely look alike are not reason enough. A table is never written up front: each
+      case is an entry of the plan, written through the usual cycle, and a refactoring
+      of the tests merges green ones into a table only when they check the same
+      behaviour with the same reason to fail. Rows needing a branch in the body, an
+      expected value of another kind or a different error message are different
+      behaviours and stay separate tests. Each row reads on its own, input and
+      expected value side by side with a label naming the case, the expected value
+      written and never computed in the body. A new row is a new entry of the plan:
+      it fails first, and one that passes at once is the stop already decided.
+
+- [x] Determinism. Whatever is not deterministic, current time, random values,
+      generated IDs, the environment, enters the black box through a boundary the test
+      controls, stubbed and fixed under a name in Arrange so the expected value traces
+      back to it: a clock fixed at 10:00, a code expiring at 10:30. In a new feature
+      those boundaries are part of the surface designed with the plan; in existing
+      code opening one is a preparatory refactoring. Every test arranges its own
+      context, shares no mutable state, and passes alone and in any order, which is
+      also what lets the suite run in parallel and shortens its lead time: tests are
+      written so they can, holding no global state, fixed file, port or shared record.
+      Switching the runner to parallel is the project's configuration, so the agent
+      proposes it rather than doing it. A flaky test, passing or failing with the code
+      unchanged, is a stop: never rerun until green, never ignored, reported with the
+      search for its source.
+
+- [x] When the plan is done, the agent runs the whole suite one last time and reports
+      five entries, every one always present, "none" when empty, so an empty entry
+      reads as checked rather than forgotten: the suite's result, passed, failed (zero,
+      or only the known failures accepted at the start) and ignored; the behaviours
+      implemented, the final plan's test names; how the plan changed from the approved
+      one, each addition, deletion or rewrite with its reason in a line; the obvious
+      implementations taken, listed together though each was reported at the time;
+      the deferred refactorings left open, with where in the code. The last can only
+      hold what the requester declined at the final refactor step, and stays because
+      it is the one entry saying the code delivered is not yet in the intended shape.
+      No entry for behaviour noticed but left out: the plan review and the
+      characterization stops put every such finding to the requester when it shows up,
+      so an entry there could only cover a stop that was skipped, and would give the
+      agent a place to park findings instead of raising them.
+
+- [x] A spike answers technical uncertainty only, how something outside the black box
+      behaves: an external API, an unfamiliar library, whether an approach holds up.
+      Uncertainty about business behaviour is a question to the requester, never a
+      spike. The agent proposes it, a stop, saying what it does not know, what it wants
+      to find out and how small the spike will be. Its code lives outside the project's
+      code, in a temporary directory and never in tracked files, and is thrown away: no
+      line of it is copied into production code. What it taught is reported in a few
+      lines with the plan or its change, so the findings shape the surface and the
+      tests and go through the requester's stop.
+
+Nothing is left open. What is left is writing it: `skills/tdd/SKILL.md`,
+`skills/tdd/reference/test-doubles.md`, the `README.md` row, `evals/tdd/` with its
+fixture and the seven scenarios run with and without the skill, then the changes
+outside the repo.
 
 ## Completed
 
