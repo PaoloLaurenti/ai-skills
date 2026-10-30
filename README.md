@@ -9,6 +9,7 @@ the configuration directories of the individual tools.
 | --- | --- |
 | [`guided-pr-review`](skills/guided-pr-review/SKILL.md) | How to take a reviewer through a pull request before they review it: one concept per turn at the level they pick, each finding proposed as a comment that is collected only after a yes to that comment, the pending review created once at the end, and nothing published. |
 | [`pr-review-walkthrough`](skills/pr-review-walkthrough/SKILL.md) | How to take the author of a pull request through the review comments left on it: one comment per turn, an opinion verified against the code, a reply for each, and nothing published before an explicit yes at the end. |
+| [`tdd`](skills/tdd/SKILL.md) | How to develop production code test-first: a plan of pending tests the requester approves, one red-green-refactor cycle at a time against the public surface, dumb tests whose expected values trace back to Arrange, and a stop wherever a decision about the design belongs to the requester. |
 | [`writing-pr-reviews`](skills/writing-pr-reviews/SKILL.md) | How pull request reviews should be written and delivered: where the findings come from, pending state, tone, shape of the general comment, permalinks, code suggestions. |
 
 ## How it is wired to Claude Code

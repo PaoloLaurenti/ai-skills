@@ -362,7 +362,9 @@ Decided:
       replace only boundaries the project owns and keep real domain and value objects;
       a dummy proves nothing, so a call that must not happen is checked with a spy that
       received none; a spy is the usual choice for outgoing commands, a mock only when
-      the exact protocol of calls is the behaviour under test; a double is named after
+      the exact protocol of calls is the behaviour under test; a fake when a working
+      lightweight implementation reads better than a pile of stubbed answers; a double
+      is named after
       its kind, with the `Double` suffix when it plays more than one role. The usage
       rules stay in the body; the definitions and naming conventions go to
       `reference/test-doubles.md`.
@@ -417,9 +419,7 @@ Decided:
       function. It runs the tests and reads the output: the new test fails on its
       assertion, for the expected reason, with a message that says what is missing,
       and every other test stays green. An unclear message is fixed before moving on.
-      A new test that passes at once stops the cycle: the behaviour already exists or
-      the test does not check what its name says, and the agent proposes deleting or
-      rewriting it, which is a change to the plan.
+      A new test that passes at once was revised after the first draft, see below.
 - [x] The green step. The least production code that makes this test pass, sins
       allowed: hardcoded values, duplication, specific branches, provisional names.
       Nothing for behaviour that belongs to a later pending test, even when the agent
@@ -428,7 +428,7 @@ Decided:
       the duplication between test data and code is removed. The obvious
       implementation is allowed when it is as short as the hardcoded one and covers no
       behaviour named by a pending test, and the agent says so to the requester each
-      time it takes it, since a pending test has an empty body and cannot be run to
+      time it takes it, naming the pending tests it checked it against, since a pending test has an empty body and cannot be run to
       prove the implementation stayed narrow. All tests run: the new one green, every
       other one still green. An old test turning red is fixed in production code; a
       change to a test already green is a change to the plan. Green that does not come
@@ -522,6 +522,8 @@ Decided:
       because every clone already has the toolchain `tools/skill-check` needs, pinned
       by `.tool-versions`, and because `cargo test` counts passed, failed and ignored
       tests, so the state of the plan is graded by command rather than judgement.
+      The crate ignores `target/`, since the skill runs the suite before any plan and
+      scenario 1's clean `git status` must read only what the agent changed.
 
 - [x] The scenarios under `evals/tdd/`, each also run without the skill so the value
       of its rule is seen rather than assumed. M marks an assertion graded by command,
@@ -671,7 +673,7 @@ Decided:
       behaviours and stay separate tests. Each row reads on its own, input and
       expected value side by side with a label naming the case, the expected value
       written and never computed in the body. A new row is a new entry of the plan:
-      it fails first, and one that passes at once is the stop already decided.
+      it fails first, and one that passes at once is verified by a targeted break.
 
 - [x] Determinism. Whatever is not deterministic, current time, random values,
       generated IDs, the environment, enters the black box through a boundary the test
@@ -712,7 +714,97 @@ Decided:
       lines with the plan or its change, so the findings shape the surface and the
       tests and go through the requester's stop.
 
-Nothing is left open. What is left is writing it: `skills/tdd/SKILL.md`,
+- [x] After the first draft, the naming conventions of test doubles moved from
+      `reference/test-doubles.md` into the body: they are rules, and `AGENTS.md` keeps
+      rules in the body. The reference file keeps the definitions of each kind.
+
+- [x] A new test that passes at once has never been seen failing, so the agent proves
+      it can: the smallest break of production code that makes exactly the named
+      behaviour wrong, never a broad one that fails it for another reason; the test
+      run, failing on its assertion with a clear message; the break undone and every
+      test green again; the requester told, without a stop. A test another one already
+      covers is then proposed for deletion in the plan review like any redundancy. A
+      targeted break that does not make it fail means the test does not check what its
+      name says, and that is the stop, with a rewrite proposed. A bug's test is the
+      exception: passing means the bug is not reproduced, since the reported behaviour
+      is itself the break. Degenerate cases, often green before any code, are the usual
+      case this covers.
+- [x] Characterization tests get the same targeted break, since they too pass without
+      ever being seen failing, and a net green by mistake has its hole exactly where the
+      work will happen. The outcome goes into the explanation that already follows each
+      one, before its stop. On legacy code the break also checks where the behaviour
+      lives: a break that does not make the test fail means it lives elsewhere, or the
+      test checks something else.
+
+- [x] Uncle Bob's three rules of TDD sit word for word among the non-negotiables. They
+      govern code that adds behaviour; refactoring on green adds none and follows its
+      own rules, preparatory refactoring and seams in untested code included, as the
+      slides themselves remark ("what about refactoring???"). "Sufficient to fail" is
+      read at the level of one test, one behaviour and no assertion beyond what it
+      needs, written whole so wishful thinking can shape it, rather than as
+      micro-steps stopping at the first line that does not compile: the compilation
+      failure is the first red, run and seen, and only the code making it compile
+      follows.
+
+- [x] Patterns from Kent Beck's *Test-Driven Development: By Example* are named where
+      they already live, since a name the model knows recruits a whole behaviour in one
+      word: Test List, Fake It, Obvious Implementation, Triangulate, Evident Data,
+      Isolated Test, Child Test, Another Test, Regression Test. Four are added: Assert
+      First in the red step, One Step Test in the plan's order, One to Many for a
+      behaviour over a collection, and Do Over among the ways out of a hard green.
+      Left out: Starter Test, which is the trivial first test the plan's order puts
+      last; Broken Test, since the state is read from the pending tests; Learning Test,
+      tests outside the black box whose job the spike does; Break and Cheap Desk, Nice
+      Chair, which concern a person rather than an agent.
+
+- [x] The Transformation Priority Premise. At every green the agent takes the highest
+      transformation that is enough, the list living in
+      `reference/transformations.md` as a table to consult. A test that cannot go green
+      through a high transformation is a hard green, whose stop gains one more way out:
+      bringing forward a test that needs a simpler one, a change to the plan. The plan
+      review checks the direction, code turning more generic as tests turn more
+      specific: a branch or constant matching one test's data beside another of the
+      same shape is code mirroring the tests. The first Fake It is specific by choice;
+      past it, the first mirror is a stop saying the road is likely wrong, with a
+      reorder, a Do Over or a different surface proposed.
+
+- [x] Dummies, stubs and fakes support a test and are never what it verifies. Assert
+      reads the returned value, state read back through the box's public surface, or
+      the calls a spy recorded or a mock verifies, never the inside of a fake: a
+      booking saved into an in-memory repository is checked by finding it through the
+      box. A surface with no way to read it back is a test that does not write simply,
+      with its stop.
+
+- [x] Every double is named after the boundary it replaces with the `Double` suffix,
+      whatever its kind: `ClockDouble`, `NotifierDouble`, `BookingRepositoryDouble`.
+      Each constructor names its role opening with the kind, `stubFixedAt(10:00)`,
+      `spy()`, `fakeInMemory()`, `dummy()`, so the kind shows on the line that builds
+      the double and one double serves several roles without a rename; the variable
+      takes the concept's name, `clock`, `notifier`. This replaces naming by kind,
+      `stubClock` or `InMemoryBookingRepository`, which `~/.claude/code-principles.md`
+      used to prescribe; that file was aligned at the same time, along with the rule
+      that dummies, stubs and fakes are never what a test verifies.
+
+- [x] The description drops its Italian phrasings for now, against the rule in
+      `AGENTS.md` that asks for both languages, as a measured exception rather than a
+      change of that rule: the agent reads the description and understands Italian,
+      and the main condition, production code that adds or alters behaviour, covers an
+      Italian request without a phrase of its own. Scenario 1, whose prompt is in
+      Italian and names no TDD, is run with and without them; the phrasings come back
+      if the skill fails to fire without them. The current phrasings: "red-green-
+      refactor", "let's TDD this", "test-first", "write the test first", "drive this
+      with tests", "reproduce the bug with a failing test before fixing it". The ones
+      removed: "facciamo TDD", "sviluppiamolo in TDD", "partiamo dai test", "scrivi
+      prima il test", "fixa il bug partendo da un test che fallisce", "implementa
+      questa funzionalità".
+- [ ] Scenario 1 with and without the Italian phrasings, deciding the item above.
+- [x] To stay under the 500-line limit after this round, passages were shortened
+      without dropping a rule: the opening, the reading of the three rules, the spike,
+      the verification of a test that passes at once, and the bug that does not
+      reproduce. The body stands at 499 lines, so anything added from here needs an
+      equal cut or a move to `reference/`.
+
+What is left after these is writing it: `skills/tdd/SKILL.md`,
 `skills/tdd/reference/test-doubles.md`, the `README.md` row, `evals/tdd/` with its
 fixture and the seven scenarios run with and without the skill, then the changes
 outside the repo.
