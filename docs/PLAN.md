@@ -797,12 +797,24 @@ Decided:
       removed: "facciamo TDD", "sviluppiamolo in TDD", "partiamo dai test", "scrivi
       prima il test", "fixa il bug partendo da un test che fallisce", "implementa
       questa funzionalità".
-- [ ] Scenario 1 with and without the Italian phrasings, deciding the item above.
+- [x] Scenario 1 settled it: on "implementa lo sconto con codice promozionale sul
+      carrello descritto in FEATURE.md", naming no TDD, the skill loaded with English
+      phrasings only. The phrasings stay out, and `AGENTS.md` now allows English-only
+      phrasings for a skill whose main condition covers any language, once a scenario
+      shows it.
 - [x] To stay under the 500-line limit after this round, passages were shortened
       without dropping a rule: the opening, the reading of the three rules, the spike,
       the verification of a test that passes at once, and the bug that does not
       reproduce. The body stands at 499 lines, so anything added from here needs an
       equal cut or a move to `reference/`.
+
+- [ ] `skillOverrides` does not disable a plugin skill: the Claude Code docs say "Plugin
+      skills are not affected by `skillOverrides`. Manage those through `/plugin`
+      instead." The baselines of `evals/tdd/` loaded `superpowers:test-driven-development`
+      and `mattpocock-skills:tdd` with both set to `"off"`, so the line in
+      `~/.claude/CLAUDE.md` calling them disabled is false. A per-skill deny rule,
+      `Skill(name)` in permissions, is documented for skills in general and untested on
+      a namespaced plugin skill.
 
 What is left after these is writing it: `skills/tdd/SKILL.md`,
 `skills/tdd/reference/test-doubles.md`, the `README.md` row, `evals/tdd/` with its
