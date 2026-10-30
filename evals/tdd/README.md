@@ -46,6 +46,11 @@ and the crate's path at the end. A state file holds `src_changed`, `tests_change
 re-enabling it from a trap. **Never run a baseline while a run with the skill is going**:
 disabling the plugin is machine-wide, so the other run would lose the skill halfway.
 
+**The recorded baselines loaded another TDD skill**, `superpowers:test-driven-development`
+or `mattpocock-skills:tdd`, which the settings then marked `off` to no effect. Both are
+now denied by permission rules, so a baseline run from here on works with no TDD skill
+at all, and may come out worse than the recorded ones.
+
 The tool list allows editing files, `cargo`, and `git` in full: whether a run commits on
 its own is one of the things graded, so the tool list must not prevent it.
 

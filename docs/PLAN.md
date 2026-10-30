@@ -808,13 +808,20 @@ Decided:
       reproduce. The body stands at 499 lines, so anything added from here needs an
       equal cut or a move to `reference/`.
 
-- [ ] `skillOverrides` does not disable a plugin skill: the Claude Code docs say "Plugin
+- [x] The changes outside this repo were applied on 2026-10-30, once the scenarios had
+      passed: the TDD section of `~/.claude/CLAUDE.md`, the link `~/.agents/skills/tdd`,
+      and the line at the head of the Tests section of `~/.claude/code-principles.md`.
+      The two other TDD skills are denied rather than overridden, as the next entry
+      explains.
+- [x] `skillOverrides` does not disable a plugin skill: the Claude Code docs say "Plugin
       skills are not affected by `skillOverrides`. Manage those through `/plugin`
       instead." The baselines of `evals/tdd/` loaded `superpowers:test-driven-development`
-      and `mattpocock-skills:tdd` with both set to `"off"`, so the line in
-      `~/.claude/CLAUDE.md` calling them disabled is false. A per-skill deny rule,
-      `Skill(name)` in permissions, is documented for skills in general and untested on
-      a namespaced plugin skill.
+      and `mattpocock-skills:tdd` with both set to `"off"`. A deny rule does reach a
+      namespaced plugin skill, tested headless: with `Skill(mattpocock-skills:tdd)` and
+      `Skill(superpowers:test-driven-development)` in `permissions.deny`, both answer
+      "Skill execution blocked by permission rules" while `myai:tdd` still launches. So
+      `~/.claude/settings.json` now denies the two, its `skillOverrides` is gone, and
+      the line in `~/.claude/CLAUDE.md` names the deny rule instead.
 
 What is left after these is writing it: `skills/tdd/SKILL.md`,
 `skills/tdd/reference/test-doubles.md`, the `README.md` row, `evals/tdd/` with its
