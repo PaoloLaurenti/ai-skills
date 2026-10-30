@@ -6,12 +6,11 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open: the move to `claude plugin eval`, blocked on Anthropic rather
-than on this repo, and the `tdd` skill, being designed in entry 7.
+One thing is open, and it is blocked on Anthropic rather than on this repo.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
-the loader in both languages, the skill body sits under the 500-line limit, and
+the loader in both languages (`tdd` in English only, as its entry explains), the skill body sits under the 500-line limit, and
 the Red flags section gives the skill its self-check list. That second item was
 recorded here as fine while it was not, which the entry on the truncated
 description below explains.
@@ -320,7 +319,11 @@ and grading what follows needs an answer to it.
       the two-point branch, where the fifth turn must change nothing, is still
       unexercised.
 
-## 7. Add the `tdd` skill
+## Completed
+
+**Add the `tdd` skill, designed in an interview and measured against a baseline.** The
+skill, its two reference files and `evals/tdd/` were written from the decisions below,
+and the seven scenarios passed with the skill where five failed without it.
 
 A skill teaching an agent the practice of test-driven development as it is done here,
 not as a generic red-green loop. Two sources: the slides of the "TDD & Hexagonal
@@ -827,8 +830,6 @@ What is left after these is writing it: `skills/tdd/SKILL.md`,
 `skills/tdd/reference/test-doubles.md`, the `README.md` row, `evals/tdd/` with its
 fixture and the seven scenarios run with and without the skill, then the changes
 outside the repo.
-
-## Completed
 
 **Close the dispatch gap, and give the suite the assertion that would have caught it.**
 Five of seven runs had dispatched a reviewer subagent. After the amendment, seven of
