@@ -12,60 +12,52 @@ the configuration directories of the individual tools.
 | [`developing-with-tdd`](skills/developing-with-tdd/SKILL.md) | Developing code with Test-Driven Development, the tests driving the design. The agent first proposes the list of behaviours to test and waits for your approval, then builds them one at a time: a failing test, the least code that makes it pass, a refactoring. It stops and asks whenever a decision about the design is yours. | "let's TDD this", or any request to add or change a feature or fix a bug |
 | [`reviewing-pull-requests`](skills/reviewing-pull-requests/SKILL.md) | **The agent** reviews a pull request for you. It looks for problems, writes short comments with links to the code and suggested fixes, and leaves the review on GitHub as a draft for you to publish; you can also go through its findings one at a time first. It also follows up once the author has replied. | "review PR 16" |
 
-## How it is wired to Claude Code
+## Installing
 
-This repo is a Claude Code plugin named `myai`, declared by
-[`.claude-plugin/plugin.json`](.claude-plugin/plugin.json). A single symlink puts
-the whole repo under `~/.claude/skills/`, where Claude Code discovers any folder
-carrying a plugin manifest and loads it as `myai@skills-dir`. No marketplace and
-no install step are involved, and the plugin is read in place rather than copied
-into a cache, so the repo working tree stays the only copy of every file: editing
-a skill during a session edits the repo directly, and all that remains is
-committing it.
-
-```
-<repo-path>/            the real directory, holding .claude-plugin/plugin.json
-~/.claude/skills/myai   symlink to the above
+```bash
+npx skills add https://github.com/PaoloLaurenti/ai-skills -g
 ```
 
-`<repo-path>` is wherever this repo is checked out. It has to be spelled out in
-full when creating the symlink, because the link gets resolved from
-`~/.claude/skills/` and not from this repo.
+[`npx skills`](https://skills.sh/) asks which agents to install into, Claude Code,
+Codex, GitHub Copilot and many others, and `-g` makes the skills available in every
+project rather than the current one. Installed this way each skill carries its bare
+name, `reviewing-pull-requests`.
 
-Every skill is then invoked under the plugin namespace, so
-`skills/reviewing-pull-requests/` becomes `/myai:reviewing-pull-requests`. The namespace is
-what makes these skills recognisable in a list alongside skills from other
-sources.
+## Updating
 
-## Setting up a new machine
+```bash
+npx skills check     # says whether any installed skill has an update
+npx skills update    # installs them
+```
 
-Clone the repo, then link it once:
+An update is whatever reaches the `main` branch here. The CLI sends no notification, so
+to hear about one, watch this repository on GitHub with "Watch, Custom, Releases": every
+release says what changed for whoever uses the skills.
+
+## Developing the skills
+
+Whoever edits the skills works on a clone, linked into the places agents read skills
+from rather than installed, so the working tree stays the only copy of every file: a
+skill edited during a session is the skill the next prompt uses, and all that remains
+is committing it.
 
 ```bash
 git clone git@github.com:PaoloLaurenti/ai-skills.git <repo-path>
-ln -s <repo-path> ~/.claude/skills/myai
-git config core.hooksPath .githooks
+<repo-path>/tools/link-skills.sh
 ```
 
-The plugin loads on the next session. `claude plugin list` shows it under
-"Skills-directory plugins", and `claude plugin validate <repo-path>` checks the
-manifest.
+`tools/link-skills.sh` makes what is missing and repairs what is stale, so it is run
+again after a skill is added or renamed. It links the whole repo as
+`~/.claude/skills/myai`, where Claude Code loads it as the plugin `myai`, declared by
+[`.claude-plugin/plugin.json`](.claude-plugin/plugin.json), and invokes each skill as
+`/myai:<skill>`. It links each skill into `~/.agents/skills/` for Codex and GitHub
+Copilot, which read skills one directory each, under their bare names. It removes a
+link there left by a renamed skill, and leaves alone every link and directory that
+belongs to something else. And it points git at `.githooks/`, so a commit runs
+`tools/check.sh` first.
 
-The last line makes a commit run `tools/check.sh` first: formatting, lints and the
-checks over every skill. `.git/hooks` is not versioned, so each clone has to point
-at `.githooks/` itself.
-
-Codex and GitHub Copilot know nothing of Claude Code plugins. They read skills from
-`~/.agents/skills/`, one directory each, so every skill gets a link of its own there:
-
-```bash
-for skill in <repo-path>/skills/*/; do ln -s "${skill%/}" ~/.agents/skills/; done
-```
-
-A link rather than a copy keeps the repo the only copy there too. Those agents see each
-skill under its bare name, `reviewing-pull-requests` rather than
-`myai:reviewing-pull-requests`. Nothing is linked into `~/.claude/skills/`, where the
-plugin already loads every skill and a second link would list each one twice.
+`claude plugin list` shows the plugin under "Skills-directory plugins", and
+`claude plugin validate <repo-path>` checks its manifest.
 
 ## Adding a skill
 
@@ -74,15 +66,33 @@ mkdir -p skills/<name>
 $EDITOR skills/<name>/SKILL.md
 ```
 
-No symlink work for Claude Code: the plugin already covers every skill under `skills/`.
-For Codex and GitHub Copilot the new skill needs its link in `~/.agents/skills/`, as in
-the setup above.
+Then run `tools/link-skills.sh`, which gives the new skill its link for Codex and GitHub
+Copilot; Claude Code already loads every skill under `skills/` through the plugin.
 
 The frontmatter requires `name` and `description`, and `name` has to match the
 directory name, since for a plugin skill it supplies the last segment of the
 command. The `description` decides when the skill gets loaded, so it describes the
 activation conditions only and not the procedure: if it summarises the workflow,
 the agent tends to follow the summary instead of reading the body.
+
+The skill also needs a row in the table at the top of this file, which `tools/check.sh`
+enforces, and its scenarios under `evals/<name>/`, run before the skill is offered for
+review, as the next section explains.
+
+## Evaluations
+
+`tools/check.sh` checks the shape of a skill, never whether its rules hold. That is what
+`evals/<name>/` is for: one file per scenario, each giving a prompt, the rule it puts
+under pressure, and the outcome expected, checked by command wherever possible.
+
+Every scenario is run twice, once with the skill and once without it, as a baseline: a
+rule that the agent follows anyway adds nothing, and only the pair shows the difference
+the skill makes. The results of both runs are recorded in the scenario file, with
+quotes from the transcripts.
+
+A run costs model calls, and most suites drive a fixture repo on GitHub, so the scenarios
+stay out of `tools/check.sh` and the hook: whoever changes a skill runs them. Each
+`evals/<name>/README.md` holds the fixture, the commands and how a run is graded.
 
 All content in this repo is written in English, and stays free of personal names
 and machine-local paths. See [`AGENTS.md`](AGENTS.md).

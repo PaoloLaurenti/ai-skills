@@ -364,6 +364,60 @@ Decided:
       untouched by a name. All four passed on 2026-10-30, each skill loading under its new
       name, and the walking-through skill loading the reviewing one in turn.
 
+## 8. Make the skills installable by others, and release them
+
+Today the `README.md` explains one way to get the skills, the one for whoever develops
+them: a clone and symlinks. Someone who only wants to use them needs one command.
+
+Decided:
+
+- [x] Others install with `npx skills add <owner>/ai-skills`, the Vercel skills
+      CLI, which reaches Claude Code, Codex, Copilot and many other agents. The owner
+      keeps the symlinks, the only setup where the working tree stays the single copy.
+- [x] Updates come from the default branch: the CLI records the git tree SHA of each
+      skill folder (`skillFolderHash` in `~/.agents/.skill-lock.json`, checked against
+      `vercel-labs/skills`) and `npx skills update` compares it with `main`. So `main`
+      is the distribution channel, and only finished, checked work reaches it.
+- [x] The CLI sends no notification, so the `README.md` tells users to run
+      `npx skills check` and `npx skills update`, and GitHub releases carry the news:
+      "Watch, Custom, Releases" notifies on a release, never on a commit. A release is
+      for telling people, not for `npx skills`, which reads `main` regardless.
+- [x] The merge of the current work into `main` is release 1.0.0.
+
+- [x] Versions follow the rules now written in `AGENTS.md`, "Releasing": one version
+      for the whole repo, in `.claude-plugin/plugin.json` alone, a tag on the merge
+      commit, notes in the GitHub release body rather than a second copy in a changelog.
+
+- [x] `tools/link-skills.sh` makes and repairs the owner's links, safe to rerun: the
+      `myai` link for Claude Code, one link per skill in `~/.agents/skills/`, the stale
+      ones a rename leaves removed, `core.hooksPath` set. It never touches a link
+      pointing elsewhere or a real directory, since skills from other sources live there,
+      and reports those as conflicts with a non-zero exit. Checked with `HOME` set to a
+      temporary directory: an empty machine, an aligned one, a stale link beside a
+      foreign link and a foreign directory, and a `myai` link to another checkout.
+
+- [x] `npx skills add` reads this repo as it is, checked on 2026-10-30 against the pushed
+      branch through its `tree/<branch>` URL, in a temporary project directory: "Found 4
+      skills", each copied to `./.agents/skills/<name>` for Codex, Copilot and the other
+      universal agents, and symlinked for Claude Code. Run from inside an agent session
+      it installs without asking. Installed this way a skill carries its bare name, with
+      no `myai:` namespace.
+
+- [x] A reference by namespace inside a skill body broke outside the plugin:
+      `walking-through-and-reviewing-pull-requests` said to load
+      `myai:reviewing-pull-requests`, a name Codex, Copilot and an `npx skills` install
+      do not have. It now names the bare skill with the plugin form beside it, `AGENTS.md`
+      states the rule, and scenario 01 passed again under the plugin.
+
+- [x] The `README.md` sections: Installing, with `npx skills add` and the repo's URL;
+      Updating, with `npx skills check` and `update` and the watch on releases;
+      Developing the skills, with the clone and `tools/link-skills.sh` replacing the old
+      wiring and setup sections. The install command names the owner through the
+      repo's GitHub URL, the same address the clone URL carries, so the exception in
+      `AGENTS.md` now covers the repo's URL in both commands; the check already allowed
+      any README line holding `github.com`, and a named test now states the install
+      command case, seen failing under a check narrowed to `git@github.com`.
+
 ## Completed
 
 **Add the `tdd` skill, designed in an interview and measured against a baseline.** The

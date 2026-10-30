@@ -163,6 +163,26 @@ fn the_owner_name_in_the_clone_url_is_left_alone() {
     assert_eq!(problems(&repo), vec![]);
 }
 
+/// The install command takes the same address as the clone URL, so it names the
+/// owner by the same right.
+#[test]
+fn the_owner_name_in_the_install_command_is_left_alone() {
+    let repo = repo();
+    let readme = fs::read_to_string(repo.path().join("README.md")).expect("the fixture README");
+    write(
+        repo.path(),
+        "README.md",
+        &format!(
+            "{readme}
+```bash
+npx skills add https://github.com/AdaLovelace/repo -g
+```
+"
+        ),
+    );
+    assert_eq!(problems(&repo), vec![]);
+}
+
 /// The name comes out of `LICENSE`, so a `LICENSE` that names nobody leaves the
 /// check with nothing to look for. That has to be reported rather than pass.
 #[test]

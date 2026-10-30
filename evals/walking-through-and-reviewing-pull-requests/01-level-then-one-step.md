@@ -99,3 +99,10 @@ turn 3 step 2/7. Nothing was collected, added or published.
 in turn, the cross-reference the rename could have broken, then dispatched the reviewer.
 Turn 1 asked for the level with a closed menu, turn 2 was step 1 of 7 with the route,
 turn 3 step 2 of 7. Nothing was added or published in any turn.
+
+## Result, after naming the sub-skill by its bare name: Opus 5.5, 2026-10-30
+
+**Passed.** Non-negotiable 5 now names `reviewing-pull-requests`, with the plugin form
+beside it. Under the plugin the run still loaded `myai:reviewing-pull-requests`, then
+dispatched the reviewer. Turn 1 asked for the level, turn 2 was step 1 of 7, turn 3 step
+2 of 7, and the fixture's state was the same after every turn as before the first.

@@ -40,8 +40,9 @@ exactly the reading the requester asked for.
 4. **The code is read, never changed.** Read it, run it to check a claim, and leave it as
    it is: no edit, no commit, no push, even where the fix is obvious and small. The
    requester is reviewing someone's change, not taking it over.
-5. **Every comment follows `myai:reviewing-pull-requests`.** **REQUIRED SUB-SKILL:** load it
-   before the first step. It decides where the findings come from, how each comment is
+5. **Every comment follows the `reviewing-pull-requests` skill**, named
+   `myai:reviewing-pull-requests` where this repo is loaded as a Claude Code plugin.
+   **REQUIRED SUB-SKILL:** load it before the first step. It decides where the findings come from, how each comment is
    written, how it is anchored, and how the review reaches GitHub. This skill does not
    restate those rules, and where the two seem to disagree, that skill wins on the
    comment and this one on the conversation.
