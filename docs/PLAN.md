@@ -6,8 +6,7 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open: the move to `claude plugin eval`, blocked on Anthropic rather
-than on this repo, and entry 9, the README for a first-time reader.
+One thing is open, and it is blocked on Anthropic rather than on this repo.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -320,52 +319,95 @@ and grading what follows needs an answer to it.
       the two-point branch, where the fifth turn must change nothing, is still
       unexercised.
 
-## 7. Rename the skills to one scheme
+## Completed
 
-The four names follow four shapes, `writing-pr-reviews`, `guided-pr-review`,
-`pr-review-walkthrough`, `tdd`, and two of them do not say what the skill is for. A
-reader of the `README.md` could not tell `guided-pr-review` from `writing-pr-reviews`.
+**Make the README readable by a first-time reader, read twice by an agent that knew
+nothing of the repo.**
 
-Decided:
+An agent that knew nothing of the repo read `README.md` alone, as a developer landing on
+GitHub would, and reported what stopped it. Ranked from the one that stops a newcomer
+most:
 
-- [x] One scheme: a gerund and its object, the form Anthropic's skill guidance
-      recommends and the one this repo adopted when it named `writing-pr-reviews`, so a
-      name alone says what the skill does. The `myai:` namespace already groups them.
-- [x] "pull-requests" written out in every name: a name is there to be understood, and
-      the triggers in each description keep "PR".
-- [x] `writing-pr-reviews` becomes `reviewing-pull-requests`: the skill does the whole
-      review, finding the problems and following up, not only the writing.
+- [x] the opening says neither what the repo offers nor to whom, never says what an agent
+      skill is, and names the supported agents only halfway through Installing. Now two
+      paragraphs: what the skills are for, what a skill is, which agents, how one is
+      triggered, and that each asks before a step that is the user's to decide.
+- [x] no requirements: Node for `npx`, and `gh` authenticated for the three skills that
+      act on GitHub. Now a Requirements section, which also names superpowers: the PR
+      skills load `requesting-code-review` and `receiving-code-review` from it.
+- [x] the PR skills named those two as `superpowers:requesting-code-review` and
+      `superpowers:receiving-code-review`, a namespace that exists only where
+      superpowers is a Claude Code plugin, the same break the `myai:` reference had.
+      Now "superpowers' `requesting-code-review`", bare with its source, a form short
+      enough to keep `reviewing-pull-requests` within its 500 lines; `AGENTS.md`
+      extends the bare-name rule to skills from other sources.
+- [x] the TDD skill's trigger, "any request to add or change a feature", reads as taking
+      over all coding, while the skill asks before doing anything. The table now says it
+      offers itself on such a request and does nothing until accepted.
+- [x] the skills depend on each other, the walking-through one loading the reviewing one,
+      and nothing says so where it matters, at install time. Installing now says so, and
+      Requirements names superpowers and `gh`.
+- [x] the update model reads as contradictory: an update is whatever reaches `main`, yet
+      releases are what notify; nothing says every merge into `main` is a release. Now a
+      merge that changes `skills/` is always a release, at least a patch, written in
+      `AGENTS.md`, and the README says every change to a skill arrives as one.
+- [x] no Uninstalling, License or "how a skill is triggered": the opening now says how a
+      skill is triggered, Uninstalling gives `npx skills remove -g`, interactive and
+      global as the CLI's `docs/commands.md` documents it, and License closes the README
+- [x] no Contributing: outside pull requests are welcome, the owner decided. The section
+      points to `AGENTS.md` and lists the four rules a first change meets, and takes in
+      the closing line on English and personal names that sat under Evaluations
+- [x] users and developers are separated by headings only; the developer clone uses SSH,
+      which fails without keys; an `npx skills add -g` install and `tools/link-skills.sh`
+      both write `~/.agents/skills/`, and the script reports the other's entries as
+      conflicts. Now two groups, "Using the skills" and "Developing the skills",
+      the clone over HTTPS, and Setting up says to remove an `npx skills` install first.
+- [x] terms only the author knows: "bare name", `myai` before it is introduced,
+      `<repo-path>`, "Skills-directory plugins", "the hook", "fixture repo", "offered
+      for review". Each rewritten in plain words, and "bare name" dropped from the users'
+      part, where it served nobody
+- [x] ordering: the closing line on English and personal names sits under Evaluations;
+      "Adding a skill" never says where its commands run from. The closing line moved
+      into Contributing, and Adding a skill opens with "From the root of your clone" and
+      runs `tools/link-skills.sh` in its block. The denser first row of the table stays:
+      it is what tells the two review skills apart
 
-- [x] `guided-pr-review` becomes `walking-through-and-reviewing-pull-requests`: the
-      name carries both halves of the job, the step-by-step explanation and the review
-      it produces. "Explaining" alone lost the review, and "pair" put the accent on the
-      pairing rather than on the two activities.
+A second reader, after the rewrite, found the opening and the split between users and
+developers clear, and raised these, ranked the same way:
 
-- [x] `pr-review-walkthrough` becomes `addressing-pull-request-reviews`: the author goes
-      through a review received, and the skill handles each comment to the end, the reply
-      and the change to the code alike, which "addressing" covers and "answering" does
-      not. "Walking through" is left to the skill above, so the two are not confused
-      again.
+- [x] superpowers is a hard requirement given only as a link, with no command. The
+      README now points at superpowers' own installation guide, which covers each agent:
+      the owner chose to leave its commands to its official documentation
+- [x] nothing says how a skill installed with `npx skills` is called, with no prefix.
+      Installing now says a skill is used by asking in plain words, and called by name
+      with no prefix, `/reviewing-pull-requests` in Claude Code; the syntax of the other
+      agents is left out, unverified
+- [x] the table still reads as internal or vague in places: the TDD skill "offers
+      itself", "written and delivered by the rules of `reviewing-pull-requests`, which it
+      loads", the one-at-a-time walk and the follow-up with no way to ask for them, the
+      two review rows told apart by bold type alone. Rewritten: each row opens
+      with when to use it, the two review rows "When you want the agent to review" and
+      "When you have to review", an example for the one-at-a-time walk and the follow-up,
+      what the TDD skill does on a request that does not name TDD, and the reviewing
+      skill first since the walking-through one builds on it
+- [x] install details: how to pick a subset, whether `check` and `update` need `-g`,
+      "work the same either way", no minimum Node version. From the CLI's
+      `package.json` and `docs/commands.md`: Node 22.20 or later, `--skill` to pick,
+      `update -g` for global installs, and the ambiguous phrase spelled out
+- [x] the dependency is said twice, in the table and under Installing. Now only under
+      Installing
+- [x] missing for users: what the agent may post or change on GitHub, whether plain
+      words work in other languages, which agents were tried, troubleshooting. Now "What
+      they do on your behalf", each fact taken from a skill's non-negotiables; no
+      troubleshooting, since no known problem exists to describe
+- [x] how a version bump in `plugin.json` turns into a tag and a release is unclear;
+      the clone URL names the owner while Contributing says nothing names a person;
+      Adding a skill gives no `SKILL.md` template. Contributing now says
+      the maintainer tags and releases after the merge, names the repo's URL as the one
+      exception, and Adding a skill shows the shape a `SKILL.md` starts from
 
-- [x] `tdd` becomes `developing-with-tdd`: the one name outside the scheme would have
-      been the one breaking the uniformity sought. "TDD" stays abbreviated, unlike "pr":
-      it is the name the practice goes by everywhere, Kent Beck's book included, so the
-      abbreviation is the clearest form rather than a shortcut.
-
-- [x] The rename itself, in one change: the skill and eval directories moved, the `name`
-      fields, the headings, the cross-references between skills, `README.md`,
-      `AGENTS.md`, the eval READMEs, scenarios and scripts. The recorded results inside
-      the scenario files keep the names of their day, since they quote what the runs
-      did then, and so do the entries under Completed here; the fixture repos on GitHub
-      keep their names, since renaming them means rebuilding them. Outside this repo:
-      the links in `~/.agents/skills/`, the two places in `~/.claude/CLAUDE.md` naming
-      skills, and the reminder in `~/.claude/code-principles.md`.
-
-- [x] One scenario per skill rerun with the skill, the first of each, baselines being
-      untouched by a name. All four passed on 2026-10-30, each skill loading under its new
-      name, and the walking-through skill loading the reviewing one in turn.
-
-## 8. Make the skills installable by others, and release them
+**Make the skills installable by others with `npx skills`, and release them from
+`main`.**
 
 Today the `README.md` explains one way to get the skills, the one for whoever develops
 them: a clone and symlinks. Someone who only wants to use them needs one command.
@@ -419,57 +461,50 @@ Decided:
       any README line holding `github.com`, and a named test now states the install
       command case, seen failing under a check narrowed to `git@github.com`.
 
-## 9. Make the README readable by a first-time reader
+**Rename the skills to one gerund-and-object scheme.**
 
-An agent that knew nothing of the repo read `README.md` alone, as a developer landing on
-GitHub would, and reported what stopped it. Ranked from the one that stops a newcomer
-most:
+The four names follow four shapes, `writing-pr-reviews`, `guided-pr-review`,
+`pr-review-walkthrough`, `tdd`, and two of them do not say what the skill is for. A
+reader of the `README.md` could not tell `guided-pr-review` from `writing-pr-reviews`.
 
-- [x] the opening says neither what the repo offers nor to whom, never says what an agent
-      skill is, and names the supported agents only halfway through Installing. Now two
-      paragraphs: what the skills are for, what a skill is, which agents, how one is
-      triggered, and that each asks before a step that is the user's to decide.
-- [x] no requirements: Node for `npx`, and `gh` authenticated for the three skills that
-      act on GitHub. Now a Requirements section, which also names superpowers: the PR
-      skills load `requesting-code-review` and `receiving-code-review` from it.
-- [x] the PR skills named those two as `superpowers:requesting-code-review` and
-      `superpowers:receiving-code-review`, a namespace that exists only where
-      superpowers is a Claude Code plugin, the same break the `myai:` reference had.
-      Now "superpowers' `requesting-code-review`", bare with its source, a form short
-      enough to keep `reviewing-pull-requests` within its 500 lines; `AGENTS.md`
-      extends the bare-name rule to skills from other sources.
-- [x] the TDD skill's trigger, "any request to add or change a feature", reads as taking
-      over all coding, while the skill asks before doing anything. The table now says it
-      offers itself on such a request and does nothing until accepted.
-- [x] the skills depend on each other, the walking-through one loading the reviewing one,
-      and nothing says so where it matters, at install time. Installing now says so, and
-      Requirements names superpowers and `gh`.
-- [x] the update model reads as contradictory: an update is whatever reaches `main`, yet
-      releases are what notify; nothing says every merge into `main` is a release. Now a
-      merge that changes `skills/` is always a release, at least a patch, written in
-      `AGENTS.md`, and the README says every change to a skill arrives as one.
-- [x] no Uninstalling, License or "how a skill is triggered": the opening now says how a
-      skill is triggered, Uninstalling gives `npx skills remove -g`, interactive and
-      global as the CLI's `docs/commands.md` documents it, and License closes the README
-- [x] no Contributing: outside pull requests are welcome, the owner decided. The section
-      points to `AGENTS.md` and lists the four rules a first change meets, and takes in
-      the closing line on English and personal names that sat under Evaluations
-- [x] users and developers are separated by headings only; the developer clone uses SSH,
-      which fails without keys; an `npx skills add -g` install and `tools/link-skills.sh`
-      both write `~/.agents/skills/`, and the script reports the other's entries as
-      conflicts. Now two groups, "Using the skills" and "Developing the skills",
-      the clone over HTTPS, and Setting up says to remove an `npx skills` install first.
-- [x] terms only the author knows: "bare name", `myai` before it is introduced,
-      `<repo-path>`, "Skills-directory plugins", "the hook", "fixture repo", "offered
-      for review". Each rewritten in plain words, and "bare name" dropped from the users'
-      part, where it served nobody
-- [x] ordering: the closing line on English and personal names sits under Evaluations;
-      "Adding a skill" never says where its commands run from. The closing line moved
-      into Contributing, and Adding a skill opens with "From the root of your clone" and
-      runs `tools/link-skills.sh` in its block. The denser first row of the table stays:
-      it is what tells the two review skills apart
+Decided:
 
-## Completed
+- [x] One scheme: a gerund and its object, the form Anthropic's skill guidance
+      recommends and the one this repo adopted when it named `writing-pr-reviews`, so a
+      name alone says what the skill does. The `myai:` namespace already groups them.
+- [x] "pull-requests" written out in every name: a name is there to be understood, and
+      the triggers in each description keep "PR".
+- [x] `writing-pr-reviews` becomes `reviewing-pull-requests`: the skill does the whole
+      review, finding the problems and following up, not only the writing.
+
+- [x] `guided-pr-review` becomes `walking-through-and-reviewing-pull-requests`: the
+      name carries both halves of the job, the step-by-step explanation and the review
+      it produces. "Explaining" alone lost the review, and "pair" put the accent on the
+      pairing rather than on the two activities.
+
+- [x] `pr-review-walkthrough` becomes `addressing-pull-request-reviews`: the author goes
+      through a review received, and the skill handles each comment to the end, the reply
+      and the change to the code alike, which "addressing" covers and "answering" does
+      not. "Walking through" is left to the skill above, so the two are not confused
+      again.
+
+- [x] `tdd` becomes `developing-with-tdd`: the one name outside the scheme would have
+      been the one breaking the uniformity sought. "TDD" stays abbreviated, unlike "pr":
+      it is the name the practice goes by everywhere, Kent Beck's book included, so the
+      abbreviation is the clearest form rather than a shortcut.
+
+- [x] The rename itself, in one change: the skill and eval directories moved, the `name`
+      fields, the headings, the cross-references between skills, `README.md`,
+      `AGENTS.md`, the eval READMEs, scenarios and scripts. The recorded results inside
+      the scenario files keep the names of their day, since they quote what the runs
+      did then, and so do the entries under Completed here; the fixture repos on GitHub
+      keep their names, since renaming them means rebuilding them. Outside this repo:
+      the links in `~/.agents/skills/`, the two places in `~/.claude/CLAUDE.md` naming
+      skills, and the reminder in `~/.claude/code-principles.md`.
+
+- [x] One scenario per skill rerun with the skill, the first of each, baselines being
+      untouched by a name. All four passed on 2026-10-30, each skill loading under its new
+      name, and the walking-through skill loading the reviewing one in turn.
 
 **Add the `tdd` skill, designed in an interview and measured against a baseline.** The
 skill, its two reference files and `evals/tdd/` were written from the decisions below,
