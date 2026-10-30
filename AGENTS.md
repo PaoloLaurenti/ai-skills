@@ -147,7 +147,9 @@ it, so it states what to do rather than describing what the skill is about.
 `reviewing-pull-requests`, adding the plugin form `myai:reviewing-pull-requests` beside
 it where the body asks to load it. The namespace exists only when the repo is loaded as
 a Claude Code plugin: Codex, Copilot and an `npx skills` install see the bare name, and
-a body naming `myai:` alone sends them looking for a skill they do not have.
+a body naming `myai:` alone sends them looking for a skill they do not have. A skill
+from another source is named the same way, bare with its source beside it:
+superpowers' `requesting-code-review`, not `superpowers:requesting-code-review`.
 
 **Quote a description that contains a `#`.** In an unquoted YAML scalar a `#`
 preceded by a space opens a comment, so everything after it is silently dropped
@@ -255,7 +257,11 @@ It is read from the point of view of whoever uses the skills:
 - **minor**: something new that breaks nothing, a new skill or a new rule in one;
 - **patch**: a fix that leaves behaviour as it was, wording, a typo, a reference.
 
-The pull request that earns a new version bumps it in `plugin.json`. Once it is merged,
+A pull request that changes anything under `skills/` always earns at least a patch,
+since `npx skills update` offers whatever changed in a skill's folder, and a user who
+watches the releases must not miss it. One that leaves `skills/` alone earns no version
+and no release, since no user receives it. The pull request that earns a new version
+bumps it in `plugin.json`. Once it is merged,
 the merge commit gets the tag `vX.Y.Z`, and the release carries a few lines on what
 changes for a user. No changelog file: it would be a second copy of the release notes.
 

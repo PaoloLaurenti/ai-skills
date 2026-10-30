@@ -62,3 +62,12 @@ rule that matters, and it held both times, so the body is not tightened for this
 lines 9 and 11, ran the tool for `69.8 °F` and `21.1 °C`, and said the repo has no tests
 to run. The proposed reply is in English, states where the function is called, and
 thanks nobody.
+
+## Result, after naming superpowers' skill by its bare name: Opus 5.5, 2026-10-30
+
+**Passed on the verification, without the sub-skill.** Turn 1 rejected the comment and
+named `__main__` three times, with `local_dirty 0` and nothing posted. It did not load
+`receiving-code-review`, and neither did the run of 2026-10-30 after the rename, made
+before this wording changed. Counting every recorded run, the sub-skill loaded in two of
+five, the same rule passing in all five, so the new wording shows no change from the old
+one.

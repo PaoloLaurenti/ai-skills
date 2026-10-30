@@ -6,7 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open, and it is blocked on Anthropic rather than on this repo.
+Two things are open: the move to `claude plugin eval`, blocked on Anthropic rather
+than on this repo, and entry 9, the README for a first-time reader.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -417,6 +418,56 @@ Decided:
       `AGENTS.md` now covers the repo's URL in both commands; the check already allowed
       any README line holding `github.com`, and a named test now states the install
       command case, seen failing under a check narrowed to `git@github.com`.
+
+## 9. Make the README readable by a first-time reader
+
+An agent that knew nothing of the repo read `README.md` alone, as a developer landing on
+GitHub would, and reported what stopped it. Ranked from the one that stops a newcomer
+most:
+
+- [x] the opening says neither what the repo offers nor to whom, never says what an agent
+      skill is, and names the supported agents only halfway through Installing. Now two
+      paragraphs: what the skills are for, what a skill is, which agents, how one is
+      triggered, and that each asks before a step that is the user's to decide.
+- [x] no requirements: Node for `npx`, and `gh` authenticated for the three skills that
+      act on GitHub. Now a Requirements section, which also names superpowers: the PR
+      skills load `requesting-code-review` and `receiving-code-review` from it.
+- [x] the PR skills named those two as `superpowers:requesting-code-review` and
+      `superpowers:receiving-code-review`, a namespace that exists only where
+      superpowers is a Claude Code plugin, the same break the `myai:` reference had.
+      Now "superpowers' `requesting-code-review`", bare with its source, a form short
+      enough to keep `reviewing-pull-requests` within its 500 lines; `AGENTS.md`
+      extends the bare-name rule to skills from other sources.
+- [x] the TDD skill's trigger, "any request to add or change a feature", reads as taking
+      over all coding, while the skill asks before doing anything. The table now says it
+      offers itself on such a request and does nothing until accepted.
+- [x] the skills depend on each other, the walking-through one loading the reviewing one,
+      and nothing says so where it matters, at install time. Installing now says so, and
+      Requirements names superpowers and `gh`.
+- [x] the update model reads as contradictory: an update is whatever reaches `main`, yet
+      releases are what notify; nothing says every merge into `main` is a release. Now a
+      merge that changes `skills/` is always a release, at least a patch, written in
+      `AGENTS.md`, and the README says every change to a skill arrives as one.
+- [x] no Uninstalling, License or "how a skill is triggered": the opening now says how a
+      skill is triggered, Uninstalling gives `npx skills remove -g`, interactive and
+      global as the CLI's `docs/commands.md` documents it, and License closes the README
+- [x] no Contributing: outside pull requests are welcome, the owner decided. The section
+      points to `AGENTS.md` and lists the four rules a first change meets, and takes in
+      the closing line on English and personal names that sat under Evaluations
+- [x] users and developers are separated by headings only; the developer clone uses SSH,
+      which fails without keys; an `npx skills add -g` install and `tools/link-skills.sh`
+      both write `~/.agents/skills/`, and the script reports the other's entries as
+      conflicts. Now two groups, "Using the skills" and "Developing the skills",
+      the clone over HTTPS, and Setting up says to remove an `npx skills` install first.
+- [x] terms only the author knows: "bare name", `myai` before it is introduced,
+      `<repo-path>`, "Skills-directory plugins", "the hook", "fixture repo", "offered
+      for review". Each rewritten in plain words, and "bare name" dropped from the users'
+      part, where it served nobody
+- [x] ordering: the closing line on English and personal names sits under Evaluations;
+      "Adding a skill" never says where its commands run from. The closing line moved
+      into Contributing, and Adding a skill opens with "From the root of your clone" and
+      runs `tools/link-skills.sh` in its block. The denser first row of the table stays:
+      it is what tells the two review skills apart
 
 ## Completed
 

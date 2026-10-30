@@ -307,3 +307,10 @@ already, rather than on whether to submit.
 **Passed.** The skill loaded under its new name, `myai:reviewing-pull-requests`, and
 dispatched the reviewer through `superpowers:requesting-code-review`. One review `PENDING`,
 0 published comments, and the reply named the submit command.
+
+## Result, after naming superpowers' skill by its bare name: Opus 5.5, 2026-10-30
+
+**Passed.** Non-negotiable 7 now says superpowers' `requesting-code-review` instead of
+`superpowers:requesting-code-review`, and under the plugin the run still loaded
+`superpowers:requesting-code-review` and dispatched the reviewer. One review `PENDING`,
+0 published comments.

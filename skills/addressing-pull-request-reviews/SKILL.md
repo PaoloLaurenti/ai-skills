@@ -32,7 +32,7 @@ publishing together, turns the requester's next "ok" into consent they did not g
    reply and change, and nothing more.
 3. **Verify before agreeing.** Read the code at the pull request's head, run what can be
    run, and read the documentation a claim rests on. **REQUIRED SUB-SKILL:** use
-   `superpowers:receiving-code-review`. Every opinion says what was checked and what was
+   superpowers' `receiving-code-review`. Every opinion says what was checked and what was
    not.
 4. **Replies are written in English, in the first person**, whatever the language of the
    conversation. Each reply states the change or the reasoning, with no thanks, no
@@ -111,7 +111,7 @@ choice**, apply the option chosen, and write in the reply what the choice was.
 ## After the last comment
 
 1. **Review the pending change.** **REQUIRED SUB-SKILL:** use
-   `superpowers:requesting-code-review`, and dispatch the reviewer on the uncommitted
+   superpowers' `requesting-code-review`, and dispatch the reviewer on the uncommitted
    diff with the accepted decisions as its requirements.
 2. **Sort what comes back.** A fix that stays inside a decision the requester already made
    is applied. A finding that would change an approved decision goes back to the

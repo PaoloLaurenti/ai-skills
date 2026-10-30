@@ -49,7 +49,7 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
    plainly worded as it can be while still being actionable. See One point per
    comment for the shape that takes.
 7. **The findings come back from a dispatched reviewer subagent**, through
-   `superpowers:requesting-code-review`, run first. Loading that skill is not the
+   superpowers' `requesting-code-review`, run first. Loading that skill is not the
    requirement, dispatching is, and nothing gets written before the subagent
    returns. An ask that already names the finding is the exception, since there is
    nothing to go looking for. See Where the findings come from.
@@ -125,7 +125,7 @@ code, in words the reader can act on without translating them first.
 
 ## Where the findings come from
 
-A reviewer subagent, dispatched through `superpowers:requesting-code-review` before
+A reviewer subagent, dispatched through superpowers' `requesting-code-review` before
 any comment is written. What comes back is raw material, not the review itself.
 
 Fill its template from the pull request: `BASE_SHA` is the merge base with the
