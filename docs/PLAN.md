@@ -6,8 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open: entry 1, unblocked now that `claude plugin eval` is out of
-early access.
+Two things are open: entry 1, unblocked now that `claude plugin eval` is out of
+early access, and entry 7, a new skill.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -332,6 +332,188 @@ and grading what follows needs an answer to it.
       points vary between two and three on this branch. The run kept three and passed;
       the two-point branch, where the fifth turn must change nothing, is still
       unexercised.
+
+## 7. Add a skill for writing cards
+
+*Where it comes from.* A long session planned the cards of one feature in a tracker. It
+split the feature into vertical slices, reviewed every card draft with the requester one
+question at a time, decided the fate of each existing card of the project, and wrote the
+result to the tracker. A retrospective on that session found that the rules for writing a
+card had been taught through about ten corrections, and lived only in a working page that
+was later deleted. They belong in a skill, so that the next session starts from them.
+
+*Decisions already taken.*
+
+- **The skill names no tracker in its body.** The requester's rules hold for any tracker,
+  so Linear, Jira, GitHub Issues and Trello appear only as triggers in the description.
+- **Two wording rules of the session are generalised, not copied.** "Say sandbox, never
+  dev" became "use the team's own names for environments", and "the sign-in page that
+  opens over the app, never the browser" became "What and the acceptance criteria use the
+  words of the screen".
+- **The Definition of Done stays out of the card**, since it holds for every card. A card
+  names one of its points only to skip it.
+- **No hook.** A `PreToolUse` hook that blocks card ids in descriptions was considered, to
+  stop the tracker from turning a link into a relation on a card outside the scope. It was
+  rejected: it would also block the links between cards in scope, which the requester
+  wants; it cannot tell the scope without querying the tracker on every write; and it
+  would serve one tracker only. In the session, the record and comparison of step 6 found
+  the six cards changed that way, and the plain-title rule now prevents it.
+- **The retrospective's point on the format of links in Slack messages was dropped**: one
+  correction, and not about cards.
+
+*Open.* A `reference/linear.md` could carry what the session learned about Linear: every
+card id or link in a description becomes a `related` relation on the other card, even
+inside backticks; the API cannot set the manual order of a list; and `labels` on a save
+replaces the whole set. Worth adding only when a second session on Linear needs it.
+
+*The draft.* The requester approved its rules one by one, but has not yet read the full
+text end to end.
+
+````markdown
+---
+name: writing-cards
+description: >-
+  Use when splitting a feature into cards for a tracker (Linear, Jira, GitHub
+  Issues, Trello or any other), writing, rewriting or reviewing a card, or deciding
+  what happens to the existing cards of a project, including phrasings like "crea
+  le card su Linear per questo flusso", "scrivi la card", "ridammi la card",
+  "rivediamo le card del progetto", "split this feature into tickets", "write the
+  issues for this epic", or "rewrite this story". Not for building what a card
+  describes.
+---
+
+# Writing Cards
+
+A card tells the engineers what to build and why, and gives them every fact they
+need to decide how. Two words carry the rules: a card is a **slice**, a thin
+piece of the product that a person can watch working in a demo, and every fact
+in it is **sourced**.
+
+## A set of cards
+
+- **Each card is a slice.** Once done, it adds one feature that a person can see
+  working on the product, on top of the slices before it. A technical card is an
+  exception, and its Why states the strong reason for it.
+- **A card holds all the work its slice needs**, in every part of the system:
+  app, backend, configuration. Cut cards by behaviour, never by component or team.
+- **Keep dependencies few**, so that several cards can be worked at the same time.
+- **Order lives in the tracker's own means**: "blocked by" relations, and the
+  position in the list, most important at the top. Titles carry only the name of
+  the slice.
+- **Every scenario has a home** somewhere in the set: happy path, errors,
+  exceptions, validations and edge cases.
+
+## One card
+
+The sections, in this order:
+
+1. **What**: what a person can do once the card is done, told as they live it.
+2. **Why**: the reason for the slice.
+3. **How <mechanism> works**: only when the card rests on a mechanism that no
+   other document explains, such as how a session stays alive. Plain words, placed
+   before the criteria because they build on it.
+4. **Acceptance criteria**.
+5. **Open points**: only on a skeleton card, see below.
+6. **Notes**: design references, architecture constraints, links to sources.
+7. **Out of scope**: last. Each item names the card that takes it, when one exists.
+
+### Acceptance criteria
+
+- **Form**: "As a <actor>, when I <action>, I <outcome>." The actor is "a user",
+  qualified when it matters: "a new user", "a returning user", "a signed-in user".
+- **They are the demo.** Each one describes what a person does on the product and
+  what they see, never the internals. A check that nobody can show in a demo, such
+  as data staying out of a phone backup, moves to Notes as something the code
+  review verifies.
+- **The team's Definition of Done holds for every card, so the card leaves it
+  out**, together with the automated tests, reviews and checks it asks for.
+  Non-functional requirements appear only when they are specific to this card.
+  A card names a point of the Definition of Done only to skip it, saying which
+  one and why, when the Definition of Done allows that.
+
+### Words
+
+- **What and the acceptance criteria use the words of the screen**: "the sign-in
+  page that opens over the app", rather than the component that shows it. The
+  technical term goes in Notes.
+- **Use the team's own names** for environments, systems and roles, as the
+  requester uses them.
+- **State the what and the why; the engineers own the how.** Name a constraint when
+  it binds, such as a security rule or an existing endpoint, and leave out the
+  implementation step that satisfies it.
+- **Plain English at B2 level**: short, grammatical sentences, one term per concept.
+- **The best trade-off between brevity and completeness**: every line carries
+  something an engineer needs.
+- **A reference to another card is a link whose text is that card's title.**
+- **A reference to a card outside the scope is its plain title**, with no link
+  and no id: some trackers turn a link or an id into a change on the card it
+  names.
+
+### Skeleton card
+
+When decisions are missing, write a skeleton: What, Why, the criteria known so far,
+and an Open points table with the columns `#`, `Question`, `Who decides`. Its Notes
+say what moves it to ready. It goes in the requester's "to refine" status.
+
+## Sourced facts
+
+- **Read each source whole**: a page together with its comments and
+  discussions, a design frame together with its notes. Discussions often hold
+  the latest decision, and some tools return them only through a separate call.
+- **Every fact traces to a source**, in a card and in every message drafted for
+  the team: a design file, a document, the code, or a decision the requester
+  made in the conversation. A fact with no source becomes a
+  question to the requester. An open gap is always better than a guess.
+- **When two sources disagree, ask which one wins**, and write the answer down.
+
+## Steps
+
+1. **Read the sources and the current cards.** Read the team's Definition of Done
+   too, and ask where it is when nobody has named it. Read the heavy sources, such
+   as design files and long lists of cards, through a subagent that returns text
+   only, and ask for an image at the smallest size that is still readable. Done
+   when every source the
+   requester named has been read and every card of the project that is not done is
+   listed.
+2. **Agree the scope.** Ask which cards the work may change, for example those with
+   a given label. Changes reach only cards in scope that are not done. Done when the
+   scope is a rule you can check card by card.
+3. **Grill the open decisions**, one question per message. Done when every decision
+   has an answer or is an open point of a card.
+4. **Propose the slices, in order**, then go through the existing cards one at a
+   time: keep, rewrite, absorb into a slice, move to backlog, or cancel. A cancelled
+   card gets a comment naming the card that absorbed it. Done when every existing
+   card has an approved fate.
+5. **Draft one card per message**, and wait for approval. Once a card is approved,
+   save its text and the decisions behind it in the durable place the requester
+   chose, then move on. Done when every approved card is saved there.
+6. **Write to the tracker** only after an explicit yes to the write plan; choosing
+   an option is not that yes. Before the batch, record id, status, labels and last
+   update of every card outside the scope. Create the new cards first, then add the
+   links between them, since a card has an id only once it exists. After the first
+   write, check whether the tracker changed anything by itself from the text: some
+   trackers turn every card id or link in a description into a relation on the other
+   card. Done when the record compared with the tracker shows every card outside the
+   scope unchanged, or every difference has been reported to the requester.
+7. **Hand over what the tracker's API cannot do**, such as a manual order, as a short
+   list for the requester.
+````
+
+- [ ] Read the draft end to end with the requester, and fix what reads badly.
+- [ ] Create `skills/writing-cards/SKILL.md` from it. The plugin loads the skill in every
+      session as soon as the file exists, which is why this comes after the read.
+- [ ] Add its row to the skills table in `README.md`, since `tools/check.sh` fails on a
+      skill with no row.
+- [ ] Write the scenarios in `evals/writing-cards/`, one file each with a `README.md` for
+      the procedure, and run them before the change is offered. Candidates: an Italian
+      request to split a feature into cards fires the skill; a drafted card follows the
+      section order and the "As a <actor>, when I <action>, I <outcome>" form; a fact with
+      no source becomes a question; nothing reaches the tracker before an explicit yes.
+- [ ] Bump the version in `.claude-plugin/plugin.json` from 1.0.0 to 1.1.0, a minor bump,
+      since a new skill breaks nothing.
+- [ ] Link the skill into `~/.agents/skills/` with `tools/link-skills.sh`, for Codex and
+      GitHub Copilot.
+- [ ] Run `tools/check.sh`.
 
 ## Completed
 
