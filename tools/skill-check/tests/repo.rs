@@ -132,8 +132,18 @@ fn eval_reports_are_not_scanned() {
 }
 
 #[test]
-#[ignore = "pending"]
-fn a_results_directory_elsewhere_is_still_scanned() {}
+fn a_results_directory_elsewhere_is_still_scanned() {
+    let repo = repo();
+    let notes = "docs/results/notes.md";
+    write(repo.path(), notes, &machine_local("Users"));
+
+    let reported: Vec<String> = problems(&repo)
+        .into_iter()
+        .map(|problem| problem.file)
+        .collect();
+
+    assert_eq!(reported, vec![notes]);
+}
 
 #[test]
 fn the_owner_name_outside_its_two_places_is_reported() {

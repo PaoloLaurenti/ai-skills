@@ -14,7 +14,12 @@ use crate::skill_directories;
 
 /// Directories the walk never enters: version control, and build output that
 /// holds machine-local copies of everything else.
-const SKIPPED_DIRECTORIES: [&str; 3] = [".git", "target", "results"];
+const SKIPPED_DIRECTORIES: [&str; 2] = [".git", "target"];
+
+/// Where `claude plugin eval` writes its reports, which hold machine-local paths
+/// by design. Matched from the root rather than by name, so a `results`
+/// directory anywhere else is still scanned.
+const EVAL_REPORTS: &str = "evals/results";
 
 /// What a path that exists on one machine only starts with.
 const HOME_PREFIXES: [&str; 2] = ["/Users/", "/home/"];
@@ -254,7 +259,7 @@ fn collect_text_files(
         // pointing at an ancestor would walk forever.
         if kind.is_dir() {
             let name = entry.file_name().to_string_lossy().into_owned();
-            if !SKIPPED_DIRECTORIES.contains(&name.as_str()) {
+            if !SKIPPED_DIRECTORIES.contains(&name.as_str()) && path != root.join(EVAL_REPORTS) {
                 collect_text_files(root, &path, files)?;
             }
         } else if kind.is_file()
