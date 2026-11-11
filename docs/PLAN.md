@@ -6,7 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open, and it is blocked on Anthropic rather than on this repo.
+One thing is open: entry 1, unblocked now that `claude plugin eval` is out of
+early access.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -17,7 +18,7 @@ description below explains.
 
 ## 1. Move the suite onto `claude plugin eval`
 
-Blocked on Anthropic, not on this repo.
+Unblocked: the command is out of early access at CLI 2.1.322.
 
 `claude plugin eval` takes `evals/**/case.yaml`, or `evals/**/prompt.md` plus
 `graders/*.md`, resolves a skills-directory plugin by name, and carries
@@ -26,12 +27,18 @@ Blocked on Anthropic, not on this repo.
 what has been built by hand here, including the two parts that were hardest: the
 baseline arm and bounding the spend.
 
-- [ ] migrate once it leaves early access. Still gated at CLI 2.1.224, re-probed on
-      2026-08-07: `claude plugin eval init --bare` answers "`plugin eval` is currently in
-      early access", exactly as it did at 2.1.223 the day before, while `--help` prints
-      the full option list. That is the first version bump probed under the rule this
-      entry set for itself, probe the version rather than the date, and it moved the
-      version without moving the gate.
+- [x] wait for it to leave early access, probing each CLI version rather than the date.
+      Gated at 2.1.223 and 2.1.224, on 2026-08-06 and 2026-08-07: `claude plugin eval
+      init --bare` answered "`plugin eval` is currently in early access" while `--help`
+      printed the full option list. Open at 2.1.322, on 2026-11-11, in a throwaway plugin
+      holding one skill: `init --bare probe` wrote `evals/probe/prompt.md` and
+      `evals/probe/graders/criteria.md`, and a one-case run with `--runs 1 --ablation none
+      --model haiku --no-publish --max-cost-usd 0.5` scored 1.00. Not yet run on this
+      repo.
+- [ ] migrate the suite. The command reads `evals/` by default, where the hand-built
+      scenarios already sit in a format of their own, so the first decision is whether
+      the cases replace them there or live under another directory through `--eval-dir`
+      or the manifest's `experimental.evals`.
 
 Two details in that help output worth carrying into the migration, because both are
 decisions this suite made by hand and could lose by accident. `--allow-tools`, with its
@@ -42,6 +49,13 @@ turn the `AGENTS.md` obligation to rerun a skill's scenarios after editing it in
 something mechanical rather than a promise. The help also confirms in writing that
 skills-dir plugins resolve by name and default to the `with-without` ablation, so the
 baseline arm this suite built by hand comes free.
+
+The help at 2.1.322 adds what the migration has to settle as well. The report is
+published to claude.ai by default, and `--no-publish` keeps it local. `--scaffold` runs a
+case's setup script, off by default, which is where the fixture reset would go.
+`--trust-plugin` skips the first-run prompt, for CI. `--concurrency` runs up to eight
+cases at once on one rate limit. Defaults: `--runs` 3, `--judge-model` haiku,
+`--threshold` 1.0.
 
 What already exists is the input it wants: the fixture, the prompts, and the assertions
 written into each scenario file.
