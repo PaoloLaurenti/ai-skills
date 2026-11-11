@@ -21,11 +21,11 @@ description below explains.
 Unblocked: the command is out of early access at CLI 2.1.322.
 
 `claude plugin eval` takes `evals/**/case.yaml`, or `evals/**/prompt.md` plus
-`graders/*.md`, resolves a skills-directory plugin by name, and carries
+`graders/*.md`, resolves a skills-directory plugin by name or path, and carries
 `--ablation with-without` for the baseline arm, `--runs` for repetition,
-`--judge-model`, an HTML report and `--max-cost-usd`. That is, off the shelf, exactly
-what has been built by hand here, including the two parts that were hardest: the
-baseline arm and bounding the spend.
+`--judge-model`, an HTML report, `--max-cost-usd` and `--threshold`. That covers the
+two parts that were hardest to build by hand, the baseline arm and bounding the spend,
+but not everything the hand-built suite does, as the probes below show.
 
 - [x] wait for it to leave early access, probing each CLI version rather than the date.
       Gated at 2.1.223 and 2.1.224, on 2026-08-06 and 2026-08-07: `claude plugin eval
@@ -35,36 +35,149 @@ baseline arm and bounding the spend.
       `evals/probe/graders/criteria.md`, and a one-case run with `--runs 1 --ablation none
       --model haiku --no-publish --max-cost-usd 0.5` scored 1.00. Not yet run on this
       repo.
-- [ ] migrate the suite. The command reads `evals/` by default, where the hand-built
-      scenarios already sit in a format of their own, so the first decision is whether
-      the cases replace them there or live under another directory through `--eval-dir`
-      or the manifest's `experimental.evals`.
 
-Two details in that help output worth carrying into the migration, because both are
-decisions this suite made by hand and could lose by accident. `--allow-tools`, with its
-`Tool(pattern:*)` syntax, is where the deliberate tool list goes; the eval README argues
-at length against reaching for `--dangerously-skip-permissions`, and that argument has to
-survive the move. And `--threshold`, which exits non-zero below a score, is what would
-turn the `AGENTS.md` obligation to rerun a skill's scenarios after editing it into
-something mechanical rather than a promise. The help also confirms in writing that
-skills-dir plugins resolve by name and default to the `with-without` ablation, so the
-baseline arm this suite built by hand comes free.
+### What the command can and cannot do, probed on 2026-11-11
 
-The help at 2.1.322 adds what the migration has to settle as well. The report is
-published to claude.ai by default, and `--no-publish` keeps it local. `--scaffold` runs a
-case's setup script, off by default, which is where the fixture reset would go.
-`--trust-plugin` skips the first-run prompt, for CI. `--concurrency` runs up to eight
-cases at once on one rate limit. Defaults: `--runs` 3, `--judge-model` haiku,
-`--threshold` 1.0.
+Read in the [plugin eval docs](https://code.claude.com/docs/en/plugin-evals.md) and
+probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
 
-What already exists is the input it wants: the fixture, the prompts, and the assertions
-written into each scenario file.
+- **No grader runs a command.** The docs say it in so many words: "There are no
+  custom-code graders". A grader reads the final reply, the trace, the tools called and
+  their input, the files Claude created, or a file's contents after the run. So neither
+  `gh api` nor `cargo test` can be run after the turn to read the state, the way
+  `run.sh` does today.
+- **One prompt per case.** A `turns:` key is rejected at load time. The only way to have
+  earlier turns is `context.history_file`, a transcript the case resumes, its prompt
+  becoming the next user turn. A raw session transcript copied from
+  `~/.claude/projects/` works as one: a case resuming a session that had been told a
+  code word answered with the word.
+- **Every run is isolated.** A temporary home and configuration directory, no user
+  settings, hooks, `CLAUDE.md`, memory or other plugins. So the baseline arm no longer
+  disables the plugin machine-wide the way `baseline.sh` does, and firing rates are not
+  comparable with the results recorded by hand, where a global `CLAUDE.md` and other
+  plugins' hooks were loaded.
+- **The temporary home breaks asdf.** `cargo` from the asdf shims exits 126 both in the
+  scaffold and in the run, since asdf looks for its installs under `$HOME`. Putting the
+  directory `asdf which cargo` prints, run from this repo, at the front of `PATH` before
+  launching fixes both: the scaffold built a crate and the sandboxed run's `cargo test`
+  printed `1 passed`. Nothing machine-local is written down that way, since the path is
+  resolved at launch.
+- **Bash runs in a sandbox** with network only to granted domains and the credentials in
+  the real home out of reach, so the three suites driving a real pull request through
+  `gh` do not fit as they stand.
+
+### Decisions, 2026-11-11
+
+- `developing-with-tdd` goes first, being the only suite with a local fixture. What to do
+  with the three GitHub suites is decided after it, from what the graders turned out to
+  be worth on it.
+- Its cases replace the hand-built files in `evals/developing-with-tdd/`, one directory
+  per case. The other suites stay where they are, invisible to the command, which looks
+  for `prompt.md` and `case.yaml` only.
+- The run diaries in the old scenario files are deleted, since git history keeps them.
+  Only the notes needed to grade a run move into the graders' criteria.
+- `evals/results/` is ignored by git, and every run passes `--no-publish`.
+- One script, `tools/eval.sh <skill>`, is the only way to launch: it fixes `PATH` for
+  `cargo` and passes the fixed options, and everything else stays the command's job.
+- Every turn that matters becomes a case of its own. A first turn starts from the clean
+  crate. A later turn resumes a recorded transcript, sanitised of machine-local paths,
+  over a fixture rebuilt as the crate stood at that point, and runs one arm only.
+- What `run.sh` read by command is read from what Claude did instead: no `Edit` or
+  `Write` on `src/` for "nothing written", no `git commit` for "no commit", `Skill` on
+  `developing-with-tdd` for "the skill loaded", the count of `#[ignore]` in the test file
+  for the pending tests, and the last `cargo test` Claude ran for passed and failed. That
+  last one misses an edit made after Claude's last test run, accepted as the price of not
+  adding an instruction to the prompt.
+- Opus by default, three runs, Sonnet as judge, the default threshold of 1.0, and a cost
+  ceiling always on, starting at 10 dollars and set just above the measured cost of a
+  full run once there is one. While cases are being written, one case at a time with
+  one run.
+- Runs stay local and out of CI, as before: a run costs model calls and belongs to
+  whoever changes a skill.
+- `skill-check` skips `evals/results/`, whose reports hold machine-local paths and would
+  otherwise fail `tools/check.sh` after the first run.
+
+### Tasks
+
+Groundwork, so that a run is possible at all:
+
+- [ ] **Ignore `evals/results/` in `.gitignore`.** Reports are regenerated by every run
+      and are not specification.
+- [ ] **Make `skill-check` skip `evals/results/`, test first.** Otherwise the check for
+      machine-local paths reads the reports and `tools/check.sh` fails after any run.
+- [ ] **Write `tools/eval.sh <skill> [options]`.** It puts the toolchain `asdf which
+      cargo` resolves at the front of `PATH`, targets the repo by path, and passes
+      `--no-publish`, `--scaffold`, `--trust-plugin`, `--model opus`, `--judge-model
+      sonnet`, `--max-cost-usd 10`, the skill as `--tag`, and a deliberate
+      `--allow-tools` list: `Edit`, `Write`, `Bash(cargo:*)`, `Bash(git:*)`, never
+      `--dangerously-skip-permissions`. It does not pass `--ablation`, so first-turn cases
+      get the baseline arm and resumed ones do not. Options after the skill are handed
+      over, so `--model`, `--runs`, `--case` and the ceiling can be overridden.
+
+Probes, before writing any later-turn case, since each one decides how those cases are
+built. If the second fails, the decision on later turns comes back for discussion:
+
+- [ ] **Check what a resumed case's graders see.** Whether `tool_used` and `trace`
+      graders also match the recorded turns. If they do, "the skill loaded", "no edit to
+      `src/`" and "the last `cargo test`" would be answered by the history rather than
+      by the new turn, and later-turn cases need another way to read them.
+- [ ] **Check `history_file` and `scaffold_script` together, with a sanitised
+      transcript.** The probe so far resumed a transcript with no tools over an empty
+      workspace. This one resumes a transcript whose paths were rewritten, over a crate
+      the scaffold built.
+- [ ] **Check that a case's scaffold can reach a shared fixture** outside its own
+      directory, printing `$0` and `BASH_SOURCE`. If it cannot, every case needs its own
+      generator.
+- [ ] **Check that the granted tools work.** Only bare `Bash` was probed. `Edit`,
+      `Write` and `Bash(cargo:*)` need a run that uses each.
+
+The `developing-with-tdd` suite:
+
+- [ ] **Turn `fixture/setup.sh` into a scaffold.** It builds a given state of the crate
+      into the current directory, and each case's own scaffold calls it with its state.
+- [ ] **Write the first-turn cases**: scenarios 1, 2, 3, 4, 5 and 7 at their first turn,
+      and scenario 6, each with its graders translated as decided above. The two that
+      test whether the skill fires, 1 and 6, mark their `Skill` grader `arm: both`, since
+      under the baseline arm a `Skill` grader is otherwise an indicator and not scored.
+- [ ] **Add the fixture states the later turns start from**, such as the crate with the
+      plan of pending tests written, taken from a real run.
+- [ ] **Record and sanitise the transcripts** for the later turns, replacing every
+      machine-local path and the owner's name with placeholders. `tools/check.sh` is
+      what proves nothing was missed.
+- [ ] **Write the later-turn cases**: scenarios 1, 3, 4 and 5 at their second turn,
+      and 7 at its second and third.
+- [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
+      the expiry-day bug being inconclusive rather than failed, and a run where the skill
+      did not load being a description failure rather than a rule failure.
+- [ ] **Run each case once while writing it**, with `--case` and `--runs 1`.
+- [ ] **Run the full suite once**, confirm the threshold ignores the baseline arm, and
+      set the ceiling just above the measured cost.
+- [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
+      `run.sh` and `baseline.sh`.
+- [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
+      each case is, the fixture states, how to launch, what a full run costs.
+
+Documentation:
+
+- [ ] **Rewrite "Evaluating a skill" in `AGENTS.md`**, and the layout table above it:
+      the case format, `tools/eval.sh`, the threshold making the rerun after an edit a
+      command rather than a promise, and why runs stay out of CI.
+- [ ] **Update the eval sections of `README.md`** to match.
+
+The rest of the suite:
+
+- [ ] **Decide the three GitHub suites**, `reviewing-pull-requests`,
+      `addressing-pull-request-reviews` and `walking-through-and-reviewing-pull-requests`:
+      rebuilt around a pull request given as local files, with graders on the `gh`
+      calls Claude attempts, kept by hand, or dropped. Recorded here, then planned.
+
+None of this touches `skills/`, so it earns no version and no release.
 
 Deliberately not doing: a checker of its own for the mechanical assertions. It was
-queued here as the obvious next tool, and `claude plugin eval` shipping graders as
-`graders/*.md` with a judge model makes it work to be thrown away. The assertions
-written into each scenario file are the specification those graders will want, which is
-the part worth having either way.
+queued here as the obvious next tool, and `claude plugin eval` grading from the trace,
+the tool calls and the files makes most of it work to be thrown away. What graders
+cannot read, the state a command would report after the run, is accepted as lost rather
+than rebuilt, as the decisions above explain.
 
 ## 2. Clean up the inline comments a deleted draft leaves behind
 
