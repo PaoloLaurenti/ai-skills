@@ -14,7 +14,7 @@ use crate::skill_directories;
 
 /// Directories the walk never enters: version control, and build output that
 /// holds machine-local copies of everything else.
-const SKIPPED_DIRECTORIES: [&str; 2] = [".git", "target"];
+const SKIPPED_DIRECTORIES: [&str; 3] = [".git", "target", "results"];
 
 /// What a path that exists on one machine only starts with.
 const HOME_PREFIXES: [&str; 2] = ["/Users/", "/home/"];

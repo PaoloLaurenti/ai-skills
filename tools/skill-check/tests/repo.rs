@@ -121,6 +121,21 @@ fn build_output_and_version_control_are_not_scanned() {
 }
 
 #[test]
+fn eval_reports_are_not_scanned() {
+    let repo = repo();
+    write(
+        repo.path(),
+        "evals/results/report.html",
+        &machine_local("Users"),
+    );
+    assert_eq!(problems(&repo), vec![]);
+}
+
+#[test]
+#[ignore = "pending"]
+fn a_results_directory_elsewhere_is_still_scanned() {}
+
+#[test]
 fn the_owner_name_outside_its_two_places_is_reported() {
     let repo = repo();
     write(
