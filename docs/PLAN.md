@@ -68,6 +68,14 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
 - **A tag matching no case fails the run.** At CLI 2.1.325, `--tag` naming a skill with
   no case answered "No eval cases found matching --tag" and exited 1, so a misspelt
   skill can never pass as an empty green suite.
+- **A resumed case's graders see the new turn only.** At CLI 2.1.325, a case resuming a
+  transcript that had loaded a skill and run `echo HISTORY_MARKER` answered with the
+  word, so the history was there, while `tool_used` on `Skill` and on `Bash` counted no
+  call and a `trace` regex found neither the recorded command nor the new prompt, only
+  the new reply. "The skill loaded", "no edit to `src/`" and "the last `cargo test`"
+  are read from the resumed turn alone.
+- **The last value of a repeated option wins.** `--model opus --model haiku` ran haiku,
+  so an option passed after the skill to `tools/eval.sh` overrides the default it sets.
 
 ### Decisions, 2026-11-11
 
@@ -120,7 +128,7 @@ Groundwork, so that a run is possible at all:
 Probes, before writing any later-turn case, since each one decides how those cases are
 built. If the second fails, the decision on later turns comes back for discussion:
 
-- [ ] **Check what a resumed case's graders see.** Whether `tool_used` and `trace`
+- [x] **Check what a resumed case's graders see.** Whether `tool_used` and `trace`
       graders also match the recorded turns. If they do, "the skill loaded", "no edit to
       `src/`" and "the last `cargo test`" would be answered by the history rather than
       by the new turn, and later-turn cases need another way to read them.
@@ -164,7 +172,9 @@ Documentation:
 
 - [ ] **Rewrite "Evaluating a skill" in `AGENTS.md`**, and the layout table above it:
       the case format, `tools/eval.sh`, the threshold making the rerun after an edit a
-      command rather than a promise, and why runs stay out of CI.
+      command rather than a promise, and why runs stay out of CI. Carry over every fact
+      from "What the command can and cannot do" that a case author needs, since this
+      entry moves to Completed once done and nobody looks there for how things work.
 - [ ] **Update the eval sections of `README.md`** to match.
 
 The rest of the suite:
