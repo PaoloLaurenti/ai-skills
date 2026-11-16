@@ -76,6 +76,15 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   are read from the resumed turn alone.
 - **The last value of a repeated option wins.** `--model opus --model haiku` ran haiku,
   so an option passed after the skill to `tools/eval.sh` overrides the default it sets.
+- **A sanitised transcript is rebuilt, not edited.** At CLI 2.1.325, a session recorded
+  with `claude -p` was 711 KB, nearly all of it the recording environment: skill and MCP
+  listings, instructions, hook context, the account's organisation and email. Keeping
+  only the `user` and `assistant` entries, with a few fields each and `parentUuid`
+  relinked to the previous one kept, and replacing paths and the owner's name with
+  `<workspace>`, `<home>` and `<owner>`, left 12 KB that resumed over a crate the
+  scaffold built: Claude quoted the recorded command and edited the scaffold's
+  `src/lib.rs`. What Claude said in the recording still reflects that environment,
+  such as its language.
 
 ### Decisions, 2026-11-11
 
@@ -132,7 +141,7 @@ built. If the second fails, the decision on later turns comes back for discussio
       graders also match the recorded turns. If they do, "the skill loaded", "no edit to
       `src/`" and "the last `cargo test`" would be answered by the history rather than
       by the new turn, and later-turn cases need another way to read them.
-- [ ] **Check `history_file` and `scaffold_script` together, with a sanitised
+- [x] **Check `history_file` and `scaffold_script` together, with a sanitised
       transcript.** The probe so far resumed a transcript with no tools over an empty
       workspace. This one resumes a transcript whose paths were rewritten, over a crate
       the scaffold built.
