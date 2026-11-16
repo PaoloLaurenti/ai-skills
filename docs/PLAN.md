@@ -65,6 +65,9 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
 - **Bash runs in a sandbox** with network only to granted domains and the credentials in
   the real home out of reach, so the three suites driving a real pull request through
   `gh` do not fit as they stand.
+- **A tag matching no case fails the run.** At CLI 2.1.325, `--tag` naming a skill with
+  no case answered "No eval cases found matching --tag" and exited 1, so a misspelt
+  skill can never pass as an empty green suite.
 
 ### Decisions, 2026-11-11
 
@@ -105,7 +108,7 @@ Groundwork, so that a run is possible at all:
       and are not specification.
 - [x] **Make `skill-check` skip `evals/results/`, test first.** Otherwise the check for
       machine-local paths reads the reports and `tools/check.sh` fails after any run.
-- [ ] **Write `tools/eval.sh <skill> [options]`.** It puts the toolchain `asdf which
+- [x] **Write `tools/eval.sh <skill> [options]`.** It puts the toolchain `asdf which
       cargo` resolves at the front of `PATH`, targets the repo by path, and passes
       `--no-publish`, `--scaffold`, `--trust-plugin`, `--model opus`, `--judge-model
       sonnet`, `--max-cost-usd 10`, the skill as `--tag`, and a deliberate
