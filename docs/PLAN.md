@@ -85,6 +85,12 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   scaffold built: Claude quoted the recorded command and edited the scaffold's
   `src/lib.rs`. What Claude said in the recording still reflects that environment,
   such as its language.
+- **A scaffold runs where it lives.** At CLI 2.1.325, `$0` and `BASH_SOURCE` both held
+  the scaffold's absolute path inside the case directory, not a copy, with the empty
+  workspace as the current directory, so a case's scaffold reaches a shared generator
+  through `$(dirname "${BASH_SOURCE[0]}")/../fixture/setup.sh`. `--keep-temp` keeps the
+  workspace sealed as `home/cwd` inside `sealed`, readable after `chmod 700` on the kept
+  directory and on `sealed`.
 
 ### Decisions, 2026-11-11
 
@@ -145,7 +151,7 @@ built. If the second fails, the decision on later turns comes back for discussio
       transcript.** The probe so far resumed a transcript with no tools over an empty
       workspace. This one resumes a transcript whose paths were rewritten, over a crate
       the scaffold built.
-- [ ] **Check that a case's scaffold can reach a shared fixture** outside its own
+- [x] **Check that a case's scaffold can reach a shared fixture** outside its own
       directory, printing `$0` and `BASH_SOURCE`. If it cannot, every case needs its own
       generator.
 - [ ] **Check that the granted tools work.** Only bare `Bash` was probed. `Edit`,
