@@ -31,9 +31,25 @@ toolchain="$(dirname "$(dirname "$cargo")")"
 PATH="$toolchain/bin:$toolchain/lib:$PATH"
 export PATH
 
+# The command refuses a plugin holding a file with two names, which cargo's build output
+# is full of. So it evaluates a copy of what git sees, uncommitted edits included, and
+# the results come back here.
+copy="$(mktemp -d)"
+trap 'rm -rf "$copy"' EXIT
+(
+    cd "$repo"
+    git ls-files -z --cached --others --exclude-standard |
+        xargs -0 sh -c 'for f; do [ ! -e "$f" ] || printf "%s\0" "$f"; done' sh |
+        tar --null -T - -cf - |
+        tar -xf - -C "$copy"
+)
+results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
+
 # The target comes first: --allow-tools and --tag take several values, and would read
-# a target placed after them as one more.
-exec claude plugin eval "$repo" \
+# a target placed after them as one more. No exec, so the trap removes the copy.
+claude plugin eval "$copy" \
+    --output-dir "$results" \
+    --report "$results/report.html" \
     --no-publish \
     --scaffold \
     --trust-plugin \

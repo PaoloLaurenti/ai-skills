@@ -79,7 +79,19 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   and the refused alike, so "no commit" is still read from the attempt. The price is a
   repo where git is broken, which no real session has: a run that reaches for `git
   status` or `git diff` gets an error and may spend turns on it. A git outside Apple's,
-  such as Homebrew's, is unlisted and would likely run, unverified.
+  such as Homebrew's, is unlisted and would likely run, unverified. The first case
+  already met it: Opus opened with `git ls-files && cat FEATURE.md`, got the `xcrun`
+  error, and fell back on `ls` and `cat` with no effect on the result.
+- **A file with two names stops every case.** At CLI 2.1.325, a case answered "a file
+  in the plugin has more than one name (a hard link)" and nothing ran. The command
+  walks the plugin's directory on disk, ignoring `.gitignore`, and cargo's build output
+  under `tools/skill-check/target/` holds thousands of hard links. So `tools/eval.sh`
+  evaluates a temporary copy of the files git sees, tracked and untracked but not
+  ignored, which keeps uncommitted edits in, and points `--output-dir` and `--report`
+  back at `evals/results/`.
+- **The threshold leaves the baseline arm out.** At CLI 2.1.325, a run whose arm with
+  the skill scored 1 and whose arm without it scored 0.2 exited 0 under the default
+  threshold of 1.0.
 - **The trace holds what the tools printed.** At CLI 2.1.325, a run told to answer
   only `DONE` after adding a test and running `cargo test` had a `trace` regex match
   `test result: ok. 2 passed` and `running 2 tests`, while the same regex on the reply
@@ -161,7 +173,7 @@ Groundwork, so that a run is possible at all:
 - [x] **Make `skill-check` skip `evals/results/`, test first.** Otherwise the check for
       machine-local paths reads the reports and `tools/check.sh` fails after any run.
 - [x] **Write `tools/eval.sh <skill> [options]`.** It puts the toolchain `asdf which
-      cargo` resolves at the front of `PATH`, targets the repo by path, and passes
+      cargo` resolves at the front of `PATH`, targets a copy of the repo, and passes
       `--no-publish`, `--scaffold`, `--trust-plugin`, `--model opus`, `--judge-model
       sonnet`, `--max-cost-usd 10`, the skill as `--tag`, and a deliberate
       `--allow-tools` list: `Edit`, `Write`, `Bash(cargo:*)`, `Bash(git:*)`, never
