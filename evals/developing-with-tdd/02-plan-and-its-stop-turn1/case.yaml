@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: 02-plan-and-its-stop-turn1
+tags: [developing-with-tdd]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "implementa in TDD lo sconto con codice promozionale descritto in FEATURE.md, senza pausa a ogni ciclo: fermati solo dove serve"

@@ -219,7 +219,11 @@ The `developing-with-tdd` suite:
       and 7 at its second and third.
 - [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
       the expiry-day bug being inconclusive rather than failed, and a run where the skill
-      did not load being a description failure rather than a rule failure.
+      did not load being a description failure rather than a rule failure. A judge's
+      criteria are written from the current `SKILL.md`, not copied from the scenario's
+      assertions, which can lag behind it: scenario 2's order left out the empty cases
+      that close the happy paths, so the first run of its case had three judges fail a
+      plan the skill asks for.
 - [ ] **Run each case once while writing it**, with `--case` and `--runs 1`, and read
       the trace for git calls: if runs keep reaching for git and its errors move the
       results, probe a git outside Apple's before going further.
