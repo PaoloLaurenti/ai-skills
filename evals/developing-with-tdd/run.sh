@@ -35,7 +35,8 @@ crate="$base/shop"
 out="$base/run"
 log="$out.log"
 
-"$here/fixture/setup.sh" "$state" "$crate"
+mkdir -p "$crate"
+(cd "$crate" && "$here/fixture/setup.sh" "$state")
 : > "$log"
 
 snapshot() {

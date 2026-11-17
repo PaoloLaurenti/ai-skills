@@ -189,7 +189,7 @@ built. If the second fails, the decision on later turns comes back for discussio
 
 The `developing-with-tdd` suite:
 
-- [ ] **Turn `fixture/setup.sh` into a scaffold.** It builds a given state of the crate
+- [x] **Turn `fixture/setup.sh` into a scaffold.** It builds a given state of the crate
       into the current directory, and each case's own scaffold calls it with its state.
 - [ ] **Write the first-turn cases**: scenarios 1, 2, 3, 4, 5 and 7 at their first turn,
       and scenario 6, each with its graders translated as decided above. The two that

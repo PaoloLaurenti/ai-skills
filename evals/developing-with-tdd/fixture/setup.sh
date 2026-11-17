@@ -2,7 +2,10 @@
 # Creates a fresh fixture for one run: a small Rust crate, `shop`, in a git repo of its
 # own, committed so that `git status` after a turn shows only what the run changed.
 #
-#   setup.sh <state> <dir>
+#   setup.sh <state>
+#
+# It builds in the current directory, which is where a case's scaffold starts: the run's
+# empty workspace.
 #
 # The state picks what the crate holds on top of `base/`, a cart whose two tests pass:
 #
@@ -16,12 +19,11 @@
 # reset would have to know everything a run might leave behind.
 set -eu
 
-[ "$#" -eq 2 ] || {
-    echo "usage: setup.sh <feature|implemented|halfway> <dir>" >&2
+[ "$#" -eq 1 ] || {
+    echo "usage: setup.sh <feature|implemented|halfway>" >&2
     exit 2
 }
 state="$1"
-dir="$2"
 here="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(cd "$here/../../.." && pwd)"
 
@@ -33,22 +35,19 @@ case "$state" in
         ;;
 esac
 
-mkdir -p "$dir"
-cp -R "$here/base/." "$dir/"
-mv "$dir/gitignore" "$dir/.gitignore"
+cp -R "$here/base/." .
+mv gitignore .gitignore
 case "$state" in
-    implemented) cp -R "$here/implemented/." "$dir/" ;;
+    implemented) cp -R "$here/implemented/." . ;;
     halfway)
-        cp -R "$here/halfway/." "$dir/"
-        rm "$dir/FEATURE.md"
+        cp -R "$here/halfway/." .
+        rm FEATURE.md
         ;;
 esac
 
 # asdf resolves the toolchain from the nearest `.tool-versions`, and a temporary directory
 # has none above it.
-cp "$repo_root/.tool-versions" "$dir/"
-
-cd "$dir"
+cp "$repo_root/.tool-versions" .
 
 # Built before the commit, so the first `cargo test` of a run is not where the build time
 # goes, and so the `Cargo.lock` it writes is committed rather than counted as a change.
