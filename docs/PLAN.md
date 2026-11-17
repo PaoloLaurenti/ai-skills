@@ -59,9 +59,16 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
 - **The temporary home breaks asdf.** `cargo` from the asdf shims exits 126 both in the
   scaffold and in the run, since asdf looks for its installs under `$HOME`. Putting the
   directory `asdf which cargo` prints, run from this repo, at the front of `PATH` before
-  launching fixes both: the scaffold built a crate and the sandboxed run's `cargo test`
-  printed `1 passed`. Nothing machine-local is written down that way, since the path is
-  resolved at launch.
+  launching fixes the scaffold, which runs as the caller outside the sandbox. Nothing
+  machine-local is written down that way, since the path is resolved at launch.
+- **The sandbox reads no home but what is on `PATH`.** At CLI 2.1.325 the settings
+  generated for a run, kept by `--keep-temp`, deny reading the whole of the real home
+  and `/private/tmp`, and allow back each home directory listed on `PATH`, which the
+  docs do not describe. With only the toolchain's `bin` on `PATH`, `rustc` started but
+  could not load `librustc_driver` from the toolchain's `lib`, "blocked by sandbox", so
+  nothing compiled. With `lib` on `PATH` as well, an `Edit` adding a test followed by
+  `cargo test` recompiled and printed `2 passed`, which is why `tools/eval.sh` puts both
+  there. A toolchain copied under `/private/tmp` exited 126, being denied as a whole.
 - **Bash runs in a sandbox** with network only to granted domains and the credentials in
   the real home out of reach, so the three suites driving a real pull request through
   `gh` do not fit as they stand.

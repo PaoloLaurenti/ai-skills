@@ -25,7 +25,10 @@ if ! cargo="$(cd "$repo" && asdf which cargo 2>/dev/null)"; then
     echo "The Rust version comes from .tool-versions, which asdf has to have installed." >&2
     exit 1
 fi
-PATH="$(dirname "$cargo"):$PATH"
+toolchain="$(dirname "$(dirname "$cargo")")"
+# The sandbox Bash runs in cannot read the home, except the directories on PATH. rustc
+# loads its own library from lib/, so lib/ goes on PATH too, or nothing compiles.
+PATH="$toolchain/bin:$toolchain/lib:$PATH"
 export PATH
 
 # The target comes first: --allow-tools and --tag take several values, and would read
