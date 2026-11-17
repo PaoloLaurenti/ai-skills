@@ -167,6 +167,20 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   there asking for details, the two that could not cited the same test. No turn is left
   for an "ok" to resume, so the scenario has no second-turn case, and its judge requires
   the non-reproduction to come from a test that ran.
+- **A run stops at 10 turns unless the case says otherwise.** `execution.max_turns`
+  defaults to 10, and reaching it is a run error. At CLI 2.1.326, scenario 3's second
+  turn reached it right after its green, before the refactoring, the plan review and the
+  pause, and the judge failed it. Every case sets 40, which costs nothing when Claude
+  stops on its own.
+- **A skill's reference files are refused unless `Read` is granted on the plugin.** At
+  CLI 2.1.326, a resumed case reading a file beside its skill was refused "in don't ask
+  mode" with no grant and with `Read(//nowhere/**)`, and read it with `Read` granted on
+  the plugin's directory. That directory is a fresh temporary copy on every run, and a
+  recorded transcript names it as the skill's base directory. So
+  `tools/history-from-trace.sh` writes it as `<plugin-root>`, and `tools/eval.sh` puts
+  the copy's path in its place in the copy's histories and grants `Read` on the copy.
+  Without both, scenario 3's second turn looked for `reference/transformations.md` with
+  `find /` after its green.
 
 ### Decisions, 2026-11-11
 
@@ -211,7 +225,8 @@ Groundwork, so that a run is possible at all:
       cargo` resolves at the front of `PATH`, targets a copy of the repo, and passes
       `--no-publish`, `--scaffold`, `--trust-plugin`, `--model opus`, `--judge-model
       sonnet`, `--max-cost-usd 10`, the skill as `--tag`, and a deliberate
-      `--allow-tools` list: `Edit`, `Write`, `Bash(cargo:*)`, `Bash(git:*)`, never
+      `--allow-tools` list: `Edit`, `Write`, `Bash(cargo:*)`, `Bash(git:*)`, `Read` on
+      the copy alone, as recorded above, never
       `--dangerously-skip-permissions`. It does not pass `--ablation`, so first-turn cases
       get the baseline arm and resumed ones do not. Options after the skill are handed
       over, so `--model`, `--runs`, `--case` and the ceiling can be overridden.
@@ -245,18 +260,20 @@ The `developing-with-tdd` suite:
       Scenario 2's `last-test-run-is-green` reads the last `cargo test` with a lookahead
       allowing no later failure, not yet run against a trace holding a red and then a
       green.
-- [ ] **Add the fixture states the later turns start from**, such as the crate with the
-      plan of pending tests written, taken from a real run.
-- [ ] **Record and sanitise the transcripts** for the later turns, replacing every
+- [x] **Add the fixture states the later turns start from**, such as the crate with the
+      plan of pending tests written, taken from a real run. `setup.sh` takes an optional
+      directory copied over the state, and a case resuming after a turn that wrote files
+      keeps them in its own `crate/`.
+- [x] **Record and sanitise the transcripts** for the later turns, replacing every
       machine-local path and the owner's name with placeholders. `tools/check.sh` is
       what proves nothing was missed. Each comes from its first-turn case run with
       `--keep-temp --ablation none`, rebuilt by `tools/history-from-trace.sh`, which
       also appends a turn to an earlier history; it resumed at a second and a third
       turn on haiku, 2 runs of 2 each.
-- [ ] **Write the later-turn cases**: scenarios 1, 3 and 5 at their second turn, and 7
+- [x] **Write the later-turn cases**: scenarios 1, 3 and 5 at their second turn, and 7
       at its second and third; scenario 4 ends at its first, as recorded above. Scenario
-      3's second turn runs a red and then a green, so its first run is where the
-      lookahead on the last `cargo test` is checked.
+      3's second turn runs a red and then a green, and its lookahead on the last `cargo
+      test` matched the green and none of the earlier failures.
 - [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
       the expiry-day bug being inconclusive rather than failed, and a run where the skill
       did not load being a description failure rather than a rule failure. A judge's

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: 07-plan-review-turn2
+tags: [developing-with-tdd]
+context:
+  scaffold_script: scaffold.sh
+  history_file: history.jsonl
+execution:
+  max_turns: 40
+  append_system_prompt: "The shell in this environment refuses loops such as `for`, so run each command on its own. `cargo test` on its own always runs."
+  prompt: "no, fermati solo dove serve"

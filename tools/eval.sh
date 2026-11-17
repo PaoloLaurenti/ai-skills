@@ -34,7 +34,7 @@ export PATH
 # The command refuses a plugin holding a file with two names, which cargo's build output
 # is full of. So it evaluates a copy of what git sees, uncommitted edits included, and
 # the results come back here.
-copy="$(mktemp -d)"
+copy="$(cd "$(mktemp -d)" && pwd -P)"
 trap 'rm -rf "$copy"' EXIT
 (
     cd "$repo"
@@ -43,10 +43,18 @@ trap 'rm -rf "$copy"' EXIT
         tar --null -T - -cf - |
         tar -xf - -C "$copy"
 )
+# A later-turn case resumes a recorded conversation, where the loaded skill names its
+# directory `<plugin-root>`, and that directory is now the copy.
+find "$copy/evals" -name history.jsonl | while IFS= read -r history; do
+    sed "s|<plugin-root>|$copy|g" "$history" >"$history.new"
+    mv "$history.new" "$history"
+done
 results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 
 # The target comes first: --allow-tools and --tag take several values, and would read
-# a target placed after them as one more. No exec, so the trap removes the copy.
+# a target placed after them as one more. No exec, so the trap removes the copy. Read
+# is granted on the copy because a skill's reference files sit there, outside the
+# workspace, where a run refuses it.
 claude plugin eval "$copy" \
     --output-dir "$results" \
     --report "$results/report.html" \
@@ -56,6 +64,6 @@ claude plugin eval "$copy" \
     --model opus \
     --judge-model sonnet \
     --max-cost-usd 10 \
-    --allow-tools Edit Write 'Bash(cargo:*)' 'Bash(git:*)' \
+    --allow-tools Edit Write 'Bash(cargo:*)' 'Bash(git:*)' "Read(/$copy/**)" \
     --tag "$skill" \
     "$@"

@@ -2,10 +2,11 @@
 # Creates a fresh fixture for one run: a small Rust crate, `shop`, in a git repo of its
 # own, committed so that `git status` after a turn shows only what the run changed.
 #
-#   setup.sh <state>
+#   setup.sh <state> [<overlay>]
 #
 # It builds in the current directory, which is where a case's scaffold starts: the run's
-# empty workspace.
+# empty workspace. An overlay is a directory copied over the state before the build, such
+# as the files a recorded turn wrote, which a later-turn case keeps beside its history.
 #
 # The state picks what the crate holds on top of `base/`, a cart whose two tests pass:
 #
@@ -19,11 +20,12 @@
 # reset would have to know everything a run might leave behind.
 set -eu
 
-[ "$#" -eq 1 ] || {
-    echo "usage: setup.sh <feature|implemented|halfway>" >&2
+[ "$#" -eq 1 ] || [ "$#" -eq 2 ] || {
+    echo "usage: setup.sh <feature|implemented|halfway> [<overlay>]" >&2
     exit 2
 }
 state="$1"
+overlay="${2:-}"
 here="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(cd "$here/../../.." && pwd)"
 
@@ -44,6 +46,7 @@ case "$state" in
         rm FEATURE.md
         ;;
 esac
+[ -z "$overlay" ] || cp -R "$overlay/." .
 
 # asdf resolves the toolchain from the nearest `.tool-versions`, and a temporary directory
 # has none above it.
