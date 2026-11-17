@@ -132,6 +132,20 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   through `$(dirname "${BASH_SOURCE[0]}")/../fixture/setup.sh`. `--keep-temp` keeps the
   workspace sealed as `home/cwd` inside `sealed`, readable after `chmod 700` on the kept
   directory and on `sealed`.
+- **A denied command can stop a run from testing at all.** At CLI 2.1.326, scenario 6's
+  run tried `sed -i` for the rename, was refused with "Permission to use Bash has been
+  denied", took it as all of Bash, and closed saying it could neither build nor test,
+  though `Bash(cargo:*)` was granted. So a grader does not depend on Claude choosing to
+  run the tests unless the rule under test asks for it: scenario 6 reads the rename from
+  the files, `fn total_price` in `src/cart.rs` and no `.total()` left in its two callers,
+  instead of from the last `cargo test`.
+- **`--case` takes a glob without character classes.** `--case '0[345]-*-turn1'` matched
+  no case, so cases are run one per invocation.
+- **`tool` names one tool exactly.** It takes no alternation such as `Write|Edit`, so a
+  check on either tool is two graders, or a `trace` regex on `"name":"(?:Write|Edit)"`.
+- **Scenario 4's first turn does not discriminate.** At its first run, with and without
+  the skill both scored 1.0: Opus left the code alone and asked either way. What the
+  skill adds there shows in the later turn.
 
 ### Decisions, 2026-11-11
 
@@ -203,20 +217,21 @@ The `developing-with-tdd` suite:
 
 - [x] **Turn `fixture/setup.sh` into a scaffold.** It builds a given state of the crate
       into the current directory, and each case's own scaffold calls it with its state.
-- [ ] **Write the first-turn cases**: scenarios 1, 2, 3, 4, 5 and 7 at their first turn,
+- [x] **Write the first-turn cases**: scenarios 1, 2, 3, 4, 5 and 7 at their first turn,
       and scenario 6, each with its graders translated as decided above. The two that
       test whether the skill fires, 1 and 6, mark their `Skill` grader `arm: both`, since
       under the baseline arm a `Skill` grader is otherwise an indicator and not scored.
-      The first case reading passed and failed settles how a `trace` regex reads the
-      last `cargo test` only, such as with a lookahead allowing no later `test result`,
-      run once against a trace holding a red and then a green.
+      Scenario 2's `last-test-run-is-green` reads the last `cargo test` with a lookahead
+      allowing no later failure, not yet run against a trace holding a red and then a
+      green.
 - [ ] **Add the fixture states the later turns start from**, such as the crate with the
       plan of pending tests written, taken from a real run.
 - [ ] **Record and sanitise the transcripts** for the later turns, replacing every
       machine-local path and the owner's name with placeholders. `tools/check.sh` is
       what proves nothing was missed.
 - [ ] **Write the later-turn cases**: scenarios 1, 3, 4 and 5 at their second turn,
-      and 7 at its second and third.
+      and 7 at its second and third. Scenario 3's second turn runs a red and then a
+      green, so its first run is where the lookahead on the last `cargo test` is checked.
 - [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
       the expiry-day bug being inconclusive rather than failed, and a run where the skill
       did not load being a description failure rather than a rule failure. A judge's
