@@ -249,7 +249,10 @@ The `developing-with-tdd` suite:
       plan of pending tests written, taken from a real run.
 - [ ] **Record and sanitise the transcripts** for the later turns, replacing every
       machine-local path and the owner's name with placeholders. `tools/check.sh` is
-      what proves nothing was missed.
+      what proves nothing was missed. Each comes from its first-turn case run with
+      `--keep-temp --ablation none`, rebuilt by `tools/history-from-trace.sh`, which
+      also appends a turn to an earlier history; it resumed at a second and a third
+      turn on haiku, 2 runs of 2 each.
 - [ ] **Write the later-turn cases**: scenarios 1, 3 and 5 at their second turn, and 7
       at its second and third; scenario 4 ends at its first, as recorded above. Scenario
       3's second turn runs a red and then a green, so its first run is where the
