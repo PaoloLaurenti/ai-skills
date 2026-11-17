@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: 03-one-cycle-at-a-time-turn1
+tags: [developing-with-tdd]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "implementa in TDD lo sconto con codice promozionale descritto in FEATURE.md, con una pausa a ogni ciclo"

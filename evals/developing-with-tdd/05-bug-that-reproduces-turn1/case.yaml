@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: 05-bug-that-reproduces-turn1
+tags: [developing-with-tdd]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "c'è un bug: un codice promozionale viene rifiutato come scaduto proprio nel giorno della sua scadenza, ma dovrebbe valere fino a quel giorno compreso. Sistemalo in TDD, fermati solo dove serve"
