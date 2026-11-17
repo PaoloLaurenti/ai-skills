@@ -125,7 +125,13 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   `<workspace>`, `<home>` and `<owner>`, left 12 KB that resumed over a crate the
   scaffold built: Claude quoted the recorded command and edited the scaffold's
   `src/lib.rs`. What Claude said in the recording still reflects that environment,
-  such as its language.
+  such as its language, so the recordings come from a `plugin eval` run instead: at CLI
+  2.1.326 a run kept with `--keep-temp` saves no session file, but its `trace` holds
+  every message with its `uuid`, and a history rebuilt from it, with the prompt from
+  `case.yaml` put first, resumed in 3 runs of 3. The workspace path becomes relative
+  there, not `<workspace>`: Claude copies a recorded path as it is, and wrote
+  `<workspace>/done.txt` into a directory of that literal name, while with relative paths
+  all 3 runs wrote where the scaffold had built.
 - **A scaffold runs where it lives.** At CLI 2.1.325, `$0` and `BASH_SOURCE` both held
   the scaffold's absolute path inside the case directory, not a copy, with the empty
   workspace as the current directory, so a case's scaffold reaches a shared generator
@@ -139,13 +145,28 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   run the tests unless the rule under test asks for it: scenario 6 reads the rename from
   the files, `fn total_price` in `src/cart.rs` and no `.total()` left in its two callers,
   instead of from the last `cargo test`.
+- **A shell loop is always refused, and a note in the system prompt keeps it from
+  stopping a run.** At CLI 2.1.326, `for f in ...; do cat $f; done` was refused with the
+  case's grants, with `Bash(cat:*)` and `Bash(echo:*)` added, and with `Bash(for:*)`;
+  only `Bash` granted whole let it through. Opus opens most runs with such a loop, often
+  with `cargo test` chained after it, and scenario 4's first turn twice concluded it
+  could not test and stopped on a reading of the code. A `CLAUDE.md` in the workspace is
+  not read, since the sandbox leaves out every `CLAUDE.md` by design, but a case's
+  `execution.append_system_prompt` reaches the session in both arms. So every case of
+  the suite carries the same line saying loops are refused and `cargo test` on its own
+  runs, and with it scenario 4's next recording ran the suite. It is repeated in each
+  `case.yaml`, as the command takes no option to set it once.
 - **`--case` takes a glob without character classes.** `--case '0[345]-*-turn1'` matched
   no case, so cases are run one per invocation.
 - **`tool` names one tool exactly.** It takes no alternation such as `Write|Edit`, so a
   check on either tool is two graders, or a `trace` regex on `"name":"(?:Write|Edit)"`.
-- **Scenario 4's first turn does not discriminate.** At its first run, with and without
-  the skill both scored 1.0: Opus left the code alone and asked either way. What the
-  skill adds there shows in the later turn.
+- **Scenario 4 ends at its first turn.** At its first run, with and without the skill
+  both scored 1.0: Opus left the code alone and asked either way. The recordings show
+  why: Opus finds the existing `rounds_the_discount_down_to_the_cent` covering the
+  report, and the one recording that could run `cargo test` saw it pass and stopped
+  there asking for details, the two that could not cited the same test. No turn is left
+  for an "ok" to resume, so the scenario has no second-turn case, and its judge requires
+  the non-reproduction to come from a test that ran.
 
 ### Decisions, 2026-11-11
 
@@ -229,9 +250,10 @@ The `developing-with-tdd` suite:
 - [ ] **Record and sanitise the transcripts** for the later turns, replacing every
       machine-local path and the owner's name with placeholders. `tools/check.sh` is
       what proves nothing was missed.
-- [ ] **Write the later-turn cases**: scenarios 1, 3, 4 and 5 at their second turn,
-      and 7 at its second and third. Scenario 3's second turn runs a red and then a
-      green, so its first run is where the lookahead on the last `cargo test` is checked.
+- [ ] **Write the later-turn cases**: scenarios 1, 3 and 5 at their second turn, and 7
+      at its second and third; scenario 4 ends at its first, as recorded above. Scenario
+      3's second turn runs a red and then a green, so its first run is where the
+      lookahead on the last `cargo test` is checked.
 - [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
       the expiry-day bug being inconclusive rather than failed, and a run where the skill
       did not load being a description failure rather than a rule failure. A judge's

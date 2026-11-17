@@ -4,4 +4,5 @@ tags: [developing-with-tdd]
 context:
   scaffold_script: scaffold.sh
 execution:
+  append_system_prompt: "The shell in this environment refuses loops such as `for`, so run each command on its own. `cargo test` on its own always runs."
   prompt: "implementa in TDD lo sconto con codice promozionale descritto in FEATURE.md, senza pausa a ogni ciclo: fermati solo dove serve"
