@@ -274,13 +274,15 @@ The `developing-with-tdd` suite:
       at its second and third; scenario 4 ends at its first, as recorded above. Scenario
       3's second turn runs a red and then a green, and its lookahead on the last `cargo
       test` matched the green and none of the earlier failures.
-- [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
+- [x] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
       the expiry-day bug being inconclusive rather than failed, and a run where the skill
       did not load being a description failure rather than a rule failure. A judge's
       criteria are written from the current `SKILL.md`, not copied from the scenario's
       assertions, which can lag behind it: scenario 2's order left out the empty cases
       that close the happy paths, so the first run of its case had three judges fail a
-      plan the skill asks for.
+      plan the skill asks for. Scenario 4's judge now passes a test that failed only on
+      the expiry-date rejection, raised as a separate finding, which the skill's "propose
+      another scenario" asks for, so that run is no longer one to rerun.
 - [ ] **Run each case once while writing it**, with `--case` and `--runs 1`, and read
       the trace for git calls: if runs keep reaching for git and its errors move the
       results, probe a git outside Apple's before going further.
@@ -289,7 +291,11 @@ The `developing-with-tdd` suite:
 - [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
       `run.sh` and `baseline.sh`.
 - [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
-      each case is, the fixture states, how to launch, what a full run costs.
+      each case is, the fixture states, how to launch, what a full run costs. Two notes
+      from the old scenarios go there: when `skill-loaded` fails, the other graders say
+      nothing about the rule; and scenarios 4 and 6 pass without the skill too, so their
+      Δ near 0 is expected, and they stay as guards, of the bug rule and of the
+      description.
 
 Documentation:
 
