@@ -69,6 +69,17 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   nothing compiled. With `lib` on `PATH` as well, an `Edit` adding a test followed by
   `cargo test` recompiled and printed `2 passed`, which is why `tools/eval.sh` puts both
   there. A toolchain copied under `/private/tmp` exited 126, being denied as a whole.
+- **Git does not run inside the sandbox on a Mac with Apple's git only.** At CLI
+  2.1.325, `/usr/bin/git` is the `xcrun` shim, which has to write a cache in the system
+  temporary directory the sandbox denies, and exits 72 with "Failed to locate 'git'".
+  The real binaries of Xcode and the Command Line Tools are denied by the generated
+  settings, so the shell skips them even at the front of `PATH`. A command prefixed to
+  get around it, such as `TMPDIR=… git …`, is refused, since `Bash(git:*)` does not
+  match it. Accepted as it is: `tool_used` counted every `git commit` call, the failed
+  and the refused alike, so "no commit" is still read from the attempt. The price is a
+  repo where git is broken, which no real session has: a run that reaches for `git
+  status` or `git diff` gets an error and may spend turns on it. A git outside Apple's,
+  such as Homebrew's, is unlisted and would likely run, unverified.
 - **Bash runs in a sandbox** with network only to granted domains and the credentials in
   the real home out of reach, so the three suites driving a real pull request through
   `gh` do not fit as they stand.
@@ -182,7 +193,9 @@ The `developing-with-tdd` suite:
 - [ ] **Carry the grading notes into the criteria**, such as scenario 4's run that hits
       the expiry-day bug being inconclusive rather than failed, and a run where the skill
       did not load being a description failure rather than a rule failure.
-- [ ] **Run each case once while writing it**, with `--case` and `--runs 1`.
+- [ ] **Run each case once while writing it**, with `--case` and `--runs 1`, and read
+      the trace for git calls: if runs keep reaching for git and its errors move the
+      results, probe a git outside Apple's before going further.
 - [ ] **Run the full suite once**, confirm the threshold ignores the baseline arm, and
       set the ceiling just above the measured cost.
 - [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
