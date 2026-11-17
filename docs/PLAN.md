@@ -80,6 +80,17 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   repo where git is broken, which no real session has: a run that reaches for `git
   status` or `git diff` gets an error and may spend turns on it. A git outside Apple's,
   such as Homebrew's, is unlisted and would likely run, unverified.
+- **The trace holds what the tools printed.** At CLI 2.1.325, a run told to answer
+  only `DONE` after adding a test and running `cargo test` had a `trace` regex match
+  `test result: ok. 2 passed` and `running 2 tests`, while the same regex on the reply
+  did not. So passed and failed are read from the `trace`, not from what Claude says. A
+  `trace` regex matches anywhere in the run, though, not in the last `cargo test` only.
+- **A grader that passes proves less than it looks.** In a run where `cargo test` did
+  not compile and `git commit` failed, five graders of six passed. `tool_used` counts
+  calls whatever their outcome, so it proves an attempt and never a result. And a
+  regex on the reply looking for `probe commit` matched the sentence in which Claude
+  explained why the commit had failed, so a regex on the reply must not look for words
+  Claude would also use to report a failure.
 - **Bash runs in a sandbox** with network only to granted domains and the credentials in
   the real home out of reach, so the three suites driving a real pull request through
   `gh` do not fit as they stand.
@@ -172,8 +183,9 @@ built. If the second fails, the decision on later turns comes back for discussio
 - [x] **Check that a case's scaffold can reach a shared fixture** outside its own
       directory, printing `$0` and `BASH_SOURCE`. If it cannot, every case needs its own
       generator.
-- [ ] **Check that the granted tools work.** Only bare `Bash` was probed. `Edit`,
-      `Write` and `Bash(cargo:*)` need a run that uses each.
+- [x] **Check that the granted tools work.** `Write`, `Edit` and `Bash(cargo:*)` work,
+      the last once `tools/eval.sh` puts the toolchain's `lib` on `PATH`; `Bash(git:*)`
+      cannot run, accepted as recorded above.
 
 The `developing-with-tdd` suite:
 
@@ -183,6 +195,9 @@ The `developing-with-tdd` suite:
       and scenario 6, each with its graders translated as decided above. The two that
       test whether the skill fires, 1 and 6, mark their `Skill` grader `arm: both`, since
       under the baseline arm a `Skill` grader is otherwise an indicator and not scored.
+      The first case reading passed and failed settles how a `trace` regex reads the
+      last `cargo test` only, such as with a lookahead allowing no later `test result`,
+      run once against a trace holding a red and then a green.
 - [ ] **Add the fixture states the later turns start from**, such as the crate with the
       plan of pending tests written, taken from a real run.
 - [ ] **Record and sanitise the transcripts** for the later turns, replacing every
