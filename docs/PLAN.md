@@ -333,10 +333,16 @@ The `developing-with-tdd` suite:
       counts as present and lost a request to name the missing element, which a one-word
       judge cannot answer. If judge noise keeps failing the 1.0 threshold in later full
       runs, the threshold comes back for discussion.
-- [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
+- [x] **Delete the hand-built files** the cases replace: the numbered scenarios,
       `run.sh` and `baseline.sh`.
+      *Done 2026-11-18.* Their hand-run results and baselines of 2026-10-30 are in git
+      history, at `80769fb`, the last commit holding them. Until the tasks below land,
+      the suite's README still describes the two scripts, and `AGENTS.md` still names
+      scenario 1 as the evidence that the description fires on Italian, which is now
+      `skill-loaded` in `01-opening-questions-turn1`.
 - [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
-      each case is, the fixture states, how to launch, what a full run costs. Two notes
+      each case is, the fixture states, how to launch, what a full run costs, and where
+      the hand-run results before the move are kept in git history. Two notes
       from the old scenarios go there: when `skill-loaded` fails, the other graders say
       nothing about the rule; and scenarios 4 and 6 pass without the skill too, so their
       Δ near 0 is expected, and they stay as guards, of the bug rule and of the
