@@ -350,11 +350,16 @@ The `developing-with-tdd` suite:
 
 Documentation:
 
-- [ ] **Rewrite "Evaluating a skill" in `AGENTS.md`**, and the layout table above it:
+- [x] **Rewrite "Evaluating a skill" in `AGENTS.md`**, and the layout table above it:
       the case format, `tools/eval.sh`, the threshold making the rerun after an edit a
       command rather than a promise, and why runs stay out of CI. Carry over every fact
       from "What the command can and cannot do" that a case author needs, since this
       entry moves to Completed once done and nobody looks there for how things work.
+      *Done 2026-11-18.* Those facts went into `evals/README.md` rather than
+      `AGENTS.md`, which every session loads whether or not it touches an eval:
+      `AGENTS.md` keeps the rule, the command, why runs stay out of CI, and an
+      instruction to read that file before writing or changing a case. The suite's own
+      README now points there instead of repeating the shell-loop line and the replay.
 - [ ] **Update the eval sections of `README.md`** to match.
 
 The rest of the suite:

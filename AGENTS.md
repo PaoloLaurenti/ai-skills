@@ -15,7 +15,9 @@ plus the few lines of shell that run it from a hook and from CI.
 .claude-plugin/plugin.json      the plugin manifest, naming the namespace every skill loads under
 skills/<skill-name>/SKILL.md    one directory per skill, the skill body lives in SKILL.md
 skills/<skill-name>/reference/  material a skill body points at rather than carries
-evals/<skill-name>/             the scenarios that test a skill's rules, one file each
+evals/README.md                 how to write an eval case, and what the eval command does unannounced
+evals/<skill-name>/             the cases that test a skill's rules, with a README on that suite
+evals/results/                  the reports eval runs write, ignored by git
 README.md                       what the repo is, how it is wired up, how to add a skill
 AGENTS.md                       this file
 CLAUDE.md                       an @AGENTS.md include, nothing else
@@ -24,6 +26,8 @@ LICENSE                         MIT, and one of the two places allowed to name t
 tools/skill-check/              the checks over every SKILL.md and over the tree, as cargo tests
 tools/check.sh                  formatting, lints and those tests, in one command
 tools/link-skills.sh            links the skills where agents read them, for whoever develops them
+tools/eval.sh                   runs a skill's eval cases, the one way to launch them
+tools/history-from-trace.sh     rebuilds the conversation a later-turn eval case resumes
 .githooks/pre-commit            runs that command before a commit, once a clone points at it
 .github/workflows/checks.yml    the same command on every push, plus the plugin validation
 .tool-versions                  the Rust version asdf resolves for this repo
@@ -137,8 +141,9 @@ workflow makes the agent follow the summary instead of reading the body. Include
 the phrasings actually used to ask for the thing, in both English and Italian,
 since those are what the description is matched against. A skill whose main
 condition covers a request in any language may carry English phrasings only, once
-a scenario shows it firing on an Italian request without them:
-`developing-with-tdd` is one, and its scenario 1 is that evidence.
+an eval case shows it firing on an Italian request without them:
+`developing-with-tdd` is one, and `skill-loaded` in its case
+`01-opening-questions-turn1` is that evidence.
 
 The body is the instructions themselves. It is read by an agent that will act on
 it, so it states what to do rather than describing what the skill is about.
@@ -268,15 +273,29 @@ changes for a user. No changelog file: it would be a second copy of the release 
 ## Evaluating a skill
 
 Those checks say nothing about whether a skill's rules hold. That is what
-`evals/<skill-name>/` is for: one file per scenario, each carrying the prompt
-verbatim and a checklist of assertions, most of them commands rather than
-judgement.
+`evals/<skill-name>/` is for: cases that `claude plugin eval` runs and grades, each a
+prompt, a scaffold building the workspace, and graders reading what Claude did.
 
-**An edit to a `SKILL.md` runs that skill's scenarios before the change is
-offered.** A rule nobody exercised is a rule nobody knows is working, and a rule
-that used to work can stop through an edit elsewhere in the same file.
+**An edit to a `SKILL.md` runs that skill's cases before the change is offered:**
 
-They sit outside `tools/check.sh` and the hook on purpose: a run costs a model call
-per scenario and reaches GitHub, so it belongs to whoever makes the change rather
-than to a gate firing on every commit. The procedure, the fixture and the reset a
-rerun needs are in `evals/<skill-name>/README.md`.
+```bash
+tools/eval.sh <skill-name>
+```
+
+A rule nobody exercised is a rule nobody knows is working, and a rule that used to work
+can stop through an edit elsewhere in the same file. The threshold makes the rerun a
+command rather than a promise: the run exits non-zero when any case scores below 1.0
+with the skill loaded.
+
+Runs sit outside `tools/check.sh`, the hook and CI on purpose: a run costs model calls,
+and belongs to whoever makes the change rather than to a gate firing on every commit.
+
+**Read `evals/README.md` before writing or changing a case.** The command's sandbox and
+graders behave in ways its docs leave out, such as a grader passing on a failed attempt
+or a run cut off at ten turns, and a case written without them grades something other
+than the rule. What each suite tests and costs is in `evals/<skill-name>/README.md`.
+
+The suites of `reviewing-pull-requests`, `addressing-pull-request-reviews` and
+`walking-through-and-reviewing-pull-requests` drive a real pull request through `gh`,
+which the sandbox cannot reach, so they are still scenarios run by hand, as their own
+`README.md` describes.

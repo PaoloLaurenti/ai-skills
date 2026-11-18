@@ -104,25 +104,9 @@ longer shows what the skill would say, so record it again:
 3. Copy into the case's `crate/` the files the recorded turn wrote, if any.
 4. Run `tools/check.sh`, which proves no machine-local path or name survived.
 
-The script replaces machine-local paths with placeholders. The plugin's own directory
-becomes `<plugin-root>`, which `tools/eval.sh` fills in with the copy it evaluates, so
-the skill's reference files stay reachable from a resumed run.
-
-## The line every case repeats
-
-Every `case.yaml` appends the same line to the system prompt: shell loops are refused,
-and `cargo test` on its own always runs. The sandbox refuses any `for` loop whatever the
-grants, Opus opens most runs with one, and without the line a run can conclude it cannot
-test and stop. It sits in each case because the command has no option to set it once.
-
-## Replaying a judge
-
-An `llm` grader's judge answers PASS or FAIL in one word, with no reasoning. To find out
-why it failed a reply, grade the same reply again in a throwaway case, on haiku with one
-run: its `scaffold.sh` writes the reply into `reply.txt`, and a copy of the grader reads
-it with `focus: { source: file, path: reply.txt }`. A `claude -p` replay of the judge's
-prompt is no proxy, and asking haiku to repeat the reply word for word sometimes alters
-it.
+Why histories are rebuilt this way, and what else a case author needs to know about the
+command, such as the line on shell loops every `case.yaml` repeats and how to replay a
+judge, is in [`evals/README.md`](../README.md).
 
 ## Before `claude plugin eval`
 
