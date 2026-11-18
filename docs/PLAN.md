@@ -388,9 +388,49 @@ The three GitHub suites, rebuilt around a fake `gh`:
       reaching for a new call fails a case instead of passing on a wrong answer. Its
       directory sits in the repo, and `tools/eval.sh` puts it on `PATH` from the repo
       rather than from the copy, as the probe above requires.
+
+      *Inventory, 2026-11-18*, of the calls the skills name, from their bodies and
+      `reference/` files, `OWNER/REPO/pulls/N` written `…`:
+
+      | Skill | Reads | Writes |
+      | --- | --- | --- |
+      | `reviewing-pull-requests` | `gh pr diff N`; `gh pr view N --json headRefOid`; `gh api user`; `gh api …/reviews`, `…/reviews/ID`, `…/reviews/ID/comments`, `…/comments`; GraphQL `reviewThreads` | `POST …/reviews` with `--input`; GraphQL `addPullRequestReviewThread`, `updatePullRequestReview`, `addPullRequestReviewThreadReply`, `resolveReviewThread`, `unresolveReviewThread`; `DELETE …/reviews/ID` and `DELETE …/comments/ID`; `POST …/reviews/ID/events`, which the skill allows only on request |
+      | `addressing-pull-request-reviews` | GraphQL `reviewThreads`; `gh api repos/…/issues/N/comments --paginate`; `gh pr list --author @me`; `gh api …/comments`, `…/reviews`; `gh pr view N --json body` | `POST …/comments/ID/replies`; `gh pr comment`; `gh pr edit N --body-file`; `POST …/requested_reviewers` |
+      | `walking-through-and-reviewing-pull-requests` | none named: Claude picks its own | none named |
+
+      Four things this asks of the fake beyond answering by command:
+      - **Reads after writes.** The review skill checks its own delivery by reading the
+        reviews back and expecting one `PENDING`, so the fake keeps state: a write
+        changes what a later read returns. Recorded responses give the shape of each
+        answer, not a fixed answer.
+      - **`-q`.** Nearly every read filters its answer with `gh`'s built-in jq, so the
+        fake applies the filter, through `/usr/bin/jq`.
+      - **GraphQL.** One endpoint, `gh api graphql`, behind seven operations, told
+        apart by the query text.
+      - **The calls Claude picks on its own** are unknown: the hand-run transcripts were
+        not kept, and the scenario files quote only the commands their graders ran. The
+        walkthrough skill names none at all. The first runs against the fake find them,
+        through the calls it logs as unhandled.
+
+      *Progress, 2026-11-18*: `tools/fake-gh/`, a Rust crate whose binary is named `gh`,
+      answers every call `addressing-pull-request-reviews` names, written test-first,
+      its tests in `tests/pull_request.rs` and run by `tools/check.sh`. A workspace
+      describes its pull request in `.git/fake-gh/pull-request.json`, in REST's shape,
+      which the fake looks for from the current directory up and rewrites after a
+      write; the calls go to `calls.jsonl` beside it. Fields it does not use pass
+      through untouched, so a recorded response keeps them. Still to do: the calls of
+      `reviewing-pull-requests`, and `tools/eval.sh` putting the binary on `PATH`.
+      Deferred until those calls are in: one type listing every call the fake knows,
+      since today `write` matches on how a path ends and `answer` on the command and
+      subcommand, and with eleven calls the second shape is not yet worth its code.
 - [ ] **Record its responses from the real `gh`**, against the fixture repo the hand-run
       suites already use, with a script, never written by hand, and recorded again when
-      `gh` or a skill's calls change.
+      `gh` or a skill's calls change. Writing the fake left three answers guessed rather
+      than seen, which the recording settles: whether GitHub keeps the trailing newline
+      of a description set with `--body-file`, since keeping one GitHub drops makes the
+      skill's `diff` check report a change; the exact message of the `422` for a review
+      requested from the author; and what `gh pr comment` and `gh pr edit` print, where
+      the fake prints nothing.
 - [ ] **Check the fake against the real `gh` before every commit**, with a script the
       pre-commit hook calls after `tools/check.sh`: it replays the writes the fake has
       logged against the fixture repo, inside a pending review it then deletes, and fails

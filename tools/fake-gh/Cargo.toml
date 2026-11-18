@@ -1,0 +1,17 @@
+[package]
+name = "fake-gh"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "A stand-in for the GitHub CLI, for eval cases whose sandbox cannot reach GitHub."
+
+[[bin]]
+name = "gh"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+tempfile = "3"
