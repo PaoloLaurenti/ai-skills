@@ -360,7 +360,7 @@ Documentation:
       `AGENTS.md` keeps the rule, the command, why runs stay out of CI, and an
       instruction to read that file before writing or changing a case. The suite's own
       README now points there instead of repeating the shell-loop line and the replay.
-- [ ] **Update the eval sections of `README.md`** to match.
+- [x] **Update the eval sections of `README.md`** to match.
 
 The rest of the suite:
 

@@ -151,24 +151,29 @@ activation conditions only and not the procedure: if it summarises the workflow,
 the agent tends to follow the summary instead of reading the body.
 
 The skill also needs a row in the table at the top of this file, which `tools/check.sh`
-enforces, and its scenarios under `evals/<name>/`, run before the change is proposed, as
-the next section explains.
+enforces, and its eval cases under `evals/<name>/`, run before the change is proposed,
+as the next section explains.
 
 ### Evaluations
 
 `tools/check.sh` checks the shape of a skill, never whether its rules hold. That is what
-`evals/<name>/` is for: one file per scenario, each giving a prompt, the rule it puts
-under pressure, and the outcome expected, checked by command wherever possible.
+`evals/<name>/` is for: cases that `claude plugin eval` runs and grades, each giving a
+prompt that puts one rule under pressure, and graders reading what the agent did.
 
-Every scenario is run twice, once with the skill and once without it, as a baseline: a
-rule that the agent follows anyway adds nothing, and only the pair shows the difference
-the skill makes. The results of both runs are recorded in the scenario file, with
-quotes from the transcripts.
+```bash
+tools/eval.sh <name>
+```
 
-A run costs model calls, and most suites drive a test repository on GitHub, with pull
-requests prepared for the scenarios, so the scenarios stay out of `tools/check.sh` and
-the commit hook: whoever changes a skill runs them. Each
-`evals/<name>/README.md` holds the fixture, the commands and how a run is graded.
+Every first-turn case also runs without the skill, as a baseline: a rule that the agent
+follows anyway adds nothing, and only the pair shows the difference the skill makes. The
+report lands in `evals/results/`, which git ignores. A run costs model calls, so the
+cases stay out of `tools/check.sh` and the commit hook: whoever changes a skill runs
+them. `evals/README.md` is where writing a case starts, and each `evals/<name>/README.md`
+says what its suite tests.
+
+The suites of the three pull request skills drive a test repository on GitHub, which
+the command's sandbox cannot reach, so they are still scenarios run by hand, with their
+results recorded in the scenario files, as their own `README.md` explains.
 
 ### Contributing
 
@@ -180,8 +185,9 @@ these are the ones a first change meets:
   exception;
 - `tools/check.sh` passes before a commit, which the hook set by `tools/link-skills.sh`
   enforces;
-- a change to a skill comes with its scenarios under `evals/<name>/`, run with and
-  without the skill, and their results recorded;
+- a change to a skill passes its eval cases, run with `tools/eval.sh <name>`, or, for
+  the three pull request skills, runs their scenarios with and without the skill and
+  records the results;
 - a change to a skill bumps the version in `.claude-plugin/plugin.json`; once it is
   merged, the maintainer tags it and publishes the release, as "Releasing" in `AGENTS.md`
   explains.
