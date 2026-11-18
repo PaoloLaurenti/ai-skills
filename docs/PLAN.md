@@ -340,7 +340,7 @@ The `developing-with-tdd` suite:
       the suite's README still describes the two scripts, and `AGENTS.md` still names
       scenario 1 as the evidence that the description fires on Italian, which is now
       `skill-loaded` in `01-opening-questions-turn1`.
-- [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
+- [x] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
       each case is, the fixture states, how to launch, what a full run costs, and where
       the hand-run results before the move are kept in git history. Two notes
       from the old scenarios go there: when `skill-loaded` fails, the other graders say
