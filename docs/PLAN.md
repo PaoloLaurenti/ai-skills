@@ -283,11 +283,29 @@ The `developing-with-tdd` suite:
       plan the skill asks for. Scenario 4's judge now passes a test that failed only on
       the expiry-date rejection, raised as a separate finding, which the skill's "propose
       another scenario" asks for, so that run is no longer one to rerun.
-- [ ] **Run each case once while writing it**, with `--case` and `--runs 1`, and read
+- [x] **Run each case once while writing it**, with `--case` and `--runs 1`, and read
       the trace for git calls: if runs keep reaching for git and its errors move the
-      results, probe a git outside Apple's before going further.
+      results, probe a git outside Apple's before going further. The kept traces held 26
+      git calls, nearly all a `git ls-files` opening the run, and every one failed on
+      Apple's cache; Claude went on with `find` and `cat`, and no result changed with
+      it, so no other git was probed.
 - [ ] **Run the full suite once**, confirm the threshold ignores the baseline arm, and
       set the ceiling just above the measured cost.
+      *Started 2026-11-17 and stopped halfway, when the session ended.* Opus, 3 runs,
+      `--max-cost-usd 25`, about $9.60 spent on the first 7 cases. Every case passed
+      with the skill but two, each on one run of three: `02-plan-and-its-stop-turn1` at
+      0.96, where all three judges failed `states-the-surface`, and
+      `03-one-cycle-at-a-time-turn2` at 0.92, where `red-on-an-assertion` found no red
+      on an assertion, as in that case's first run. Neither run kept its trace. Without
+      the skill, 01 and 03 scored 0.20, 02 0.41, 05 0.50, and 04 1.00 as expected.
+      Rerun with `--keep-temp`, both failures were the graders'. Scenario 3's run had
+      filtered `cargo test` through grep, keeping `left:` and `right:` but not the
+      "assertion failed" line, so the regex takes either. Scenario 2 failed a different
+      judge on each of three runs, on replies a separate Sonnet passed 6 times of 6: the
+      criteria asked for more than the skill does, the word double for the catalogue, or
+      left a reading open, `total` taken for a method name and rounding for an edge case.
+      Reworded, the case passed 3 runs of 3 with every vote PASS. Next: the whole suite
+      again, for the measured cost.
 - [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
       `run.sh` and `baseline.sh`.
 - [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
