@@ -173,7 +173,8 @@ says what its suite tests.
 
 The suites of the three pull request skills drive a test repository on GitHub, which
 the command's sandbox cannot reach, so they are still scenarios run by hand, with their
-results recorded in the scenario files, as their own `README.md` explains.
+results recorded in the scenario files, as their own `README.md` explains. They are
+planned to become cases too, with a fake `gh` standing in for GitHub.
 
 ### Contributing
 

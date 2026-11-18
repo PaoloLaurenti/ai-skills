@@ -298,4 +298,5 @@ than the rule. What each suite tests and costs is in `evals/<skill-name>/README.
 The suites of `reviewing-pull-requests`, `addressing-pull-request-reviews` and
 `walking-through-and-reviewing-pull-requests` drive a real pull request through `gh`,
 which the sandbox cannot reach, so they are still scenarios run by hand, as their own
-`README.md` describes.
+`README.md` describes. They are planned to become cases around a fake `gh`, checked
+against the real one before every commit, as `docs/PLAN.md` details.

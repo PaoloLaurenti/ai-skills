@@ -364,10 +364,46 @@ Documentation:
 
 The rest of the suite:
 
-- [ ] **Decide the three GitHub suites**, `reviewing-pull-requests`,
+- [x] **Decide the three GitHub suites**, `reviewing-pull-requests`,
       `addressing-pull-request-reviews` and `walking-through-and-reviewing-pull-requests`:
       rebuilt around a pull request given as local files, with graders on the `gh`
       calls Claude attempts, kept by hand, or dropped. Recorded here, then planned.
+      *Decided 2026-11-18: rebuilt around a fake `gh`*, after a probe showed one runs.
+      Graders on the attempted calls alone were set aside, since Claude takes another
+      path after the first failed `gh` and only that first attempt would be graded;
+      keeping them by hand leaves the rerun after an edit a promise. The probe, at CLI
+      2.1.327 with haiku and one run: a script named `gh`, logging its arguments into
+      the workspace and answering from canned text, was skipped by the sandbox when its
+      directory sat in the temporary copy `tools/eval.sh` makes, under
+      `/private/var/folders`, and the real `gh` answered instead, asking for `gh auth
+      login`. Moved to a directory inside the repo, under the home, it answered, the log
+      held both calls, and `Bash(gh:*)` let it through: 5 graders of 5 passed.
+
+The three GitHub suites, rebuilt around a fake `gh`:
+
+- [ ] **Write the fake `gh`**, a test double of GitHub: a fake for reads, answering from
+      recorded responses, and a spy for writes, logging every call into the workspace
+      for the graders to read. A call it does not know answers with a clear error and is
+      logged as unhandled, and every case carries a grader requiring none, so a skill
+      reaching for a new call fails a case instead of passing on a wrong answer. Its
+      directory sits in the repo, and `tools/eval.sh` puts it on `PATH` from the repo
+      rather than from the copy, as the probe above requires.
+- [ ] **Record its responses from the real `gh`**, against the fixture repo the hand-run
+      suites already use, with a script, never written by hand, and recorded again when
+      `gh` or a skill's calls change.
+- [ ] **Check the fake against the real `gh` before every commit**, with a script the
+      pre-commit hook calls after `tools/check.sh`: it replays the writes the fake has
+      logged against the fixture repo, inside a pending review it then deletes, and fails
+      when GitHub rejects one. It runs at most once a day per clone, remembering the
+      last day it passed in a file under `.git/`, which is never versioned. It skips with
+      a warning, without blocking the commit, when `gh` is not authenticated, has no
+      fixture repo, or is offline, since a contributor from outside has no access to
+      the owner's fixture repo and an offline commit has nothing to do with GitHub. It
+      stays out of `tools/check.sh`, which CI runs without credentials to write there.
+- [ ] **Turn each suite into cases**, as for `developing-with-tdd`, and delete its
+      hand-built files.
+- [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
+      its responses, and the hook's second step.
 
 None of this touches `skills/`, so it earns no version and no release.
 
