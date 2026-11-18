@@ -9,6 +9,8 @@ Before writing any test body, the reply has to present the surface the tests wil
 3. how the tests fix today's date, either with a clock double or by passing the date in;
 4. what the call returns or reports for a valid code, an expired code and an unknown code.
 
+An element counts as present when the reply states it anywhere, in any form and any order. Wording, extra detail and anything beyond these four are not reasons to fail.
+
 PASS if all four are present.
 
-FAIL if any of the four is missing, naming the missing one.
+FAIL if any of the four is missing.

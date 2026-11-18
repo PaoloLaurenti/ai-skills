@@ -185,10 +185,14 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   grader sends the criteria and the judged text with "Respond with exactly one word:
   PASS or FAIL", under a system prompt asking for a strict, terse judge, and with
   thinking off; it gives no reason for its vote. So a `claude -p` replay of the same
-  prompt is no proxy: it passed replies the judge failed every time. The faithful replay
-  is a throwaway case whose prompt asks haiku to repeat the judged reply word for word,
-  graded with the same criteria. That replay showed the judge reading a closing "Do you
-  want X? Or should I Y?" as two questions, until the criteria said it is one.
+  prompt is no proxy: it passed replies the judge failed every time. A throwaway case
+  whose prompt asks haiku to repeat the judged reply word for word comes closer, and
+  showed the judge reading a closing "Do you want X? Or should I Y?" as two questions,
+  until the criteria said it is one. On a long reply haiku sometimes refuses or adds the
+  markers instead, so every replayed run's evidence has to be compared with the
+  original. The steady replay writes the reply into a file from the case's scaffold
+  and grades it with `focus: { source: file, path: reply.txt }`, at the price of the
+  judge reading "file reply.txt" where the real run says "last_message".
 
 ### Decisions, 2026-11-11
 
@@ -318,7 +322,13 @@ The `developing-with-tdd` suite:
       with a question and its alternative, which the criteria now count as one question:
       replayed, those replies passed 27 votes of 27, two replies asking two real
       questions still failed every vote, and both cases then passed 3 runs of 3. 02 failed
-      once on `states-the-surface` and once on `orders-the-plan`.
+      once on `orders-the-plan`, rightly: its plan put a rejected code after the
+      expiry-date edge case. And once on `states-the-surface`, on a reply holding all four
+      elements, which replayed from a file passed 15 votes of 15 with the old criteria and
+      with the new: no cause was found, so the criteria only gained a sentence on what
+      counts as present and lost a request to name the missing element, which a one-word
+      judge cannot answer. If judge noise keeps failing the 1.0 threshold in later full
+      runs, the threshold comes back for discussion.
 - [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
       `run.sh` and `baseline.sh`.
 - [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
