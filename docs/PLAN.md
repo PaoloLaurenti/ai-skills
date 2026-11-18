@@ -181,6 +181,14 @@ probed at CLI 2.1.322 in a throwaway plugin, with haiku and one run each:
   the copy's path in its place in the copy's histories and grants `Read` on the copy.
   Without both, scenario 3's second turn looked for `reference/transformations.md` with
   `find /` after its green.
+- **The judge answers in one word, with no reasoning first.** At CLI 2.1.327 an `llm`
+  grader sends the criteria and the judged text with "Respond with exactly one word:
+  PASS or FAIL", under a system prompt asking for a strict, terse judge, and with
+  thinking off; it gives no reason for its vote. So a `claude -p` replay of the same
+  prompt is no proxy: it passed replies the judge failed every time. The faithful replay
+  is a throwaway case whose prompt asks haiku to repeat the judged reply word for word,
+  graded with the same criteria. That replay showed the judge reading a closing "Do you
+  want X? Or should I Y?" as two questions, until the criteria said it is one.
 
 ### Decisions, 2026-11-11
 
@@ -304,8 +312,13 @@ The `developing-with-tdd` suite:
       judge on each of three runs, on replies a separate Sonnet passed 6 times of 6: the
       criteria asked for more than the skill does, the word double for the catalogue, or
       left a reading open, `total` taken for a method name and rounding for an edge case.
-      Reworded, the case passed 3 runs of 3 with every vote PASS. Next: the whole suite
-      again, for the measured cost.
+      Reworded, the case passed 3 runs of 3 with every vote PASS.
+      *Second full run, 2026-11-18:* 32 minutes and $14.18 for all 12 cases, 9 passing.
+      01 and 07 at their first turn failed the opening-question judges on replies closing
+      with a question and its alternative, which the criteria now count as one question:
+      replayed, those replies passed 27 votes of 27, two replies asking two real
+      questions still failed every vote, and both cases then passed 3 runs of 3. 02 failed
+      once on `states-the-surface` and once on `orders-the-plan`.
 - [ ] **Delete the hand-built files** the cases replace: the numbered scenarios,
       `run.sh` and `baseline.sh`.
 - [ ] **Rewrite `evals/developing-with-tdd/README.md`** around the new layout: what
