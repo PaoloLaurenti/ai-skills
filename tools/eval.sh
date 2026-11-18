@@ -63,7 +63,7 @@ claude plugin eval "$copy" \
     --trust-plugin \
     --model opus \
     --judge-model sonnet \
-    --max-cost-usd 10 \
+    --max-cost-usd 16 \
     --allow-tools Edit Write 'Bash(cargo:*)' 'Bash(git:*)' "Read(/$copy/**)" \
     --tag "$skill" \
     "$@"

@@ -236,7 +236,7 @@ Groundwork, so that a run is possible at all:
 - [x] **Write `tools/eval.sh <skill> [options]`.** It puts the toolchain `asdf which
       cargo` resolves at the front of `PATH`, targets a copy of the repo, and passes
       `--no-publish`, `--scaffold`, `--trust-plugin`, `--model opus`, `--judge-model
-      sonnet`, `--max-cost-usd 10`, the skill as `--tag`, and a deliberate
+      sonnet`, `--max-cost-usd 16`, the skill as `--tag`, and a deliberate
       `--allow-tools` list: `Edit`, `Write`, `Bash(cargo:*)`, `Bash(git:*)`, `Read` on
       the copy alone, as recorded above, never
       `--dangerously-skip-permissions`. It does not pass `--ablation`, so first-turn cases
@@ -301,8 +301,12 @@ The `developing-with-tdd` suite:
       git calls, nearly all a `git ls-files` opening the run, and every one failed on
       Apple's cache; Claude went on with `find` and `cat`, and no result changed with
       it, so no other git was probed.
-- [ ] **Run the full suite once**, confirm the threshold ignores the baseline arm, and
+- [x] **Run the full suite once**, confirm the threshold ignores the baseline arm, and
       set the ceiling just above the measured cost.
+      *Done 2026-11-18.* The ceiling is 16 dollars, the $14.18 of the second full run
+      below plus a margin for the spread between runs. The threshold ignores the baseline
+      arm at CLI 2.1.327 too: `03-one-cycle-at-a-time-turn1` passed with 0.20 without the
+      skill, and `05-bug-that-reproduces-turn1` with 0.50.
       *Started 2026-11-17 and stopped halfway, when the session ended.* Opus, 3 runs,
       `--max-cost-usd 25`, about $9.60 spent on the first 7 cases. Every case passed
       with the skill but two, each on one run of three: `02-plan-and-its-stop-turn1` at
