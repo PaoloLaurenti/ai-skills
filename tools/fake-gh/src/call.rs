@@ -7,6 +7,10 @@ use crate::pull_request::{PullRequest, ReviewEvent};
 
 /// Every call the stand-in answers. Anything else is refused as unhandled.
 pub enum Call {
+    Version,
+    RepositoryView(String),
+    CommentsAsText,
+    PullRequestItself,
     ReviewThreads,
     User,
     IssueComments,
@@ -53,6 +57,11 @@ pub enum Call {
 
 impl Call {
     pub fn recognised(args: &[String], pull_request: &PullRequest) -> Result<Self, Refusal> {
+        if let [only] = args
+            && only == "--version"
+        {
+            return Ok(Call::Version);
+        }
         let [command, subcommand, ..] = args else {
             return Err(Refusal::Unhandled);
         };
@@ -60,8 +69,12 @@ impl Call {
             ("api", "graphql") => return graphql(args),
             ("api", "user") => Call::User,
             ("api", _) => return rest(args, pull_request),
+            ("repo", "view") => {
+                Call::RepositoryView(option(args, "--json").unwrap_or_default().to_string())
+            }
             ("pr", "diff") => Call::Diff,
             ("pr", "list") => Call::OpenPullRequests,
+            ("pr", "view") if args.iter().any(|arg| arg == "--comments") => Call::CommentsAsText,
             ("pr", "view") => Call::View(option(args, "--json").unwrap_or_default().to_string()),
             ("pr", "comment") => Call::Comment(required(option(args, "--body"))?),
             ("pr", "edit") => Call::ReplaceDescription(required(option(args, "--body-file"))?),
@@ -138,6 +151,8 @@ fn rest(args: &[String], pull_request: &PullRequest) -> Result<Call, Refusal> {
         .find_map(|arg| arg.strip_prefix("repos/"))
         .ok_or(Refusal::Unhandled)?;
     let repository = format!("{}/", pull_request.repository);
+    // `gh` fills these in from the repo it runs in, the one the workspace describes.
+    let path = path.replace("{owner}/{repo}/", &repository);
     let segments: Vec<&str> = path
         .strip_prefix(&repository)
         .ok_or(Refusal::NotFound)?
@@ -154,6 +169,7 @@ fn rest(args: &[String], pull_request: &PullRequest) -> Result<Call, Refusal> {
         _ => return Err(Refusal::NotFound),
     };
     let call = match (method, kind, rest) {
+        ("GET", "pulls", []) => Call::PullRequestItself,
         ("GET", "issues", ["comments"]) => Call::IssueComments,
         ("GET", "pulls", ["comments"]) => Call::SubmittedComments,
         ("GET", "pulls", ["reviews"]) => Call::Reviews,

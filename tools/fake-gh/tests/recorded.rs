@@ -41,6 +41,36 @@ fn refuses_a_general_comment_for_a_draft_without_one_as_github_does() {
     replays("general-comment-for-a-draft-without-one");
 }
 
+#[test]
+fn tells_its_version_as_github_does() {
+    replays("version");
+}
+
+#[test]
+fn names_the_repository_as_github_does() {
+    replays("repository-name");
+}
+
+#[test]
+fn shows_a_pull_request_as_github_does() {
+    replays("pull-request-view");
+}
+
+#[test]
+fn shows_the_comments_as_github_does() {
+    replays("comments-as-text");
+}
+
+#[test]
+fn fills_in_a_path_as_github_does() {
+    replays("placeholders-in-a-path");
+}
+
+#[test]
+fn shows_the_pull_request_itself_as_github_does() {
+    replays("pull-request-itself");
+}
+
 fn replays(recording: &str) {
     let (snapshot, recordings) = recording_dirs();
     let recorded = read_json(recordings.join(format!("{recording}.json")));

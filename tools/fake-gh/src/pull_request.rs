@@ -16,6 +16,11 @@ pub struct PullRequest {
     pub body: Option<String>,
     pub diff: Option<String>,
     pub head_sha: Option<String>,
+    title: Option<String>,
+    /// As REST gives it, `open` or `closed`.
+    state: Option<String>,
+    head_ref: Option<String>,
+    base_ref: Option<String>,
     #[serde(default)]
     pub review_comments: Vec<ReviewComment>,
     #[serde(default)]
@@ -176,18 +181,64 @@ impl PullRequest {
         self.reviews.iter().find(|review| review.id == id)
     }
 
+    /// The pull request as `repos/OWNER/REPO/pulls/N` gives it, in the fields described.
+    pub fn as_rest(&self) -> Value {
+        json!({
+            "number": self.number,
+            "title": self.title,
+            "state": self.state,
+            "user": {"login": self.author},
+            "body": self.body,
+            "html_url": self.url(),
+            "head": {"ref": self.head_ref, "sha": self.head_sha},
+            "base": {"ref": self.base_ref},
+        })
+    }
+
+    /// The fields `gh repo view --json` names, comma-separated.
+    pub fn repository_viewed(&self, fields: &str) -> Option<Value> {
+        picked(fields, |field| match field {
+            "nameWithOwner" => Some(json!(self.repository)),
+            _ => None,
+        })
+    }
+
     /// The fields `gh pr view --json` names, comma-separated.
     pub fn viewed(&self, fields: &str) -> Option<Value> {
-        let mut viewed = Map::new();
-        for field in fields.split(',') {
-            let value = match field {
-                "body" => json!(self.body),
-                "headRefOid" => json!(self.head_sha),
-                _ => return None,
-            };
-            viewed.insert(field.to_string(), value);
-        }
-        Some(Value::Object(viewed))
+        picked(fields, |field| match field {
+            "body" => Some(json!(self.body)),
+            "headRefOid" => Some(json!(self.head_sha)),
+            "number" => Some(json!(self.number)),
+            "title" => Some(json!(self.title)),
+            "state" => Some(json!(self.state.as_deref().map(str::to_uppercase))),
+            "headRefName" => Some(json!(self.head_ref)),
+            "baseRefName" => Some(json!(self.base_ref)),
+            "author" => Some(json!({"login": self.author})),
+            "url" => Some(json!(self.url())),
+            _ => None,
+        })
+    }
+
+    /// What `gh pr view --comments` prints: each review with a body, then the general
+    /// conversation.
+    pub fn comments_as_text(&self) -> String {
+        let reviews = self
+            .reviews
+            .iter()
+            .filter(|review| !review.body.is_empty())
+            .map(|review| {
+                as_text(
+                    &review.user,
+                    &review.rest,
+                    review.state.as_text(),
+                    &review.body,
+                )
+            });
+        let conversation = self
+            .issue_comments
+            .iter()
+            .map(|comment| as_text(&comment.user, &comment.rest, "none", &comment.body));
+        reviews.chain(conversation).collect()
     }
 
     /// What the skill's GraphQL query asks for, whatever fields a query selects.
@@ -476,6 +527,17 @@ pub enum ReviewEvent {
 }
 
 impl ReviewState {
+    /// As `gh pr view --comments` writes it.
+    fn as_text(self) -> &'static str {
+        match self {
+            ReviewState::Pending => "pending",
+            ReviewState::Commented => "commented",
+            ReviewState::Approved => "approved",
+            ReviewState::ChangesRequested => "changes requested",
+            ReviewState::Dismissed => "dismissed",
+        }
+    }
+
     /// The state a review takes from the event it is sent with, pending without one.
     fn sent_with(event: Option<ReviewEvent>) -> Self {
         match event {
@@ -495,4 +557,23 @@ impl Review {
             "body": self.body,
         })
     }
+}
+
+/// One entry of `gh pr view --comments`.
+fn as_text(user: &User, rest: &Map<String, Value>, status: &str, body: &str) -> String {
+    let association = rest["author_association"].as_str().unwrap_or("NONE");
+    format!(
+        "author:\t{}\nassociation:\t{}\nedited:\tfalse\nstatus:\t{status}\n--\n{body}\n--\n",
+        user.login,
+        association.to_lowercase()
+    )
+}
+
+/// The object `--json` prints, one key per field named, or nothing when one is unknown.
+fn picked(fields: &str, value_of: impl Fn(&str) -> Option<Value>) -> Option<Value> {
+    let mut picked = Map::new();
+    for field in fields.split(',') {
+        picked.insert(field.to_string(), value_of(field)?);
+    }
+    Some(Value::Object(picked))
 }

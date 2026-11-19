@@ -495,6 +495,21 @@ The three GitHub suites, rebuilt around a fake `gh`:
       pushed into a bare repo in the workspace once `git-receive-pack` and
       `git-upload-pack` had one too. 3 graders of 3, the pushed ref read from
       `origin.git/refs/heads/main`. `tools/eval.sh` now writes the three scripts.
+
+      *First run of `01-first-comment-turn1`, 2026-11-19*, haiku, one run per arm: both
+      arms stopped before reading a comment. The remote being a local path, they asked
+      `gh repo view --json nameWithOwner`, `gh pr view 1 --json number,title,state,…`,
+      `gh pr view 1 --comments`, `gh --version` and `repos/{owner}/{repo}/…`, all
+      unhandled, and the run with the skill, seeing `fake-gh` in the path `which gh`
+      gave, took itself to be in a test and asked for the comments to be pasted. Fixed:
+      `record.sh` records those five answers and the fake gives them, the snapshot
+      keeps the reviews with a body; `tools/eval.sh` copies the fake as
+      `evals/results/.bin/gh`, beside the git scripts. Left as it is: the remote's
+      local path, since `url.insteadOf` shows the rewritten URL in `git remote -v` too.
+      A second run asked `baseRefName`, `repos/{owner}/{repo}/pulls/1` and `--jq`, now
+      answered too, and the run with the skill had `R=…; gh api graphql …` refused, a
+      command opening with a variable matching no grant; the case's system prompt now
+      says so. The third run: 1.00 with the skill, 0.71 without, $0.02.
 - [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
 

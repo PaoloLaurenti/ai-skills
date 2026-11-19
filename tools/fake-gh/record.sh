@@ -4,9 +4,9 @@
 #
 # - `evals/addressing-pull-request-reviews/fixture/pull-request.json`, the fixture pull
 #   request as the stand-in reads it, for that suite's cases to start from;
-# - `tools/fake-gh/recorded/<name>.json`, one per answer the stand-in had to guess, each
-#   the calls in order with their exit status and output, which `tests/recorded.rs`
-#   replays against the stand-in.
+# - `tools/fake-gh/recorded/<name>.json`, one per answer the stand-in must give as GitHub
+#   does, each the calls in order with their exit status and output, which
+#   `tests/recorded.rs` replays against the stand-in.
 #
 # It runs against that suite's fixture repo, built by its `setup.sh`, and puts it back
 # with its `reset.sh` before and after: some of the calls below publish at once, a reply,
@@ -49,16 +49,19 @@ cd "$work"
 # they become those of account 1, `MDQ6VXNlcjE=` being `04:User1` in base64.
 account="$(gh api user -q .id)"
 account_node="$(gh api user -q .node_id)"
+# The account's display name, which `gh pr view --json author` carries.
+account_name="$(gh api user -q .name)"
 scrub() {
     sed -E \
         -e "s/$owner/fixture-owner/g" \
         -e "s/$login/fixture-owner/g" \
         -e "s|$account_node|MDQ6VXNlcjE=|g" \
+        -e "s/$account_name/Fixture Owner/g" \
         -e "s/(^|[^0-9])$account([^0-9]|$)/\\11\\2/g"
 }
 
-# The fixture pull request. Only the reviews holding a planted comment are kept: GitHub
-# never deletes a submitted review, so every reset leaves one more empty review behind.
+# The fixture pull request. Reviews with no body and no planted comment are left out:
+# GitHub never deletes a submitted review, so every reset leaves one more behind.
 gh api "repos/$repo/pulls/$number" >pr.json
 gh api "repos/$repo/pulls/$number/comments" >comments.json
 gh api "repos/$repo/issues/$number/comments" >conversation.json
@@ -74,6 +77,10 @@ jq -n \
     '$pr[0] as $pr | $comments[0] as $comments | {
         repository: $pr.base.repo.full_name,
         number: $pr.number,
+        title: $pr.title,
+        state: $pr.state,
+        head_ref: $pr.head.ref,
+        base_ref: $pr.base.ref,
         author: $pr.user.login,
         viewer: $viewer,
         body: $pr.body,
@@ -81,7 +88,7 @@ jq -n \
         head_sha: $pr.head.sha,
         review_comments: $comments,
         issue_comments: $conversation[0],
-        reviews: [$reviews[0][] | select(.id as $id | $comments | any(.pull_request_review_id == $id))]
+        reviews: [$reviews[0][] | select(.body != "" or (.id as $id | $comments | any(.pull_request_review_id == $id)))]
     }' | scrub >"$snapshot"
 
 # A probe is a list of calls run in order. `call` runs one and appends it to the probe;
@@ -123,6 +130,35 @@ clear_pending() {
             gh api --method DELETE "repos/$repo/pulls/$number/reviews/$id" >/dev/null
         done
 }
+
+# What a run asks first, finding its bearings.
+start version
+call --version
+finish
+
+start repository-name
+call repo view "$repo" --json nameWithOwner
+finish
+
+start pull-request-view
+call pr view "$number" --repo "$repo" --json number,title,state,headRefName,baseRefName,author,url
+finish
+
+start pull-request-itself
+call api "repos/$repo/pulls/$number" --jq '{number, title, state, head: .head.ref, base: .base.ref}'
+finish
+
+start comments-as-text
+call pr view "$number" --repo "$repo" --comments
+finish
+
+# `gh` fills `{owner}` and `{repo}` in from the repo it runs in, here named by GH_REPO.
+start placeholders-in-a-path
+GH_REPO="$repo"
+export GH_REPO
+call api "repos/{owner}/{repo}/pulls/$number/comments" -q length
+unset GH_REPO
+finish
 
 start description-from-a-file
 file description.md "Prints every reading with one decimal and its unit symbol.

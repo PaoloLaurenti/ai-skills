@@ -600,7 +600,7 @@ fn rejects_a_call_too_short_to_name_a_command() {
         "number": 1
     }));
 
-    let refusal = run(workspace.path(), &["--version"]);
+    let refusal = run(workspace.path(), &["status"]);
 
     assert_eq!(
         (
@@ -609,11 +609,169 @@ fn rejects_a_call_too_short_to_name_a_command() {
         ),
         (
             Some(1),
-            "gh: `gh --version` is not available here\n".to_string()
+            "gh: `gh status` is not available here\n".to_string()
         )
     );
     assert_eq!(
         recorded_calls(&workspace),
-        vec![json!({"args": ["--version"], "unhandled": true})]
+        vec![json!({"args": ["status"], "unhandled": true})]
     );
+}
+
+#[test]
+fn tells_its_version() {
+    let workspace = workspace_impersonating(json!({"repository": "acme/shop", "number": 1}));
+
+    let answer = gh_text(&workspace, &["--version"]);
+
+    assert_eq!(
+        answer,
+        "gh version 2.105.0 (2026-11-17)\nhttps://github.com/cli/cli/releases/tag/v2.105.0\n"
+    );
+}
+
+#[test]
+fn names_the_repository_it_impersonates() {
+    let workspace = workspace_impersonating(json!({"repository": "acme/shop", "number": 1}));
+
+    let answer = gh(&workspace, &["repo", "view", "--json", "nameWithOwner"]);
+
+    assert_eq!(answer, json!({"nameWithOwner": "acme/shop"}));
+}
+
+#[test]
+fn shows_the_fields_a_pull_request_view_names() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "title": "Round every total",
+        "state": "open",
+        "head_ref": "rounding",
+        "author": "developer"
+    }));
+
+    let answer = gh(
+        &workspace,
+        &[
+            "pr",
+            "view",
+            "1",
+            "--json",
+            "number,title,state,headRefName,author,url",
+        ],
+    );
+
+    assert_eq!(
+        answer,
+        json!({
+            "number": 1, "title": "Round every total", "state": "OPEN", "headRefName": "rounding",
+            "author": {"login": "developer"}, "url": "https://github.com/acme/shop/pull/1"
+        })
+    );
+}
+
+#[test]
+fn shows_the_reviews_and_the_conversation_as_text() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "reviews": [
+            {"id": 31, "user": {"login": "reviewer"}, "state": "COMMENTED", "body": "Two notes.", "author_association": "MEMBER"},
+            {"id": 32, "user": {"login": "reviewer"}, "state": "COMMENTED", "body": ""}
+        ],
+        "issue_comments": [
+            {"id": 21, "user": {"login": "developer"}, "body": "Both fixed.", "author_association": "OWNER"}
+        ]
+    }));
+
+    let answer = gh_text(&workspace, &["pr", "view", "1", "--comments"]);
+
+    assert_eq!(
+        answer,
+        "author:\treviewer\nassociation:\tmember\nedited:\tfalse\nstatus:\tcommented\n--\nTwo notes.\n--\n\
+         author:\tdeveloper\nassociation:\towner\nedited:\tfalse\nstatus:\tnone\n--\nBoth fixed.\n--\n"
+    );
+}
+
+#[test]
+fn fills_in_the_owner_and_repository_a_path_leaves_to_gh() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "review_comments": [
+            {"id": 11, "path": "README.md", "line": 10, "user": {"login": "reviewer"}, "body": "Stale example."}
+        ]
+    }));
+
+    let answer = gh(
+        &workspace,
+        &["api", "repos/{owner}/{repo}/pulls/1/comments"],
+    );
+
+    assert_eq!(
+        answer,
+        json!([{"id": 11, "path": "README.md", "line": 10, "user": {"login": "reviewer"}, "body": "Stale example."}])
+    );
+}
+
+#[test]
+fn shows_the_base_branch_of_a_pull_request() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "base_ref": "main"
+    }));
+
+    let answer = gh(&workspace, &["pr", "view", "1", "--json", "baseRefName"]);
+
+    assert_eq!(answer, json!({"baseRefName": "main"}));
+}
+
+#[test]
+fn shows_the_pull_request_itself() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "title": "Round every total",
+        "state": "open",
+        "author": "developer",
+        "body": "Rounds every total to the cent.",
+        "head_ref": "rounding",
+        "head_sha": "9fceb02",
+        "base_ref": "main"
+    }));
+
+    let answer = gh(&workspace, &["api", "repos/acme/shop/pulls/1"]);
+
+    assert_eq!(
+        answer,
+        json!({
+            "number": 1, "title": "Round every total", "state": "open", "user": {"login": "developer"},
+            "body": "Rounds every total to the cent.", "html_url": "https://github.com/acme/shop/pull/1",
+            "head": {"ref": "rounding", "sha": "9fceb02"}, "base": {"ref": "main"}
+        })
+    );
+}
+
+#[test]
+fn filters_an_answer_with_its_long_jq_option() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "review_comments": [
+            {"id": 11, "path": "README.md", "line": 10, "user": {"login": "reviewer"}, "body": "Stale example."}
+        ]
+    }));
+
+    let answer = gh_text(
+        &workspace,
+        &[
+            "api",
+            "repos/acme/shop/pulls/1/comments",
+            "--jq",
+            ".[].body",
+        ],
+    );
+
+    assert_eq!(answer, "Stale example.\n");
 }

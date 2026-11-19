@@ -19,6 +19,9 @@ use pull_request::{PullRequest, Rejection};
 const PULL_REQUEST: &str = ".git/fake-gh/pull-request.json";
 /// Beside the pull request, so a call from any directory of the workspace logs there.
 const CALLS: &str = "calls.jsonl";
+/// What the `gh` it was recorded against prints for `gh --version`.
+const VERSION: &str =
+    "gh version 2.105.0 (2026-11-17)\nhttps://github.com/cli/cli/releases/tag/v2.105.0\n";
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -33,7 +36,7 @@ fn main() {
         matches!(response, Err(Refusal::Unhandled)),
     );
     match response {
-        Ok(answer) => match option(&args, "-q") {
+        Ok(answer) => match option(&args, "-q").or(option(&args, "--jq")) {
             Some(expression) => print_filtered(&answer, expression),
             None => print!("{answer}"),
         },
@@ -89,6 +92,14 @@ fn fail(refusal: &Refusal, args: &[String]) -> ! {
 /// Answers the call, applying it to the pull request first when it is a write.
 fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal> {
     let answer = match call {
+        Call::Version => VERSION.to_string(),
+        Call::RepositoryView(fields) => json_line(
+            &pull_request
+                .repository_viewed(&fields)
+                .ok_or(Refusal::Unhandled)?,
+        ),
+        Call::CommentsAsText => pull_request.comments_as_text(),
+        Call::PullRequestItself => json_line(&pull_request.as_rest()),
         Call::ReviewThreads => json_line(&pull_request.review_threads()),
         Call::User => json_line(&json!({ "login": pull_request.viewer })),
         Call::IssueComments => json_line(&json!(pull_request.issue_comments)),

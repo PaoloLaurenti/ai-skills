@@ -29,25 +29,30 @@ toolchain="$(dirname "$(dirname "$cargo")")"
 # The sandbox Bash runs in cannot read the home, except the directories on PATH. rustc
 # loads its own library from lib/, so lib/ goes on PATH too, or nothing compiles.
 PATH="$toolchain/bin:$toolchain/lib:$PATH"
-# The stand-in for `gh` the pull request suites run against, first on PATH so no real
-# `gh` answers in its place. It runs from the repo rather than from the copy below,
-# since the sandbox skips an executable whose directory sits in a temporary one.
+# What runs in place of `gh` and of Apple's `git`, in a directory git ignores here, put
+# first on PATH. Here rather than in the copy below, since the sandbox skips an executable
+# whose directory sits in a temporary one, or anywhere outside the home.
+bin="$repo/evals/results/.bin"
+mkdir -p "$bin"
+
+# The stand-in for `gh` the pull request suites run against, so no real `gh` answers in
+# its place. Copied under its own name, since a run that sees `fake-gh` in the path of
+# the `gh` it calls takes itself to be in a test and stops.
 cargo build --quiet --locked --manifest-path "$repo/tools/fake-gh/Cargo.toml"
-PATH="$repo/tools/fake-gh/target/debug:$PATH"
+cp "$repo/tools/fake-gh/target/debug/gh" "$bin/gh"
+
 # Apple's /usr/bin/git is a shim that asks xcrun for the real git, and xcrun needs a
 # cache the sandbox denies, so every git command exits 72. The real git runs, but the
-# sandbox skips its directory, being outside the home: three scripts in a directory git
-# ignores here hand each command to it. git push runs the other two by name.
+# sandbox skips its directory, being outside the home: three scripts hand each command
+# to it. git push runs the other two by name.
 if [ "$(command -v git)" = /usr/bin/git ] &&
     developer="$(xcode-select -p 2>/dev/null)" && [ -x "$developer/usr/bin/git" ]; then
-    shims="$repo/evals/results/.git-bin"
-    mkdir -p "$shims"
     for command in git git-receive-pack git-upload-pack; do
-        printf '#!/bin/sh\nexec "%s" "$@"\n' "$developer/usr/bin/$command" >"$shims/$command"
-        chmod +x "$shims/$command"
+        printf '#!/bin/sh\nexec "%s" "$@"\n' "$developer/usr/bin/$command" >"$bin/$command"
+        chmod +x "$bin/$command"
     done
-    PATH="$shims:$PATH"
 fi
+PATH="$bin:$PATH"
 export PATH
 
 # The command refuses a plugin holding a file with two names, which cargo's build output

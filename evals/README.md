@@ -26,7 +26,9 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   conclude it cannot run anything at all. A line in `execution.append_system_prompt`
   saying so, and naming the command that does run, keeps the run going. A `CLAUDE.md`
   in the workspace is not read. The line is repeated in every case, as the command has
-  no option to set it once.
+  no option to set it once. A command opening with a variable assignment, such as
+  `R=owner/repo; gh api …`, matches no `Bash(gh:*)` grant either and is refused the same
+  way, which the line names too where a skill's commands use variables.
 
 ## What a grader can read
 
@@ -86,7 +88,7 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   `xcrun` for the real git, and `xcrun` needs a cache the sandbox denies, so every command
   exits 72. Putting the real git's directory first on `PATH` does not help, being outside
   the home; `tools/eval.sh` writes three scripts handing `git`, `git-receive-pack` and
-  `git-upload-pack` to it into `evals/results/.git-bin/`, which git ignores, and puts
+  `git-upload-pack` to it into `evals/results/.bin/`, which git ignores, and puts
   that first instead. A push needs a remote the sandbox reaches, such as a bare
   repository the scaffold creates inside the workspace, and a grader reads what arrived
   from a file of it, such as `origin.git/refs/heads/main`.

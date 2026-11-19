@@ -1,0 +1,17 @@
+{
+  "files": {},
+  "calls": [
+    {
+      "args": [
+        "repo",
+        "view",
+        "fixture-owner/ai-skills-eval-walkthrough",
+        "--json",
+        "nameWithOwner"
+      ],
+      "exit": 0,
+      "stdout": "{\"nameWithOwner\":\"fixture-owner/ai-skills-eval-walkthrough\"}\n",
+      "stderr": ""
+    }
+  ]
+}
