@@ -381,7 +381,7 @@ The rest of the suite:
 
 The three GitHub suites, rebuilt around a fake `gh`:
 
-- [ ] **Write the fake `gh`**, a test double of GitHub: a fake for reads, answering from
+- [x] **Write the fake `gh`**, a test double of GitHub: a fake for reads, answering from
       recorded responses, and a spy for writes, logging every call into the workspace
       for the graders to read. A call it does not know answers with a clear error and is
       logged as unhandled, and every case carries a grader requiring none, so a skill
@@ -424,19 +424,27 @@ The three GitHub suites, rebuilt around a fake `gh`:
       throwaway plugin launched the same way: the fake answered `gh api …/comments`, the
       reply quoted its comment, and a `regex` grader with `target: { source: file, path:
       .git/fake-gh/calls.jsonl }` read the log, so a grader reaches a file under `.git`:
-      3 graders of 3 passed, for $0.0025. Still to do: the calls of
-      `reviewing-pull-requests`.
-      Deferred until those calls are in: one type listing every call the fake knows,
-      since today `write` matches on how a path ends and `answer` on the command and
-      subcommand, and with eleven calls the second shape is not yet worth its code.
+      3 graders of 3 passed, for $0.0025.
+
+      *Done, 2026-11-19*: the calls of `reviewing-pull-requests` too, tested in
+      `tests/review.rs`. The fake keeps reviews with their state, the review each inline
+      comment belongs to, and the resolved threads; a comment of a pending review stays
+      out of `pulls/N/comments`, and one whose review was deleted stays pending with no
+      review, the worst case the skill has to clean up. `src/call.rs` recognises each
+      call once, from the command, or the REST method and path, or the operation a
+      GraphQL query names. A mutation's variables are read by the names the skill's
+      `reference/` gives them, `rid`, `t`, `r`, `b`: a run naming them otherwise is
+      logged as unhandled, which the first runs will show.
 - [ ] **Record its responses from the real `gh`**, against the fixture repo the hand-run
       suites already use, with a script, never written by hand, and recorded again when
-      `gh` or a skill's calls change. Writing the fake left three answers guessed rather
+      `gh` or a skill's calls change. Writing the fake left some answers guessed rather
       than seen, which the recording settles: whether GitHub keeps the trailing newline
       of a description set with `--body-file`, since keeping one GitHub drops makes the
       skill's `diff` check report a change; the exact message of the `422` for a review
-      requested from the author; and what `gh pr comment` and `gh pr edit` print, where
-      the fake prints nothing.
+      requested from the author, and of the one for a second pending review; how `gh`
+      prints a GraphQL error, guessed as `gh: MESSAGE` for a draft created without a
+      general comment; and what `gh pr comment` and `gh pr edit` print, where the fake
+      prints nothing.
 - [ ] **Check the fake against the real `gh` before every commit**, with a script the
       pre-commit hook calls after `tools/check.sh`: it replays the writes the fake has
       logged against the fixture repo, inside a pending review it then deletes, and fails

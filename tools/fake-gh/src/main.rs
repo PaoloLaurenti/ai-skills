@@ -1,16 +1,18 @@
 //! A stand-in for the GitHub CLI, answering about the one pull request a workspace
 //! describes in `.git/fake-gh/pull-request.json`.
 
+mod call;
 mod pull_request;
 
 use std::env;
 use std::fs::{self, OpenOptions};
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 
 use serde_json::{Value, json};
 
+use call::{Call, option};
 use pull_request::{PullRequest, Rejection};
 
 /// Inside `.git`, where a run looking around the workspace rarely reads.
@@ -43,103 +45,135 @@ fn main() {
 enum Refusal {
     NotFound,
     Unprocessable(Rejection),
+    /// What a GraphQL mutation answers with an error, which `gh` reports without a status.
+    Rejected(Rejection),
     /// A call this stand-in does not know, which a grader requires none of.
     Unhandled,
 }
 
 /// What `gh` prints for the call, changing the pull request first when the call does.
 fn respond(args: &[String], described: &Path) -> Result<String, Refusal> {
-    if args.len() < 2 {
-        return Err(Refusal::Unhandled);
-    }
     let mut pull_request = PullRequest::load(described);
-    let mut paths = args.iter().filter(|arg| arg.starts_with("repos/"));
-    if paths.any(|path| !pull_request.is_reached_by(path)) {
-        return Err(Refusal::NotFound);
+    let call = Call::recognised(args, &pull_request)?;
+    let changes = call.changes_the_pull_request();
+    let printed = answer(call, &mut pull_request)?;
+    if changes {
+        pull_request.save(described);
     }
-    match write(args, &mut pull_request) {
-        Some(written) => {
-            let printed = written?;
-            pull_request.save(described);
-            Ok(printed)
-        }
-        None => answer(args, &pull_request),
-    }
+    Ok(printed)
 }
 
 /// How `gh` reports an error from GitHub: on its standard error, exiting with 1.
 fn fail(refusal: &Refusal, args: &[String]) -> ! {
     match refusal {
         Refusal::NotFound => eprintln!("gh: Not Found (HTTP 404)"),
-        Refusal::Unprocessable(Rejection::ReviewFromTheAuthor) => {
-            eprintln!("gh: Review cannot be requested from pull request author. (HTTP 422)")
-        }
+        Refusal::Unprocessable(rejection) => eprintln!("gh: {} (HTTP 422)", rejection.message()),
+        Refusal::Rejected(rejection) => eprintln!("gh: {}", rejection.message()),
         Refusal::Unhandled => eprintln!("gh: `gh {}` is not available here", args.join(" ")),
     }
     process::exit(1)
 }
 
-/// Applies a call that changes the pull request, and gives what `gh` prints for it.
-fn write(args: &[String], pull_request: &mut PullRequest) -> Option<Result<String, Refusal>> {
-    if args.iter().any(|arg| arg.ends_with("/requested_reviewers")) {
-        let reviewer = field(args, "reviewers[]").expect("the reviewer");
-        let requested = pull_request
-            .request_review_from(reviewer)
-            .map_err(Refusal::Unprocessable);
-        return Some(requested.map(|requested| json_line(&requested)));
-    }
-    if let Some(replies) = args.iter().find(|arg| arg.ends_with("/replies")) {
-        let answered = replies
-            .split('/')
-            .rev()
-            .nth(1)
-            .and_then(|id| id.parse().ok())
-            .expect("the id of the answered comment");
-        let body = field(args, "body").expect("the body");
-        let reply = pull_request.reply_to(answered, body);
-        return Some(Ok(json_line(&json!(reply))));
-    }
-    if args[..2] == ["pr", "comment"] {
-        pull_request.comment(option(args, "--body").expect("the body"));
-        return Some(Ok(String::new()));
-    }
-    if args[..2] == ["pr", "edit"] {
-        let file = option(args, "--body-file").expect("the body file");
-        pull_request
-            .replace_the_description(fs::read_to_string(file).expect("the new description"));
-        return Some(Ok(String::new()));
-    }
-    None
-}
-
-fn answer(args: &[String], pull_request: &PullRequest) -> Result<String, Refusal> {
-    let answer = match (args[0].as_str(), args[1].as_str()) {
-        ("api", "graphql") => json_line(&pull_request.review_threads()),
-        ("api", "user") => json_line(&json!({ "login": pull_request.viewer })),
-        ("api", path) if path.contains("/issues/") => {
-            json_line(&json!(pull_request.issue_comments))
+/// Answers the call, applying it to the pull request first when it is a write.
+fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal> {
+    let answer = match call {
+        Call::ReviewThreads => json_line(&pull_request.review_threads()),
+        Call::User => json_line(&json!({ "login": pull_request.viewer })),
+        Call::IssueComments => json_line(&json!(pull_request.issue_comments)),
+        Call::SubmittedComments => json_line(&json!(pull_request.submitted_comments())),
+        Call::Reviews => json_line(&json!(pull_request.reviews)),
+        Call::Review(id) => json_line(&json!(pull_request.review(id).ok_or(Refusal::NotFound)?)),
+        Call::CommentsOfReview(id) => json_line(&json!(pull_request.comments_of_review(id))),
+        Call::Diff => pull_request.diff.clone().expect("the diff"),
+        Call::OpenPullRequests => json_line(&json!([{ "number": pull_request.number }])),
+        Call::View(fields) => json_line(&pull_request.viewed(&fields).ok_or(Refusal::Unhandled)?),
+        Call::CreateReview(file) => {
+            let payload = match file.as_str() {
+                "-" => io::read_to_string(io::stdin()).expect("the review payload"),
+                file => fs::read_to_string(file).expect("the review payload"),
+            };
+            let draft = serde_json::from_str(&payload).expect("the review payload as JSON");
+            json_line(&json!(
+                pull_request
+                    .create_review(draft)
+                    .map_err(Refusal::Unprocessable)?
+            ))
         }
-        ("pr", "diff") => pull_request.diff.clone().expect("the diff"),
-        ("pr", "list") => json_line(&json!([{ "number": pull_request.number }])),
-        ("pr", "view") => json_line(&json!({ "body": pull_request.body })),
-        ("api", path) if path.ends_with("/comments") => {
-            json_line(&json!(pull_request.review_comments))
+        Call::ResolveThread(thread) => {
+            pull_request.resolve(&thread).ok_or(Refusal::NotFound)?;
+            json_line(&json!({"data": {"resolveReviewThread": {"thread": {"isResolved": true}}}}))
         }
-        _ => return Err(Refusal::Unhandled),
+        Call::UnresolveThread(thread) => {
+            pull_request.unresolve(&thread).ok_or(Refusal::NotFound)?;
+            json_line(
+                &json!({"data": {"unresolveReviewThread": {"thread": {"isResolved": false}}}}),
+            )
+        }
+        Call::AddReply {
+            thread,
+            review,
+            body,
+        } => {
+            let id = pull_request
+                .reply_in_draft(&thread, &review, &body)
+                .ok_or(Refusal::NotFound)?;
+            json_line(
+                &json!({"data": {"addPullRequestReviewThreadReply": {"comment": {"databaseId": id, "state": "PENDING"}}}}),
+            )
+        }
+        Call::UpdateReview { review, body } => {
+            let state = pull_request
+                .replace_the_general_comment(&review, body)
+                .ok_or(Refusal::NotFound)?
+                .map_err(Refusal::Rejected)?;
+            json_line(
+                &json!({"data": {"updatePullRequestReview": {"pullRequestReview": {"state": state}}}}),
+            )
+        }
+        Call::AddThread {
+            review,
+            path,
+            line,
+            body,
+        } => {
+            let thread = pull_request
+                .add_thread(&review, path, line, body)
+                .ok_or(Refusal::NotFound)?;
+            json_line(&json!({"data": {"addPullRequestReviewThread": {"thread": {"id": thread}}}}))
+        }
+        Call::DeleteComment(comment) => {
+            pull_request
+                .delete_comment(comment)
+                .ok_or(Refusal::NotFound)?;
+            String::new()
+        }
+        Call::DeleteReview(review) => json_line(&json!(
+            pull_request
+                .delete_review(review)
+                .ok_or(Refusal::NotFound)?
+        )),
+        Call::SubmitReview { review, event } => json_line(&json!(
+            pull_request
+                .submit(review, event)
+                .ok_or(Refusal::NotFound)?
+        )),
+        Call::RequestReview(reviewer) => json_line(
+            &pull_request
+                .request_review_from(&reviewer)
+                .map_err(Refusal::Unprocessable)?,
+        ),
+        Call::Reply { answered, body } => json_line(&json!(pull_request.reply_to(answered, &body))),
+        Call::Comment(body) => {
+            pull_request.comment(&body);
+            String::new()
+        }
+        Call::ReplaceDescription(file) => {
+            pull_request
+                .replace_the_description(fs::read_to_string(file).expect("the new description"));
+            String::new()
+        }
     };
     Ok(answer)
-}
-
-/// The value given to a command-line option, as in `--body TEXT`.
-fn option<'a>(args: &'a [String], name: &str) -> Option<&'a str> {
-    let at = args.iter().position(|arg| arg == name)?;
-    args.get(at + 1).map(String::as_str)
-}
-
-/// The value of a field `gh api` sends, as in `-f body=TEXT`.
-fn field<'a>(args: &'a [String], name: &str) -> Option<&'a str> {
-    args.iter()
-        .find_map(|arg| arg.strip_prefix(name)?.strip_prefix('='))
 }
 
 /// JSON as `gh` prints it, on a line of its own.

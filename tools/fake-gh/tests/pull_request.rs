@@ -3,12 +3,14 @@
 //! Each test runs the built `gh` the way Claude does, in a throwaway workspace whose
 //! `.git/fake-gh/pull-request.json` describes the pull request.
 
-use std::fs;
-use std::path::Path;
-use std::process::Command;
+mod common;
 
-use serde_json::{Value, json};
+use std::fs;
+
+use serde_json::json;
 use tempfile::TempDir;
+
+use common::{gh, gh_text, recorded_calls, run, workspace_impersonating};
 
 /// The call `addressing-pull-request-reviews` makes for the review threads of acme/shop#1,
 /// its query word for word.
@@ -167,10 +169,12 @@ fn lists_the_review_threads_with_their_comments() {
         json!({"data": {"repository": {"pullRequest": {
             "author": {"login": "developer"},
             "reviewThreads": {"nodes": [{
-                "isResolved": false, "path": "README.md", "line": 10,
+                "id": "PRRT_11", "isResolved": false, "isOutdated": false,
+                "path": "README.md", "line": 10, "originalLine": 10,
                 "comments": {"nodes": [{
                     "databaseId": 11, "author": {"login": "reviewer"},
-                    "body": "Stale example.", "url": "https://github.com/acme/shop/pull/1#discussion_r11"
+                    "body": "Stale example.", "url": "https://github.com/acme/shop/pull/1#discussion_r11",
+                    "state": "SUBMITTED", "pullRequestReview": null
                 }]}
             }]},
             "reviews": {"nodes": []}
@@ -202,15 +206,18 @@ fn groups_a_reply_into_the_thread_of_the_comment_it_answers() {
     assert_eq!(
         answer["data"]["repository"]["pullRequest"]["reviewThreads"],
         json!({"nodes": [{
-            "isResolved": false, "path": "README.md", "line": 10,
+            "id": "PRRT_11", "isResolved": false, "isOutdated": false,
+            "path": "README.md", "line": 10, "originalLine": 10,
             "comments": {"nodes": [
                 {
                     "databaseId": 11, "author": {"login": "reviewer"},
-                    "body": "Stale example.", "url": "https://github.com/acme/shop/pull/1#discussion_r11"
+                    "body": "Stale example.", "url": "https://github.com/acme/shop/pull/1#discussion_r11",
+                    "state": "SUBMITTED", "pullRequestReview": null
                 },
                 {
                     "databaseId": 12, "author": {"login": "developer"},
-                    "body": "Updated.", "url": "https://github.com/acme/shop/pull/1#discussion_r12"
+                    "body": "Updated.", "url": "https://github.com/acme/shop/pull/1#discussion_r12",
+                    "state": "SUBMITTED", "pullRequestReview": null
                 }
             ]}
         }]})
@@ -609,45 +616,4 @@ fn rejects_a_call_too_short_to_name_a_command() {
         recorded_calls(&workspace),
         vec![json!({"args": ["--version"], "unhandled": true})]
     );
-}
-
-fn workspace_impersonating(pull_request: Value) -> TempDir {
-    let workspace = TempDir::new().expect("temporary workspace");
-    let state = workspace.path().join(".git/fake-gh");
-    fs::create_dir_all(&state).expect("state directory");
-    fs::write(state.join("pull-request.json"), pull_request.to_string()).expect("pull request");
-    workspace
-}
-
-/// The calls `gh` logged, one JSON object per line, as a grader reads them.
-fn recorded_calls(workspace: &TempDir) -> Vec<Value> {
-    fs::read_to_string(workspace.path().join(".git/fake-gh/calls.jsonl"))
-        .unwrap_or_default()
-        .lines()
-        .map(|line| serde_json::from_str(line).expect("a call as JSON"))
-        .collect()
-}
-
-/// Runs the built `gh` in the workspace and reads its answer as JSON.
-fn gh(workspace: &TempDir, args: &[&str]) -> Value {
-    let output = run(workspace.path(), args);
-    serde_json::from_slice(&output.stdout).unwrap_or_else(|error| {
-        panic!(
-            "gh {args:?} printed no JSON ({error}): {}",
-            String::from_utf8_lossy(&output.stdout)
-        )
-    })
-}
-
-/// Runs the built `gh` in the workspace and reads its answer as text.
-fn gh_text(workspace: &TempDir, args: &[&str]) -> String {
-    String::from_utf8(run(workspace.path(), args).stdout).expect("gh prints UTF-8")
-}
-
-fn run(directory: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_gh"))
-        .args(args)
-        .current_dir(directory)
-        .output()
-        .expect("gh runs")
 }
