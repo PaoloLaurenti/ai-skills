@@ -2,7 +2,7 @@
 
 What a case author needs to know about `claude plugin eval` beyond its
 [docs](https://code.claude.com/docs/en/plugin-evals.md). Every fact here was measured on
-a run, at CLI 2.1.322 to 2.1.327, and the entry of `docs/PLAN.md` that moved
+a run, at CLI 2.1.322 to 2.1.328, and the entry of `docs/PLAN.md` that moved
 `developing-with-tdd` onto the command records how. A later CLI may change any of them:
 when a run contradicts one, probe it in a throwaway plugin, with haiku, one run and a low
 `--max-cost-usd`, and correct it here.
@@ -44,7 +44,9 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **A regex on the reply matches the words Claude uses to report a failure too.** One
   looking for a commit message matched the sentence explaining why the commit failed.
   Look for something only success prints.
-- **A regex has no flag to ignore case**, so a pattern names both cases of each letter.
+- **A regex minds case unless the grader says `flags: i`**, which CLI 2.1.328 honours
+  and earlier versions lacked, and an inline `(?i)` is not, by the docs. The patterns
+  written before it name both cases of each letter instead, which works as well.
 - **A refused command can stop a run from testing.** A run refused one Bash command took
   it as all of Bash and closed without testing. Where the rule under test does not ask
   for a test run, read the outcome from the files instead.
