@@ -24,11 +24,12 @@ CLAUDE.md                       an @AGENTS.md include, nothing else
 docs/PLAN.md                    queued work, with the reasoning behind each item
 LICENSE                         MIT, and one of the two places allowed to name the owner
 tools/skill-check/              the checks over every SKILL.md and over the tree, as cargo tests
+tools/fake-gh/                  the stand-in for `gh` the pull request suites run against
 tools/check.sh                  formatting, lints and those tests, in one command
 tools/link-skills.sh            links the skills where agents read them, for whoever develops them
 tools/eval.sh                   runs a skill's eval cases, the one way to launch them
 tools/history-from-trace.sh     rebuilds the conversation a later-turn eval case resumes
-.githooks/pre-commit            runs that command before a commit, once a clone points at it
+.githooks/pre-commit            runs that command, then checks the fake gh once a day, before a commit
 .github/workflows/checks.yml    the same command on every push, plus the plugin validation
 .tool-versions                  the Rust version asdf resolves for this repo
 .vscode/settings.json           points rust-analyzer at the crate, which is not at the root
@@ -295,8 +296,10 @@ graders behave in ways its docs leave out, such as a grader passing on a failed 
 or a run cut off at ten turns, and a case written without them grades something other
 than the rule. What each suite tests and costs is in `evals/<skill-name>/README.md`.
 
-The suites of `reviewing-pull-requests`, `addressing-pull-request-reviews` and
-`walking-through-and-reviewing-pull-requests` drive a real pull request through `gh`,
-which the sandbox cannot reach, so they are still scenarios run by hand, as their own
-`README.md` describes. They are planned to become cases around a fake `gh`, checked
-against the real one before every commit, as `docs/PLAN.md` details.
+The skills driving a pull request through `gh`, which the sandbox cannot reach, run
+against `tools/fake-gh`, a stand-in answering from a recorded pull request and logging
+every call for the graders; `tools/fake-gh/record.sh` records the real `gh`'s answers
+it is built from, and the pre-commit hook checks it against GitHub once a day.
+`addressing-pull-request-reviews` is cases on it; the suites of `reviewing-pull-requests`
+and `walking-through-and-reviewing-pull-requests` are still scenarios run by hand, as
+their own `README.md` describes, until `docs/PLAN.md` turns them into cases too.

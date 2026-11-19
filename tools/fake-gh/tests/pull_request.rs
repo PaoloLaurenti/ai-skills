@@ -808,3 +808,55 @@ fn shows_the_reviews_and_the_conversation_a_pull_request_view_names() {
         })
     );
 }
+
+#[test]
+fn follows_the_head_pushed_to_the_workspace_origin() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "head_ref": "rounding",
+        "head_sha": "9fceb02"
+    }));
+    let pushed = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+    let heads = workspace.path().join("origin.git/refs/heads");
+    fs::create_dir_all(&heads).expect("the origin's heads");
+    fs::write(heads.join("rounding"), format!("{pushed}\n")).expect("the pushed head");
+
+    let answer = gh(&workspace, &["pr", "view", "1", "--json", "headRefOid"]);
+
+    assert_eq!(answer, json!({"headRefOid": pushed}));
+}
+
+#[test]
+fn lists_the_files_a_pull_request_changes() {
+    let diff = "diff --git a/README.md b/README.md\nindex 1..2 100644\n--- a/README.md\n+++ b/README.md\n@@ -1,2 +1,2 @@\n-Shows 20 C.\n+Shows 68 F.\n unchanged\ndiff --git a/src/cart.rs b/src/cart.rs\nnew file mode 100644\nindex 0..3\n--- /dev/null\n+++ b/src/cart.rs\n@@ -0,0 +1 @@\n+fn total() {}\n";
+    let workspace =
+        workspace_impersonating(json!({"repository": "acme/shop", "number": 1, "diff": diff}));
+
+    let answer = gh(&workspace, &["pr", "view", "1", "--json", "files"]);
+
+    assert_eq!(
+        answer,
+        json!({"files": [
+            {"path": "README.md", "additions": 1, "deletions": 1, "changeType": "MODIFIED"},
+            {"path": "src/cart.rs", "additions": 1, "deletions": 0, "changeType": "ADDED"}
+        ]})
+    );
+}
+
+#[test]
+fn lists_the_files_a_pull_request_changes_with_their_patches() {
+    let diff = "diff --git a/README.md b/README.md\nindex 1..2 100644\n--- a/README.md\n+++ b/README.md\n@@ -1,2 +1,2 @@\n-Shows 20 C.\n+Shows 68 F.\n unchanged\n";
+    let workspace =
+        workspace_impersonating(json!({"repository": "acme/shop", "number": 1, "diff": diff}));
+
+    let answer = gh(&workspace, &["api", "repos/acme/shop/pulls/1/files"]);
+
+    assert_eq!(
+        answer,
+        json!([{
+            "filename": "README.md", "status": "modified", "additions": 1, "deletions": 1, "changes": 2,
+            "patch": "@@ -1,2 +1,2 @@\n-Shows 20 C.\n+Shows 68 F.\n unchanged"
+        }])
+    );
+}

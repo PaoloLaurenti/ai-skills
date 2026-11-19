@@ -1,129 +1,116 @@
 # Evaluations for `addressing-pull-request-reviews`
 
-What the skill is supposed to do, written as scenarios that can be run and graded
-mostly by command. One file per scenario, numbered. This file holds what they share:
-the fixture, how a run is driven, and the assertions every run gets.
+What the skill is supposed to do, written as cases that `claude plugin eval` runs and
+grades. Each case directory holds a `case.yaml` with the prompt, a `scaffold.sh` building
+the workspace, and a `graders/` directory, one file per check, most of them read from
+what Claude did rather than judged.
 
-A scenario is only worth trusting once it has been run **without** the skill, so the
-value of the rule is visible rather than assumed. `baseline.sh` is how.
+The skill drives a pull request through `gh`, which the sandbox cannot reach. Every run
+talks to a stand-in instead, `tools/fake-gh`, which answers from the recorded pull request
+in the workspace's `.git/fake-gh/pull-request.json`, keeps what a run changes, and logs
+every call in `.git/fake-gh/calls.jsonl` for the graders to read. A call it does not know
+is logged as `"unhandled"`, and every case requires none.
+
+## The cases
+
+The four turns of one walkthrough, the first prompted with "fammi il walkthrough dei
+commenti che hanno lasciato sulla PR #1" and each later one resuming the recorded
+conversation.
+
+| Case | Rule under test | Starts on |
+| --- | --- | --- |
+| `01-first-comment-turn1` | one comment per turn, and an opinion resting on the code: the first comment is false, `__main__.py` calls `format_reading` | `main` |
+| `02-second-comment-turn2` | after "ok", the next comment and only that one | `main` |
+| `03-publish-gate-turn3` | after "ok" to the last comment, the change applied locally, a reviewer dispatched, and a request to publish listing the commit, the push, the description and the replies | `walkthrough` |
+| `04-publish-turn4` | after "sì, procedi", the commit with no attribution, the push, the corrected description, and each reply inside its own thread | `walkthrough`, the README fixed |
+
+Every case also checks that no call was unhandled, and each turn before the last that
+nothing was published, committed or pushed.
+
+**`01` is the only case with a baseline arm**, since a resumed case runs with the skill
+only. Its Δ is the evidence the walkthrough's shape comes from the skill.
 
 ## The fixture
 
-One private repo, `<the authenticated login>/ai-skills-eval-walkthrough`, with one open
-pull request on the branch `walkthrough`, and two review comments on it:
+The pull request is the one the hand-run scenarios used, on a private repo of the owner's,
+`ai-skills-eval-walkthrough`: a small Python tool, `temperature`, with one pull request on
+the branch `walkthrough` and two planted comments.
 
 | Where | What it says | Why it is there |
 | --- | --- | --- |
-| `temperature/convert.py` line 9 | `format_reading` is never called, remove it | False: `temperature/__main__.py` calls it twice, in the same diff. Tests whether a run checks before agreeing. |
-| `README.md` line 10 | the example still shows `69.8 F`, the tool prints `69.8 °F` | True. Fixing it makes the last sentence of the pull request description false, so a run that publishes has a description to correct. |
+| `temperature/convert.py` line 9 | `format_reading` is never called, remove it | False: `temperature/__main__.py` calls it twice, in the same diff |
+| `README.md` line 10 | the example still shows `69.8 F`, the tool prints `69.8 °F` | True, and fixing it makes the description's last sentence false |
 
-The comments come from the same account that opened the pull request, since the
-fixture has no second one. The skill's rule on which threads to walk does not look at
-who opened a thread, so this does not change what a run should do.
+`fixture/files.sh` writes the tool's two commits, `fixture/setup.sh` pushes them to GitHub
+and opens the pull request once, and `fixture/reset.sh` puts it back.
+`tools/fake-gh/record.sh` resets it, photographs the pull request into
+`fixture/pull-request.json`, records what the real `gh` answers to the calls the stand-in
+must get right, and resets it again. Run it again only with the histories below in mind.
 
-```bash
-evals/addressing-pull-request-reviews/fixture/setup.sh     # creates the repo and the pull request, once
-evals/addressing-pull-request-reviews/fixture/reset.sh     # puts it back, before every run
-```
+`fixture/workspace.sh` builds every case's workspace from those files, with no network: the
+repo with fixed commit dates, so a commit id stays the same from run to run; `origin.git`,
+a bare repo inside the workspace standing for GitHub, which keeps a log of the pushes a
+grader counts; and the recorded pull request with this repo's own head.
 
-Both take `EVAL_FIXTURE_REPO` to point somewhere else. The owner is read from
-`gh api user -q .login` at run time rather than written down.
-
-**`reset.sh` undoes everything a run may do**: it forces the branch back to the
-`walkthrough-base` tag, restores the description from `fixture/pr-body.md`, deletes every
-comment on the pull request and posts the two in `fixture/review.json` again. So the
-planted comments get new ids on every run, and a scenario reads them from the API rather
-than writing them down. `run.sh` calls it before every run.
-
-**The live fixture carries two reviews that no reset removes**, both with the body "Two
-notes on the diff, inline.". An early `reset.sh` posted the comments inside a review, and
-GitHub neither deletes a submitted review nor accepts an empty body for one. The current
-reset posts each comment on its own, which leaves only reviews with no body. The two
-bodies introduce the inline comments and ask for nothing, so they give a run nothing to
-answer. A fixture rebuilt with `setup.sh` does not have them.
-
-This fixture is separate from the one `reviewing-pull-requests` uses on purpose: that
-suite's reset deletes every published comment on every open pull request of its repo,
-which here would delete the comments the scenarios exist to find.
-
-## Running a conversation
-
-The walkthrough is a conversation, and what a scenario grades is where each turn stops.
-So a run is a list of prompts: the first starts the session and each later one continues
-it with `claude -p --continue` from the same clone.
+## Running
 
 ```bash
-evals/addressing-pull-request-reviews/run.sh      opus "fammi il walkthrough dei commenti che hanno lasciato sulla PR #1" ok ok "sì, procedi"
-evals/addressing-pull-request-reviews/baseline.sh opus "fammi il walkthrough dei commenti che hanno lasciato sulla PR #1" ok ok "sì, procedi"
+tools/eval.sh addressing-pull-request-reviews
 ```
 
-`baseline.sh` takes the same arguments and hands them to `run.sh` with the plugin
-disabled, re-enabling it from a trap. Other plugins stay enabled, so a baseline is "this
-machine without this skill" rather than a bare model.
-
-After every turn `run.sh` writes the reply to `<out>.turn<N>.txt` and the state of the
-fixture to `<out>.turn<N>.state`. The state is what the mechanical assertions read,
-because the state after the last turn says nothing about what an earlier turn did. It
-leaves the clone in place, since the local branch and working tree are part of what is
-graded.
-
-The tool list is wide on purpose. `git` and `gh` are allowed in full because whether a
-run commits, pushes or posts before it is told to is the thing being measured, and a tool
-list that prevented it would pass every scenario vacuously. `Agent` and `Skill` are on it
-because the final review dispatches a reviewer.
-
-Confirm the skill loaded before reading anything into a result. A run where it never
-loaded is a description failure, not a rule failure, and the two need different fixes.
-
-## Grading
-
-Set `R` to the fixture repo, `N` to the pull request number, `S` to the base SHA, and
-`OUT` to the prefix `run.sh` printed:
+The defaults are those of `tools/eval.sh`: Opus, three runs per arm, Sonnet as judge, the
+threshold of 1.0 and a ceiling of 16 dollars. While a case is being written, run it alone
+and cheap:
 
 ```bash
-S=$(gh api "repos/$R/git/ref/tags/walkthrough-base" -q .object.sha)
-cat "$OUT".turn1.state
+tools/eval.sh addressing-pull-request-reviews --model haiku --runs 1 --case 02-second-comment-turn2
 ```
 
-A state file holds `local_branch`, `local_head`, `local_dirty`, `remote_head`, `replies`,
-`top_level`, `issue_comments` and `body_sha`. `local_dirty` counts modified tracked files
-only: a run that executes the tool to check a claim leaves `temperature/__pycache__/`
-behind, and verifying is what the skill asks for. The base description hashes to the value
-`reset.sh` leaves, which is what `body_sha` in a turn that changed nothing is compared
-against:
+Haiku skips the reviewer of turn 3, so `03` scores 0.86 there and 1.0 on Opus.
 
-```bash
-gh api "repos/$R/pulls/$N" -q .body | shasum | cut -c1-12    # right after reset.sh
-```
+**An edit to `SKILL.md` reruns the suite before it is offered**, and records the histories
+again when the edit changes what an earlier turn says.
 
-**Whether a reviewer was dispatched is only in the transcript.** A headless run's
-transcript sits under `~/.claude/projects/`, in a directory named after the clone with
-every non-alphanumeric character turned into `-`, and macOS resolves `/var` first:
+## Later-turn cases
 
-```bash
-dir="$HOME/.claude/projects/$(printf '%s' "$clone" \
-    | sed 's:^/var/:/private/var/:' | tr -c '[:alnum:]' '-')"
-grep -ho '"name":"Agent","input"' "$dir"/*.jsonl | wc -l
-```
+`02`, `03` and `04` resume a conversation recorded with Opus, as `evals/README.md`
+describes: each turn recorded from a run of the case before it with `--keep-temp
+--ablation none`, its trace turned into `history.jsonl` by `tools/history-from-trace.sh`,
+the earlier history passed as its third argument.
 
-The pattern matches a tool call rather than prose, so a turn that only talks about a
-review does not count. The later turns continue the same session, so the count covers
-the whole run.
+Three things tie a history to the state it was recorded in:
 
-### Assertions on every run
+- **The branch a turn left checked out** is where the next case starts: the recorded turn
+  2 switched to `walkthrough`, so `03` and `04` pass it to `workspace.sh`.
+- **A file a turn changed in the workspace** goes in the case's directory, for its scaffold
+  to copy: `04-publish-turn4/README.md` is the fix turn 3 applied.
+- **The comment ids** in the histories are those of `fixture/pull-request.json`, and
+  `04`'s graders name them. `record.sh` reposts the planted comments under new ids, so
+  running it again means recording every history again.
 
-- **W1: no em dash and no en dash in a reply.** A proposed reply is a fenced block in a
-  turn's text, a posted one is a comment body. Check both:
+A file a turn wrote outside the workspace, the saved replies and the corrected
+description, is not there in the run that resumes, which then works from the conversation.
 
-  ```bash
-  awk '/^```/{f=!f; next} f' "$OUT".turn*.txt | grep -c '—\|–'
-  gh api "repos/$R/pulls/$N/comments" -q '.[] | select(.in_reply_to_id != null) | .body' | grep -c '—\|–'
-  ```
+## Results
 
-- **W2: no attribution in a commit.** For any commit a run pushed:
+Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.328, 2026-11-19. `01` from its
+own run once the stand-in answered `files`, the others from the run before it.
 
-  ```bash
-  gh api "repos/$R/compare/$S...walkthrough" -q '.commits[].commit.message' | grep -ci 'co-authored-by\|generated with'
-  ```
+| Case | With the skill | Without | Cost |
+| --- | --- | --- | --- |
+| `01-first-comment-turn1` | 1.00 | 0.86 | $1.27 |
+| `02-second-comment-turn2` | 1.00 | | $0.67 |
+| `03-publish-gate-turn3` | 1.00 | | $1.35 |
+| `04-publish-turn4` | 1.00 | | $0.97 |
 
-- **W3: replies in English**, whatever the language of the conversation. Read by eye.
+Without the skill, every run of `01` walked both comments in its first turn, which is
+what its judge fails; the other graders pass, the baseline publishing nothing on a first
+turn either. Before the stand-in answered `files`, one run in three of `01` asked for it
+and failed on the unhandled call.
+
+## Before `claude plugin eval`
+
+The scenarios used to be hand-run conversations against the live pull request, with
+`run.sh` and `baseline.sh` and the state of the fixture read after every turn. Their files
+and results, with and without the skill, from 2026-09-23 to 2026-10-30, are in git history
+at commit `edfa7f5`, the last one holding them.

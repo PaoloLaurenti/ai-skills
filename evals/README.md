@@ -77,8 +77,8 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   `CLAUDE.md`, memory or other plugins. The baseline arm runs the same way without the
   skill.
 - **Bash reaches no network but granted domains**, and the credentials in the real home
-  are out of reach, which is why the suites driving a pull request through `gh` are not
-  cases.
+  are out of reach, which is why a suite driving a pull request through `gh` runs against
+  `tools/fake-gh` instead, put first on `PATH` by `tools/eval.sh`.
 - **The sandbox reads no directory of the home but those on `PATH`.** A toolchain
   installed there, such as asdf's, needs its `bin` and, for `rustc`, its `lib` on
   `PATH`; `tools/eval.sh` puts them there.

@@ -11,6 +11,7 @@ pub enum Call {
     RepositoryView(String),
     CommentsAsText,
     PullRequestItself,
+    ChangedFiles,
     ReviewThreads,
     User,
     IssueComments,
@@ -170,6 +171,7 @@ fn rest(args: &[String], pull_request: &PullRequest) -> Result<Call, Refusal> {
     };
     let call = match (method, kind, rest) {
         ("GET", "pulls", []) => Call::PullRequestItself,
+        ("GET", "pulls", ["files"]) => Call::ChangedFiles,
         ("GET", "issues", ["comments"]) => Call::IssueComments,
         ("GET", "pulls", ["comments"]) => Call::SubmittedComments,
         ("GET", "pulls", ["reviews"]) => Call::Reviews,

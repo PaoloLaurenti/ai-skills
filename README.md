@@ -171,10 +171,10 @@ cases stay out of `tools/check.sh` and the commit hook: whoever changes a skill 
 them. `evals/README.md` is where writing a case starts, and each `evals/<name>/README.md`
 says what its suite tests.
 
-The suites of the three pull request skills drive a test repository on GitHub, which
-the command's sandbox cannot reach, so they are still scenarios run by hand, with their
-results recorded in the scenario files, as their own `README.md` explains. They are
-planned to become cases too, with a fake `gh` standing in for GitHub.
+The pull request skills run against a stand-in for `gh`, since the command's sandbox
+cannot reach GitHub: `addressing-pull-request-reviews` is cases on it. The suites of the
+other two still drive a test repository on GitHub by hand, with their results recorded
+in the scenario files, as their own `README.md` explains, until they become cases too.
 
 ### Contributing
 

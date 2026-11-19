@@ -142,9 +142,19 @@ impl Rejection {
 }
 
 impl PullRequest {
+    /// The pull request the workspace describes, its head following the branch pushed to
+    /// `origin.git` in the workspace, the bare repo standing for GitHub, when there is one.
     pub fn load(described: &Path) -> Self {
-        let described = fs::read_to_string(described).expect("the pull request");
-        serde_json::from_str(&described).expect("the pull request as JSON")
+        let text = fs::read_to_string(described).expect("the pull request");
+        let mut pull_request: Self = serde_json::from_str(&text).expect("the pull request as JSON");
+        let workspace = described.ancestors().nth(3).expect("the workspace");
+        if let Some(branch) = &pull_request.head_ref
+            && let Ok(pushed) =
+                fs::read_to_string(workspace.join("origin.git/refs/heads").join(branch))
+        {
+            pull_request.head_sha = Some(pushed.trim().to_string());
+        }
+        pull_request
     }
 
     pub fn save(&self, described: &Path) {
@@ -214,6 +224,12 @@ impl PullRequest {
             "headRefName" => Some(json!(self.head_ref)),
             "baseRefName" => Some(json!(self.base_ref)),
             "reviews" => Some(self.reviews.iter().map(Review::as_viewed).collect()),
+            "files" => Some(
+                self.changed_files()
+                    .iter()
+                    .map(ChangedFile::as_viewed)
+                    .collect(),
+            ),
             "comments" => Some(
                 self.issue_comments
                     .iter()
@@ -605,4 +621,95 @@ fn picked(fields: &str, value_of: impl Fn(&str) -> Option<Value>) -> Option<Valu
         picked.insert(field.to_string(), value_of(field)?);
     }
     Some(Value::Object(picked))
+}
+
+/// A file the pull request changes, read from its diff.
+struct ChangedFile {
+    path: String,
+    change: Change,
+    additions: usize,
+    deletions: usize,
+    /// The file's hunks, from its first `@@` on, as REST gives them.
+    patch: String,
+}
+
+enum Change {
+    Added,
+    Removed,
+    Modified,
+}
+
+impl PullRequest {
+    /// What `repos/OWNER/REPO/pulls/N/files` gives.
+    pub fn changed_files_as_rest(&self) -> Value {
+        self.changed_files()
+            .iter()
+            .map(ChangedFile::as_rest)
+            .collect()
+    }
+
+    fn changed_files(&self) -> Vec<ChangedFile> {
+        let diff = self.diff.as_deref().unwrap_or_default();
+        diff.split("diff --git ")
+            .filter(|section| !section.is_empty())
+            .map(ChangedFile::from_diff)
+            .collect()
+    }
+}
+
+impl ChangedFile {
+    fn from_diff(section: &str) -> Self {
+        let header = section.lines().next().unwrap_or_default();
+        let path = header.rsplit(" b/").next().unwrap_or_default().to_string();
+        let change = if section.contains("\nnew file mode") {
+            Change::Added
+        } else if section.contains("\ndeleted file mode") {
+            Change::Removed
+        } else {
+            Change::Modified
+        };
+        let patch = section
+            .find("\n@@")
+            .map(|at| section[at + 1..].trim_end().to_string())
+            .unwrap_or_default();
+        let lines = || patch.lines().filter(|line| !line.starts_with("@@"));
+        ChangedFile {
+            path,
+            change,
+            additions: lines().filter(|line| line.starts_with('+')).count(),
+            deletions: lines().filter(|line| line.starts_with('-')).count(),
+            patch,
+        }
+    }
+
+    fn as_rest(&self) -> Value {
+        let status = match self.change {
+            Change::Added => "added",
+            Change::Removed => "removed",
+            Change::Modified => "modified",
+        };
+        json!({
+            "filename": self.path,
+            "status": status,
+            "additions": self.additions,
+            "deletions": self.deletions,
+            "changes": self.additions + self.deletions,
+            "patch": self.patch,
+        })
+    }
+
+    /// As `gh pr view --json files` lists it.
+    fn as_viewed(&self) -> Value {
+        let change = match self.change {
+            Change::Added => "ADDED",
+            Change::Removed => "DELETED",
+            Change::Modified => "MODIFIED",
+        };
+        json!({
+            "path": self.path,
+            "additions": self.additions,
+            "deletions": self.deletions,
+            "changeType": change,
+        })
+    }
 }

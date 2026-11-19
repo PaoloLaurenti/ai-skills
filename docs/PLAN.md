@@ -527,6 +527,15 @@ The three GitHub suites, rebuilt around a fake `gh`:
       which reposts the planted comments under new ids, means recording the histories
       again. Still to do: let turn 4 edit the description, run the suite on Opus, write
       the suite's README, delete its hand-built files, then merge into `main`.
+
+      *Done, 2026-11-19*: turn 4 edits the description once `tools/eval.sh` grants Read
+      on each run's temporary directory; a history names that directory `../../tmp`, and
+      the scaffold copies there the files a recorded turn kept in it; the fake's head
+      follows the branch pushed to `origin.git`; and it lists a pull request's `files`,
+      read from the diff, which one Opus run in three asked for. Opus, three runs per
+      arm: 1.00 on every case, 0.86 without the skill on `01`, $4.26. The suite's
+      `README.md` holds the results, the hand-built files are deleted, and `AGENTS.md`,
+      `README.md` and `evals/README.md` say it is cases.
 - [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
 

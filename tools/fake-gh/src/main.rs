@@ -100,6 +100,7 @@ fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal>
         ),
         Call::CommentsAsText => pull_request.comments_as_text(),
         Call::PullRequestItself => json_line(&pull_request.as_rest()),
+        Call::ChangedFiles => json_line(&pull_request.changed_files_as_rest()),
         Call::ReviewThreads => json_line(&pull_request.review_threads()),
         Call::User => json_line(&json!({ "login": pull_request.viewer })),
         Call::IssueComments => json_line(&json!(pull_request.issue_comments)),
