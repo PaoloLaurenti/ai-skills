@@ -418,8 +418,14 @@ The three GitHub suites, rebuilt around a fake `gh`:
       describes its pull request in `.git/fake-gh/pull-request.json`, in REST's shape,
       which the fake looks for from the current directory up and rewrites after a
       write; the calls go to `calls.jsonl` beside it. Fields it does not use pass
-      through untouched, so a recorded response keeps them. Still to do: the calls of
-      `reviewing-pull-requests`, and `tools/eval.sh` putting the binary on `PATH`.
+      through untouched, so a recorded response keeps them. `tools/eval.sh` builds it
+      and puts `tools/fake-gh/target/debug` of the repo first on `PATH`, granting
+      `Bash(gh:*)`. *Probe, 2026-11-19*, at CLI 2.1.328 with haiku and one run, a
+      throwaway plugin launched the same way: the fake answered `gh api …/comments`, the
+      reply quoted its comment, and a `regex` grader with `target: { source: file, path:
+      .git/fake-gh/calls.jsonl }` read the log, so a grader reaches a file under `.git`:
+      3 graders of 3 passed, for $0.0025. Still to do: the calls of
+      `reviewing-pull-requests`.
       Deferred until those calls are in: one type listing every call the fake knows,
       since today `write` matches on how a path ends and `answer` on the command and
       subcommand, and with eleven calls the second shape is not yet worth its code.

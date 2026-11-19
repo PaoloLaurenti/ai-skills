@@ -29,6 +29,11 @@ toolchain="$(dirname "$(dirname "$cargo")")"
 # The sandbox Bash runs in cannot read the home, except the directories on PATH. rustc
 # loads its own library from lib/, so lib/ goes on PATH too, or nothing compiles.
 PATH="$toolchain/bin:$toolchain/lib:$PATH"
+# The stand-in for `gh` the pull request suites run against, first on PATH so no real
+# `gh` answers in its place. It runs from the repo rather than from the copy below,
+# since the sandbox skips an executable whose directory sits in a temporary one.
+cargo build --quiet --locked --manifest-path "$repo/tools/fake-gh/Cargo.toml"
+PATH="$repo/tools/fake-gh/target/debug:$PATH"
 export PATH
 
 # The command refuses a plugin holding a file with two names, which cargo's build output
@@ -64,6 +69,6 @@ claude plugin eval "$copy" \
     --model opus \
     --judge-model sonnet \
     --max-cost-usd 16 \
-    --allow-tools Edit Write 'Bash(cargo:*)' 'Bash(git:*)' "Read(/$copy/**)" \
+    --allow-tools Edit Write 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' "Read(/$copy/**)" \
     --tag "$skill" \
     "$@"
