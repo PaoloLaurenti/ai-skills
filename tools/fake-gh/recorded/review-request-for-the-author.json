@@ -1,0 +1,18 @@
+{
+  "files": {},
+  "calls": [
+    {
+      "args": [
+        "api",
+        "--method",
+        "POST",
+        "repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1/requested_reviewers",
+        "-f",
+        "reviewers[]=fixture-owner"
+      ],
+      "exit": 1,
+      "stdout": "{\"message\":\"Review cannot be requested from pull request author.\",\"documentation_url\":\"https://docs.github.com/rest/pulls/review-requests#request-reviewers-for-a-pull-request\",\"status\":\"422\"}",
+      "stderr": "gh: Review cannot be requested from pull request author. (HTTP 422)\n"
+    }
+  ]
+}

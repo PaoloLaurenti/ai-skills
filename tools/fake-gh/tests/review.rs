@@ -705,10 +705,7 @@ fn refuses_a_second_pending_review() {
             refusal.status.code(),
             String::from_utf8_lossy(&refusal.stderr).into_owned()
         ),
-        (
-            Some(1),
-            "gh: User can only have one pending review per pull request (HTTP 422)\n".to_string()
-        )
+        (Some(1), "gh: Unprocessable Entity (HTTP 422)\n".to_string())
     );
 }
 
@@ -743,7 +740,7 @@ fn refuses_a_general_comment_for_a_review_created_without_one() {
         ),
         (
             Some(1),
-            "gh: Could not edit a review with a missing body\n".to_string()
+            "gh: Could not edit a review with a missing body.\n".to_string()
         )
     );
 }

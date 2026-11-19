@@ -49,6 +49,7 @@ pub struct ReviewComment {
 /// A comment in the general conversation, attached to no line.
 #[derive(Deserialize, Serialize)]
 pub struct IssueComment {
+    id: u64,
     user: User,
     body: String,
     #[serde(flatten)]
@@ -116,14 +117,21 @@ pub enum Rejection {
 }
 
 impl Rejection {
-    /// GitHub's own words for it.
-    pub fn message(&self) -> &'static str {
+    /// What GitHub answers with it, word for word, as `record.sh` recorded it.
+    pub fn answer(&self) -> Value {
         match self {
-            Rejection::ReviewFromTheAuthor => {
-                "Review cannot be requested from pull request author."
-            }
-            Rejection::OnePendingReview => "User can only have one pending review per pull request",
-            Rejection::MissingBody => "Could not edit a review with a missing body",
+            Rejection::ReviewFromTheAuthor => json!({
+                "message": "Review cannot be requested from pull request author.",
+                "status": "422",
+            }),
+            Rejection::OnePendingReview => json!({
+                "message": "Unprocessable Entity",
+                "errors": ["User can only have one pending review per pull request"],
+                "status": "422",
+            }),
+            Rejection::MissingBody => json!({
+                "errors": [{"message": "Could not edit a review with a missing body."}],
+            }),
         }
     }
 }
@@ -349,13 +357,17 @@ impl PullRequest {
         Some(thread_id(self.open_thread(review, comment)))
     }
 
-    pub fn comment(&mut self, body: &str) {
+    /// Posts the requester's comment to the general conversation, and tells where it is.
+    pub fn comment(&mut self, body: &str) -> String {
+        let id = self.next_id();
         let comment = IssueComment {
+            id,
             user: self.requester(),
             body: body.to_string(),
             rest: Map::new(),
         };
         self.issue_comments.push(comment);
+        format!("{}#issuecomment-{id}", self.url())
     }
 
     pub fn request_review_from(&self, reviewer: &str) -> Result<Value, Rejection> {
@@ -417,15 +429,21 @@ impl PullRequest {
         let comments = self.review_comments.iter().map(|comment| comment.id);
         let last = comments
             .chain(self.reviews.iter().map(|review| review.id))
+            .chain(self.issue_comments.iter().map(|comment| comment.id))
             .max();
         last.unwrap_or(0) + 1
     }
 
-    fn discussion_url(&self, id: u64) -> String {
+    /// Where the pull request lives on GitHub, which `gh pr edit` prints.
+    pub fn url(&self) -> String {
         let Self {
             repository, number, ..
         } = self;
-        format!("https://github.com/{repository}/pull/{number}#discussion_r{id}")
+        format!("https://github.com/{repository}/pull/{number}")
+    }
+
+    fn discussion_url(&self, id: u64) -> String {
+        format!("{}#discussion_r{id}", self.url())
     }
 }
 

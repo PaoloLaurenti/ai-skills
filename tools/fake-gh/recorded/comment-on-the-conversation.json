@@ -1,0 +1,19 @@
+{
+  "files": {},
+  "calls": [
+    {
+      "args": [
+        "pr",
+        "comment",
+        "1",
+        "--repo",
+        "fixture-owner/ai-skills-eval-walkthrough",
+        "--body",
+        "A recorded comment."
+      ],
+      "exit": 0,
+      "stdout": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#issuecomment-7003876453\n",
+      "stderr": ""
+    }
+  ]
+}

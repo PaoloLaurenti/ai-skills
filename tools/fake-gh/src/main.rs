@@ -67,8 +67,20 @@ fn respond(args: &[String], described: &Path) -> Result<String, Refusal> {
 fn fail(refusal: &Refusal, args: &[String]) -> ! {
     match refusal {
         Refusal::NotFound => eprintln!("gh: Not Found (HTTP 404)"),
-        Refusal::Unprocessable(rejection) => eprintln!("gh: {} (HTTP 422)", rejection.message()),
-        Refusal::Rejected(rejection) => eprintln!("gh: {}", rejection.message()),
+        Refusal::Unprocessable(rejection) => {
+            let answer = rejection.answer();
+            println!("{answer}");
+            eprintln!(
+                "gh: {} (HTTP 422)",
+                answer["message"].as_str().unwrap_or_default()
+            );
+        }
+        Refusal::Rejected(rejection) => {
+            let answer = rejection.answer();
+            println!("{answer}");
+            let message = answer["errors"][0]["message"].as_str().unwrap_or_default();
+            eprintln!("gh: {message}");
+        }
         Refusal::Unhandled => eprintln!("gh: `gh {}` is not available here", args.join(" ")),
     }
     process::exit(1)
@@ -163,14 +175,11 @@ fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal>
                 .map_err(Refusal::Unprocessable)?,
         ),
         Call::Reply { answered, body } => json_line(&json!(pull_request.reply_to(answered, &body))),
-        Call::Comment(body) => {
-            pull_request.comment(&body);
-            String::new()
-        }
+        Call::Comment(body) => format!("{}\n", pull_request.comment(&body)),
         Call::ReplaceDescription(file) => {
             pull_request
                 .replace_the_description(fs::read_to_string(file).expect("the new description"));
-            String::new()
+            format!("{}\n", pull_request.url())
         }
     };
     Ok(answer)

@@ -435,7 +435,7 @@ The three GitHub suites, rebuilt around a fake `gh`:
       GraphQL query names. A mutation's variables are read by the names the skill's
       `reference/` gives them, `rid`, `t`, `r`, `b`: a run naming them otherwise is
       logged as unhandled, which the first runs will show.
-- [ ] **Record its responses from the real `gh`**, against the fixture repo the hand-run
+- [x] **Record its responses from the real `gh`**, against the fixture repo the hand-run
       suites already use, with a script, never written by hand, and recorded again when
       `gh` or a skill's calls change. Writing the fake left some answers guessed rather
       than seen, which the recording settles: whether GitHub keeps the trailing newline
@@ -445,6 +445,21 @@ The three GitHub suites, rebuilt around a fake `gh`:
       prints a GraphQL error, guessed as `gh: MESSAGE` for a draft created without a
       general comment; and what `gh pr comment` and `gh pr edit` print, where the fake
       prints nothing.
+
+      *Done, 2026-11-19*: `tools/fake-gh/record.sh` resets the fixture of
+      `addressing-pull-request-reviews`, writes its pull request in the fake's shape to
+      that suite's `fixture/pull-request.json`, runs one probe per guessed answer into
+      `tools/fake-gh/recorded/`, and resets again. The owner's login is written as
+      `fixture-owner`, and the account's number and GraphQL id as account 1's: the
+      repo is public, and either leads back to the account as surely as the login.
+      `tests/recorded.rs` replays each probe against the fake. GitHub keeps the trailing
+      newline; `gh pr edit` prints the pull request's URL and `gh pr comment` the
+      comment's; a `422` prints its JSON body on standard output, and the
+      second pending review's reads `Unprocessable Entity`, its reason only in that body;
+      a GraphQL error prints `gh: MESSAGE` with GitHub's full stop and the `errors` JSON.
+      `gh` 2.105 adds `hint:` advice to some errors, which the fake leaves out. The pull
+      requests of `reviewing-pull-requests` get photographed when that suite becomes
+      cases.
 - [ ] **Check the fake against the real `gh` before every commit**, with a script the
       pre-commit hook calls after `tools/check.sh`: it replays the writes the fake has
       logged against the fixture repo, inside a pending review it then deletes, and fails
