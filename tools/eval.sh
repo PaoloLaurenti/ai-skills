@@ -34,6 +34,20 @@ PATH="$toolchain/bin:$toolchain/lib:$PATH"
 # since the sandbox skips an executable whose directory sits in a temporary one.
 cargo build --quiet --locked --manifest-path "$repo/tools/fake-gh/Cargo.toml"
 PATH="$repo/tools/fake-gh/target/debug:$PATH"
+# Apple's /usr/bin/git is a shim that asks xcrun for the real git, and xcrun needs a
+# cache the sandbox denies, so every git command exits 72. The real git runs, but the
+# sandbox skips its directory, being outside the home: three scripts in a directory git
+# ignores here hand each command to it. git push runs the other two by name.
+if [ "$(command -v git)" = /usr/bin/git ] &&
+    developer="$(xcode-select -p 2>/dev/null)" && [ -x "$developer/usr/bin/git" ]; then
+    shims="$repo/evals/results/.git-bin"
+    mkdir -p "$shims"
+    for command in git git-receive-pack git-upload-pack; do
+        printf '#!/bin/sh\nexec "%s" "$@"\n' "$developer/usr/bin/$command" >"$shims/$command"
+        chmod +x "$shims/$command"
+    done
+    PATH="$shims:$PATH"
+fi
 export PATH
 
 # The command refuses a plugin holding a file with two names, which cargo's build output

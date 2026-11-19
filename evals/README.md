@@ -80,9 +80,16 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **The sandbox reads no directory of the home but those on `PATH`.** A toolchain
   installed there, such as asdf's, needs its `bin` and, for `rustc`, its `lib` on
   `PATH`; `tools/eval.sh` puts them there.
-- **Git does not run on a Mac with Apple's git only.** The `xcrun` shim needs a cache the
-  sandbox denies, and exits 72. A run reaching for `git status` gets an error and goes on
-  with `ls` and `cat`, and `tool_used` still counts a `git commit` attempt.
+- **A directory outside the home is skipped on `PATH`**, so the executable found is the
+  next one, as if the first were not there.
+- **Apple's git runs only through `tools/eval.sh`.** `/usr/bin/git` is a shim asking
+  `xcrun` for the real git, and `xcrun` needs a cache the sandbox denies, so every command
+  exits 72. Putting the real git's directory first on `PATH` does not help, being outside
+  the home; `tools/eval.sh` writes three scripts handing `git`, `git-receive-pack` and
+  `git-upload-pack` to it into `evals/results/.git-bin/`, which git ignores, and puts
+  that first instead. A push needs a remote the sandbox reaches, such as a bare
+  repository the scaffold creates inside the workspace, and a grader reads what arrived
+  from a file of it, such as `origin.git/refs/heads/main`.
 - **A skill's reference files are refused unless `Read` is granted on the plugin**, as
   they sit beside the skill, outside the workspace. `tools/eval.sh` grants it on the copy
   it evaluates.

@@ -480,6 +480,21 @@ The three GitHub suites, rebuilt around a fake `gh`:
       warning and exit 0, and leaves no day behind.
 - [ ] **Turn each suite into cases**, as for `developing-with-tdd`, and delete its
       hand-built files.
+
+      *Decided 2026-11-19*, for `addressing-pull-request-reviews`: four cases on one
+      scaffold, a local repo of the fixture's files with `main` and `walkthrough`, the
+      recorded `pull-request.json` in `.git/fake-gh/`, and a bare `origin.git` inside
+      the workspace to push to. `01-first-comment-turn1` grades one comment per turn and
+      the verification before agreeing together, the two scenarios grading the same
+      turn; `02-second-comment-turn2`, `03-publish-gate-turn3` and `04-publish-turn4`
+      resume the recorded conversation with "ok", "ok" and "sì, procedi".
+
+      *Probe, 2026-11-19*, at CLI 2.1.328 with haiku and one run: Xcode's git, its
+      directory first on `PATH`, was skipped like any directory outside the home, and
+      `/usr/bin/git` exited 72; a script in the repo handing `git` to it committed, and
+      pushed into a bare repo in the workspace once `git-receive-pack` and
+      `git-upload-pack` had one too. 3 graders of 3, the pushed ref read from
+      `origin.git/refs/heads/main`. `tools/eval.sh` now writes the three scripts.
 - [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
 
