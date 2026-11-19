@@ -13,6 +13,10 @@
 # a comment, a description, a review request. Run it again when `gh` or a skill's calls
 # change, never edit what it writes.
 #
+#   record.sh             writes both into the repo
+#   record.sh --into DIR  writes them into DIR instead, as `pull-request.json` and
+#                         `recorded/`, for `check-against-github.sh` to compare
+#
 # The owner's login is written as `fixture-owner`, since nothing in this repo names the
 # owner; `tools/check.sh` fails on any that slips through.
 set -eu
@@ -20,6 +24,14 @@ set -eu
 here="$(cd "$(dirname "$0")" && pwd -P)"
 root="$(cd "$here/../.." && pwd -P)"
 fixture="$root/evals/addressing-pull-request-reviews/fixture"
+snapshot="$fixture/pull-request.json"
+recordings="$here/recorded"
+if [ "${1:-}" = --into ]; then
+    mkdir -p "$2"
+    into="$(cd "$2" && pwd -P)"
+    snapshot="$into/pull-request.json"
+    recordings="$into/recorded"
+fi
 login="$(gh api user -q .login)"
 EVAL_FIXTURE_REPO="${EVAL_FIXTURE_REPO:-$login/ai-skills-eval-walkthrough}"
 export EVAL_FIXTURE_REPO
@@ -70,12 +82,12 @@ jq -n \
         review_comments: $comments,
         issue_comments: $conversation[0],
         reviews: [$reviews[0][] | select(.id as $id | $comments | any(.pull_request_review_id == $id))]
-    }' | scrub >"$fixture/pull-request.json"
+    }' | scrub >"$snapshot"
 
 # A probe is a list of calls run in order. `call` runs one and appends it to the probe;
 # a node id a call answers with is remembered, and written as `{{node_id}}` wherever a
 # later call sends it back, since the stand-in gives its own.
-mkdir -p "$here/recorded"
+mkdir -p "$recordings"
 node_id=""
 start() {
     probe="$1"
@@ -102,7 +114,7 @@ call() {
 finish() {
     jq -s --slurpfile files files.json '{files: $files[0], calls: .}' calls.jsonl |
         if [ -n "$node_id" ]; then sed "s/$node_id/{{node_id}}/g"; else cat; fi |
-        scrub >"$here/recorded/$probe.json"
+        scrub >"$recordings/$probe.json"
     node_id=""
 }
 clear_pending() {
@@ -144,4 +156,4 @@ start comment-on-the-conversation
 call pr comment "$number" --repo "$repo" --body "A recorded comment."
 finish
 
-echo "recorded #$number of $repo into $fixture/pull-request.json and $here/recorded/"
+echo "recorded #$number of $repo into $snapshot and $recordings/"

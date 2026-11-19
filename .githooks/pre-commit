@@ -8,4 +8,10 @@
 #
 # What it reads is the working tree rather than what is staged, which is the
 # usual imprecision of a hook this shape: a fix left unstaged still counts here.
-exec "$(git rev-parse --show-toplevel)/tools/check.sh"
+#
+# Then, at most once a day, the stand-in for `gh` against the real one, which needs
+# the owner's credentials and so stays out of check.sh and CI.
+set -e
+root="$(git rev-parse --show-toplevel)"
+"$root/tools/check.sh"
+exec "$root/tools/fake-gh/check-against-github.sh"

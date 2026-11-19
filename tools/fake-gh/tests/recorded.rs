@@ -8,6 +8,7 @@
 
 mod common;
 
+use std::env;
 use std::fs;
 use std::path::PathBuf;
 
@@ -41,11 +42,9 @@ fn refuses_a_general_comment_for_a_draft_without_one_as_github_does() {
 }
 
 fn replays(recording: &str) {
-    let recorded = read_json(manifest_dir().join(format!("recorded/{recording}.json")));
-    let pull_request = read_json(
-        manifest_dir()
-            .join("../../evals/addressing-pull-request-reviews/fixture/pull-request.json"),
-    );
+    let (snapshot, recordings) = recording_dirs();
+    let recorded = read_json(recordings.join(format!("{recording}.json")));
+    let pull_request = read_json(snapshot);
     let workspace = workspace_impersonating(pull_request);
     for (name, text) in recorded["files"].as_object().expect("the files") {
         let text = text.as_str().expect("a file's text");
@@ -151,8 +150,20 @@ fn any_number(text: &str) -> String {
     kept
 }
 
-fn manifest_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+/// The pull request and the recordings committed, or those `record.sh --into` just wrote
+/// into the directory `FAKE_GH_RECORDING` names, which `check-against-github.sh` sets.
+fn recording_dirs() -> (PathBuf, PathBuf) {
+    match env::var_os("FAKE_GH_RECORDING") {
+        Some(fresh) => {
+            let fresh = PathBuf::from(fresh);
+            (fresh.join("pull-request.json"), fresh.join("recorded"))
+        }
+        None => {
+            let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let fixture = "../../evals/addressing-pull-request-reviews/fixture/pull-request.json";
+            (crate_dir.join(fixture), crate_dir.join("recorded"))
+        }
+    }
 }
 
 fn read_json(path: PathBuf) -> Value {

@@ -460,15 +460,24 @@ The three GitHub suites, rebuilt around a fake `gh`:
       `gh` 2.105 adds `hint:` advice to some errors, which the fake leaves out. The pull
       requests of `reviewing-pull-requests` get photographed when that suite becomes
       cases.
-- [ ] **Check the fake against the real `gh` before every commit**, with a script the
-      pre-commit hook calls after `tools/check.sh`: it replays the writes the fake has
-      logged against the fixture repo, inside a pending review it then deletes, and fails
-      when GitHub rejects one. It runs at most once a day per clone, remembering the
-      last day it passed in a file under `.git/`, which is never versioned. It skips with
-      a warning, without blocking the commit, when `gh` is not authenticated, has no
-      fixture repo, or is offline, since a contributor from outside has no access to
-      the owner's fixture repo and an offline commit has nothing to do with GitHub. It
-      stays out of `tools/check.sh`, which CI runs without credentials to write there.
+- [x] **Check the fake against the real `gh` before every commit**, with a script the
+      pre-commit hook calls after `tools/check.sh`: it records GitHub's answers again into
+      a temporary directory, with `record.sh --into`, and replays them against the fake
+      with `tests/recorded.rs`, failing when the two differ. It runs at most once a day
+      per clone, remembering the last day it passed in a file under `.git/`, which is
+      never versioned. It skips with a warning, without blocking the commit, when `gh`
+      is not authenticated, has no fixture repo, or is offline, since a contributor from
+      outside has no access to the owner's fixture repo and an offline commit has nothing
+      to do with GitHub. It stays out of `tools/check.sh`, which CI runs without
+      credentials to write there.
+
+      *Decided 2026-11-19*, in place of replaying the writes the fake had logged: a
+      log lives in an eval run's temporary workspace, gone by the time of a commit, and
+      the ids in it are the fake's, which GitHub does not know. *Done the same day* as
+      `tools/fake-gh/check-against-github.sh`, called by `.githooks/pre-commit`; the
+      day it last passed is kept in `.git/fake-gh-checked`. Measured: 37 seconds the
+      first time in a day, 0.03 the next; an unreachable fixture repo skips with a
+      warning and exit 0, and leaves no day behind.
 - [ ] **Turn each suite into cases**, as for `developing-with-tdd`, and delete its
       hand-built files.
 - [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
