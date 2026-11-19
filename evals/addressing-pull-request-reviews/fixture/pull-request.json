@@ -12,10 +12,10 @@
   "head_sha": "9108ee03fa01662f18f5fb47d18c3e3e55cad851",
   "review_comments": [
     {
-      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4626798156",
-      "pull_request_review_id": 5972502810,
-      "id": 4626798156,
-      "node_id": "PRRC_kwDOUnqA5M8AAAABE8dWTA",
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4627112349",
+      "pull_request_review_id": 5972911062,
+      "id": 4627112349,
+      "node_id": "PRRC_kwDOUnqA5M8AAAABE8whnQ",
       "diff_hunk": "@@ -4,3 +4,7 @@ def to_fahrenheit(celsius):\n \n def to_celsius(fahrenheit):\n     return (fahrenheit - 32) * 5 / 9\n+\n+\n+def format_reading(value, unit):",
       "path": "temperature/convert.py",
       "commit_id": "9108ee03fa01662f18f5fb47d18c3e3e55cad851",
@@ -42,23 +42,23 @@
         "site_admin": false
       },
       "body": "Nothing calls `format_reading`, so as far as I can see it is dead code. I suggest removing it before this merges.",
-      "created_at": "2026-11-19T09:35:37Z",
-      "updated_at": "2026-11-19T09:35:37Z",
-      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4626798156",
+      "created_at": "2026-11-19T10:04:30Z",
+      "updated_at": "2026-11-19T10:04:31Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4627112349",
       "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1",
       "_links": {
         "self": {
-          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4626798156"
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4627112349"
         },
         "html": {
-          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4626798156"
+          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4627112349"
         },
         "pull_request": {
           "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1"
         }
       },
       "reactions": {
-        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4626798156/reactions",
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4627112349/reactions",
         "total_count": 0,
         "+1": 0,
         "-1": 0,
@@ -83,10 +83,10 @@
       "copilot_code_review_sources": []
     },
     {
-      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4626798321",
-      "pull_request_review_id": 5972503042,
-      "id": 4626798321,
-      "node_id": "PRRC_kwDOUnqA5M8AAAABE8dW8Q",
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4627112555",
+      "pull_request_review_id": 5972911258,
+      "id": 4627112555,
+      "node_id": "PRRC_kwDOUnqA5M8AAAABE8wiaw",
       "diff_hunk": "@@ -6,3 +6,5 @@ converts a temperature between Celsius and Fahrenheit.\n     python -m temperature 21 C\n \n prints `69.8 F`.\n+\n+Every reading carries one decimal and the symbol of its unit.",
       "path": "README.md",
       "commit_id": "9108ee03fa01662f18f5fb47d18c3e3e55cad851",
@@ -113,23 +113,23 @@
         "site_admin": false
       },
       "body": "The example above still shows `69.8 F`, but the tool now prints `69.8 °F`. The example should match what the tool prints.",
-      "created_at": "2026-11-19T09:35:38Z",
-      "updated_at": "2026-11-19T09:35:38Z",
-      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4626798321",
+      "created_at": "2026-11-19T10:04:31Z",
+      "updated_at": "2026-11-19T10:04:31Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4627112555",
       "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1",
       "_links": {
         "self": {
-          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4626798321"
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4627112555"
         },
         "html": {
-          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4626798321"
+          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#discussion_r4627112555"
         },
         "pull_request": {
           "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1"
         }
       },
       "reactions": {
-        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4626798321/reactions",
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/comments/4627112555/reactions",
         "total_count": 0,
         "+1": 0,
         "-1": 0,
@@ -241,8 +241,8 @@
       "commit_id": "9108ee03fa01662f18f5fb47d18c3e3e55cad851"
     },
     {
-      "id": 5972502810,
-      "node_id": "PRR_kwDOUnqA5M8AAAABY_0pGg",
+      "id": 5972911062,
+      "node_id": "PRR_kwDOUnqA5M8AAAABZANj1g",
       "user": {
         "login": "fixture-owner",
         "id": 1,
@@ -266,25 +266,25 @@
       },
       "body": "",
       "state": "COMMENTED",
-      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972502810",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972911062",
       "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1",
       "author_association": "OWNER",
       "is_copilot_code_review": false,
       "copilot_code_review_effort": null,
       "_links": {
         "html": {
-          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972502810"
+          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972911062"
         },
         "pull_request": {
           "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1"
         }
       },
-      "submitted_at": "2026-11-19T09:35:37Z",
+      "submitted_at": "2026-11-19T10:04:30Z",
       "commit_id": "9108ee03fa01662f18f5fb47d18c3e3e55cad851"
     },
     {
-      "id": 5972503042,
-      "node_id": "PRR_kwDOUnqA5M8AAAABY_0qAg",
+      "id": 5972911258,
+      "node_id": "PRR_kwDOUnqA5M8AAAABZANkmg",
       "user": {
         "login": "fixture-owner",
         "id": 1,
@@ -308,20 +308,20 @@
       },
       "body": "",
       "state": "COMMENTED",
-      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972503042",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972911258",
       "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1",
       "author_association": "OWNER",
       "is_copilot_code_review": false,
       "copilot_code_review_effort": null,
       "_links": {
         "html": {
-          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972503042"
+          "href": "https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5972911258"
         },
         "pull_request": {
           "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1"
         }
       },
-      "submitted_at": "2026-11-19T09:35:38Z",
+      "submitted_at": "2026-11-19T10:04:31Z",
       "commit_id": "9108ee03fa01662f18f5fb47d18c3e3e55cad851"
     }
   ]

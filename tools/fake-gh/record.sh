@@ -141,7 +141,7 @@ call repo view "$repo" --json nameWithOwner
 finish
 
 start pull-request-view
-call pr view "$number" --repo "$repo" --json number,title,state,headRefName,baseRefName,author,url
+call pr view "$number" --repo "$repo" --json number,title,state,headRefName,baseRefName,author,url,reviews,comments
 finish
 
 start pull-request-itself

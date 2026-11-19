@@ -775,3 +775,36 @@ fn filters_an_answer_with_its_long_jq_option() {
 
     assert_eq!(answer, "Stale example.\n");
 }
+
+#[test]
+fn shows_the_reviews_and_the_conversation_a_pull_request_view_names() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "reviews": [
+            {
+                "id": 31, "node_id": "PRR_31", "user": {"login": "reviewer"}, "state": "COMMENTED",
+                "body": "Two notes.", "author_association": "MEMBER"
+            }
+        ],
+        "issue_comments": [
+            {"id": 21, "user": {"login": "developer"}, "body": "Both fixed.", "author_association": "OWNER"}
+        ]
+    }));
+
+    let answer = gh(
+        &workspace,
+        &["pr", "view", "1", "--json", "reviews,comments"],
+    );
+
+    assert_eq!(
+        answer,
+        json!({
+            "reviews": [{
+                "id": "PRR_31", "author": {"login": "reviewer"}, "authorAssociation": "MEMBER",
+                "body": "Two notes.", "state": "COMMENTED"
+            }],
+            "comments": [{"author": {"login": "developer"}, "authorAssociation": "OWNER", "body": "Both fixed."}]
+        })
+    );
+}

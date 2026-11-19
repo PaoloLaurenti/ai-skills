@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: 03-publish-gate-turn3
+tags: [addressing-pull-request-reviews]
+context:
+  scaffold_script: scaffold.sh
+  history_file: history.jsonl
+execution:
+  max_turns: 40
+  append_system_prompt: "The shell in this environment refuses loops such as `for`, and a command opening with a variable assignment such as `R=owner/repo;`, so run each command on its own with its values written out. `gh` and `git` on their own always run."
+  prompt: "ok"

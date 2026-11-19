@@ -10,11 +10,12 @@
 #
 # Paths inside the run's workspace become relative: Claude copies a recorded path as it
 # is, so a placeholder would send its edits into a directory named after it. The run's
-# home and the real one become `<home>`, the real temporary directory `<tmp>`, and the
-# login, which `ls -l` prints as the owner of every file, `<owner>`. The plugin's own
-# directory, which the loaded skill names as its base, becomes `<plugin-root>`, and
-# `tools/eval.sh` fills it in with the copy it evaluates, so the skill's reference files
-# stay reachable. `tools/check.sh` is what proves nothing machine-local is left.
+# home and the real one become `<home>`, the run's temporary directory and the real one
+# `<tmp>`, and the login, which `ls -l` prints as the owner of every file, `<owner>`.
+# The plugin's own directory, which the loaded skill names as its base, becomes
+# `<plugin-root>`, and `tools/eval.sh` fills it in with the copy it evaluates, so the
+# skill's reference files stay reachable. `tools/check.sh` is what proves nothing
+# machine-local is left.
 set -eu
 
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
@@ -42,6 +43,7 @@ jq -c -n \
     | [ ($workspace + "/" | variants | [., ""]),
         ($workspace | variants | [., "."]),
         ($run_home | variants | [., "<home>"]),
+        ($run_home | sub("/home$"; "/tmp") | variants | [., "<tmp>"]),
         [$home, "<home>"],
         ($init.plugins[] | select(.source | endswith("@inline")) | .path | variants
             | [., "<plugin-root>"]),

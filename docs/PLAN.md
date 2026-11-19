@@ -510,6 +510,23 @@ The three GitHub suites, rebuilt around a fake `gh`:
       answered too, and the run with the skill had `R=…; gh api graphql …` refused, a
       command opening with a variable matching no grant; the case's system prompt now
       says so. The third run: 1.00 with the skill, 0.71 without, $0.02.
+
+      *Progress, 2026-11-19*: all four cases written. `02`, `03` and `04` resume a
+      conversation recorded with Opus, `tools/history-from-trace.sh` now hiding the
+      run's own temporary directory as `<tmp>` too; the workspace takes fixed commit
+      dates, so a commit id a recorded turn names still names it, starts on the branch
+      the recorded turns left checked out, and keeps a log of the pushes in
+      `origin.git`. `tools/eval.sh` grants `Agent`, for the reviewer turn 3 dispatches.
+      Measured on haiku, one run: `02` 1.00; `03` 0.86, haiku skipping the reviewer,
+      1.00 on Opus ($0.46); `04` 0.88: commit, push and both replies in their threads,
+      but `gh pr edit --body-file <tmp>/pr1-description.md` refused, a command naming a
+      file outside the workspace matching no grant. Two things the recorded turns leave
+      open: files they wrote outside the workspace, the saved replies and description,
+      are not there in a resumed run, which falls back on the conversation; and the
+      comment ids in the histories are the snapshot's, so running `record.sh` again,
+      which reposts the planted comments under new ids, means recording the histories
+      again. Still to do: let turn 4 edit the description, run the suite on Opus, write
+      the suite's README, delete its hand-built files, then merge into `main`.
 - [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
 

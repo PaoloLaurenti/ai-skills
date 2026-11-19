@@ -213,6 +213,13 @@ impl PullRequest {
             "state" => Some(json!(self.state.as_deref().map(str::to_uppercase))),
             "headRefName" => Some(json!(self.head_ref)),
             "baseRefName" => Some(json!(self.base_ref)),
+            "reviews" => Some(self.reviews.iter().map(Review::as_viewed).collect()),
+            "comments" => Some(
+                self.issue_comments
+                    .iter()
+                    .map(IssueComment::as_viewed)
+                    .collect(),
+            ),
             "author" => Some(json!({"login": self.author})),
             "url" => Some(json!(self.url())),
             _ => None,
@@ -550,10 +557,32 @@ impl ReviewState {
 }
 
 impl Review {
+    /// As `gh pr view --json reviews` lists it.
+    fn as_viewed(&self) -> Value {
+        json!({
+            "id": self.node_id,
+            "author": {"login": self.user.login},
+            "authorAssociation": self.rest["author_association"],
+            "body": self.body,
+            "state": self.state,
+        })
+    }
+
     fn as_graphql(&self) -> Value {
         json!({
             "author": {"login": self.user.login},
             "state": self.state,
+            "body": self.body,
+        })
+    }
+}
+
+impl IssueComment {
+    /// As `gh pr view --json comments` lists it.
+    fn as_viewed(&self) -> Value {
+        json!({
+            "author": {"login": self.user.login},
+            "authorAssociation": self.rest["author_association"],
             "body": self.body,
         })
     }

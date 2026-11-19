@@ -78,7 +78,8 @@ results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # The target comes first: --allow-tools and --tag take several values, and would read
 # a target placed after them as one more. No exec, so the trap removes the copy. Read
 # is granted on the copy because a skill's reference files sit there, outside the
-# workspace, where a run refuses it.
+# workspace, where a run refuses it. Agent is granted because a skill may dispatch a
+# reviewer, as `addressing-pull-request-reviews` does before publishing.
 claude plugin eval "$copy" \
     --output-dir "$results" \
     --report "$results/report.html" \
@@ -88,6 +89,6 @@ claude plugin eval "$copy" \
     --model opus \
     --judge-model sonnet \
     --max-cost-usd 16 \
-    --allow-tools Edit Write 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' "Read(/$copy/**)" \
+    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' "Read(/$copy/**)" \
     --tag "$skill" \
     "$@"
