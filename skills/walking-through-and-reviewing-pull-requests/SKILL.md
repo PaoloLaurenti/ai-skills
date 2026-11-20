@@ -79,9 +79,10 @@ whole, a draft never has to be deleted and recreated to take its general comment
 draft created with an empty body cannot be given. Kept in a file rather than in the
 conversation, it survives a compacted context or a restarted session.
 
-- **Where**: `~/.claude/reviews/OWNER-REPO-N.json`, outside any session so that a later
-  one finds it. Written at the first approved comment and after every later one, and
-  deleted once the review is on GitHub.
+- **Where**: `~/.local/state/reviews/OWNER-REPO-N.json`, outside any session so that a
+  later one finds it, and outside `~/.claude/`, which Claude Code protects from writes.
+  Written at the first approved comment and after every later one, and deleted once the
+  review is on GitHub.
 - **Shape**: the payload `reviewing-pull-requests` posts. `commit_id` is the head SHA read
   before step 1, `body` stays empty until the last step, and `comments` holds each approved
   comment as `{path, line, side, body}`, with `start_line` and `start_side` for a range,

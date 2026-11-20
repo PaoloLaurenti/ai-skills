@@ -65,7 +65,7 @@ plus the replies:
 ```
 
 ```bash
-f=~/.claude/reviews/OWNER-REPO-N.json
+f=~/.local/state/reviews/OWNER-REPO-N.json
 review=$(jq 'del(.replies)' "$f" \
   | gh api --method POST repos/OWNER/REPO/pulls/N/reviews --input - -q .node_id)
 jq -c '.replies[]' "$f" | while read -r reply; do

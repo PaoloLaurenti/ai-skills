@@ -66,7 +66,7 @@ else
     echo "reset skipped: EVAL_SKIP_RESET set" >> "$log"
 fi
 
-collected="$HOME/.claude/reviews/${repo%/*}-${repo#*/}-$number.json"
+collected="$HOME/.local/state/reviews/${repo%/*}-${repo#*/}-$number.json"
 
 snapshot() {
     reviews=$(gh api "repos/$repo/pulls/$number/reviews")

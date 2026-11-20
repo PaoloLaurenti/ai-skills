@@ -65,7 +65,7 @@ pull request, so every run leaves one behind and the next `POST` fails while it 
 there. A failed second run reads exactly like a skill failure, which is the trap
 `reset.sh` exists to remove. Run it before every run, including the first.
 
-It also deletes the fixture's collected reviews, `~/.claude/reviews/<owner>-<repo>-N.json`.
+It also deletes the fixture's collected reviews, `~/.local/state/reviews/<owner>-<repo>-N.json`.
 A review walked one point at a time and a follow-up's replies are kept there before any
 draft exists, and a file an earlier run left is, to the next one, the review so far.
 

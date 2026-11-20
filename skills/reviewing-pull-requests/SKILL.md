@@ -165,8 +165,8 @@ point survived.
      included.
   3. Why it matters and an opinion, in two or three lines in the conversation's language.
   4. One question: add, add with a change, or drop.
-- **After an answer**, the comment goes into `~/.claude/reviews/OWNER-REPO-N.json`, the
-  collected review `walking-through-and-reviewing-pull-requests` keeps, in its shape:
+- **After an answer**, the comment goes into `~/.local/state/reviews/OWNER-REPO-N.json`,
+  the collected review `walking-through-and-reviewing-pull-requests` keeps, in its shape:
   under `comments`, or `held` when its file is outside the diff. Never to GitHub. The
   next point follows in the same message.
 - **The last turn** shows the general comment written from `held`, with its question.
@@ -469,9 +469,9 @@ thread directly publishes at once, and it is the one memory reaches for.
   touches, with the question whether to review them. A yes is a normal review of
   `reviewed SHA..head`, non-negotiable 7 included, and its comments join the same file.
 - **Delivery**: the replies go under a `replies` key, each as the thread id and the text,
-  in `~/.claude/reviews/OWNER-REPO-N.json`, the file the walking-through skill keeps.
-  After the final turn one pending draft takes every reply, the file is deleted, and the
-  leak check and the submit command from the section above follow, never run.
+  in `~/.local/state/reviews/OWNER-REPO-N.json`, the file the walking-through skill
+  keeps. After the final turn one pending draft takes every reply, the file is deleted,
+  and the leak check and the submit command from the section above follow, never run.
 
 ## Red flags
 

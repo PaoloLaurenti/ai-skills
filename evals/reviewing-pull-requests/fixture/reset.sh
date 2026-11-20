@@ -40,7 +40,7 @@ done
 # keeps. A file left by an earlier run is the review so far to the next one, which would
 # then deliver comments it never added. Only the fixture's files match, never a review of
 # another repo.
-for file in "$HOME/.claude/reviews/${repo%/*}-${repo#*/}-"*.json; do
+for file in "$HOME/.local/state/reviews/${repo%/*}-${repo#*/}-"*.json; do
     [ -e "$file" ] || continue
     rm "$file"
     echo "cleared collected review $file"
