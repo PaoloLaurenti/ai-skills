@@ -6,8 +6,9 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open: entry 7, a new skill. Entry 1, the move onto `claude plugin eval`,
-was completed on 2026-11-20.
+Three things are open: entry 7, a new skill, and entries 8 and 9, two changes to
+`reviewing-pull-requests`. Entry 1, the move onto `claude plugin eval`, was completed on
+2026-11-20.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -863,7 +864,7 @@ The three GitHub suites, rebuilt around a fake `gh`:
       - Two runs named a repo file without a link, `app/server.py` in `06` and "the
         Dockerfile" in `07`, so a full run may fall below the threshold there. Whether
         to strengthen the linking rule of `reviewing-pull-requests` is the requester's
-        call, being a change of behaviour.
+        call, being a change of behaviour. The requester chose to, entry 8.
       - Three answers of the stand-in were written from what a run sent and from
         GitHub's documented behaviour, not recorded: a review created from `-f` fields, a
         GraphQL request given as a file, and an outdated thread, the last one seen in the
@@ -1346,11 +1347,93 @@ say what moves it to ready. It goes in the requester's "to refine" status.
       request to split a feature into cards fires the skill; a drafted card follows the
       section order and the "As a <actor>, when I <action>, I <outcome>" form; a fact with
       no source becomes a question; nothing reaches the tracker before an explicit yes.
-- [ ] Bump the version in `.claude-plugin/plugin.json` from 1.0.0 to 1.1.0, a minor bump,
-      since a new skill breaks nothing.
+- [ ] Bump the minor version in `.claude-plugin/plugin.json`, since a new skill breaks
+      nothing.
 - [ ] Link the skill into `~/.agents/skills/` with `tools/link-skills.sh`, for Codex and
       GitHub Copilot.
 - [ ] Run `tools/check.sh`.
+
+## 8. Link every file a review names, a second mention included
+
+*Where it comes from.* The run of `reviewing-pull-requests` that closed entry 1, on
+2026-11-20: two runs of thirty with the skill named a file of the repo without a link.
+Both mentions are ones the rule already covers, "every occurrence, including repeated
+ones", so the rule is not missing; it is skipped in two places.
+
+- `06`: an inline comment linked `[server.py:3](...)`, then two sentences later named
+  `app/server.py` again in a bare code span.
+- `07`: a general comment that linked every file by its path wrote "The Dockerfile line
+  can stay", the file called by its plain name.
+
+*Decided, 2026-11-20.* The requester chose to strengthen the rule. The body of
+`SKILL.md` stands at 500 lines, the limit `tools/check.sh` enforces, so the change
+rewords the paragraph in "Code references" and the red flag without adding a line: the
+paragraph names "the Dockerfile" or "the README" as mentions to link, and "a second one
+in the same comment" beside every occurrence; the red flag names the same two.
+
+- [x] Reword the paragraph and the red flag, once the requester has approved the
+      wording.
+- [x] Run the suite on Opus, as `AGENTS.md` asks after an edit to a `SKILL.md`, with
+      `--max-cost-usd 35`; first `06` and `07` alone, where the misses fell.
+
+      *First runs, 2026-11-20*, three each with the skill only: `06` 1.00, $1.95; `07`
+      0.93 then 0.95, $2.01 each. What `07` lost was not the rule:
+      - Two runs wrote "a Dockerfile `HEALTHCHECK`", the kind of instruction rather than
+        this repo's file, and `every-file-linked` counted it. The graders of `01` to `08`
+        now skip a file name after "a", and replayed on the kept runs they pass those
+        two and still fail the two misses above.
+      - One run sent its comments as `-F body=@file`, which `gh` sends as the file's
+        contents, probed read-only with `gh api graphql --verbose`; the stand-in kept
+        the literal `@path`, so the draft's body lost its seeded opening and the
+        English judge found no text. The stand-in now reads such a field from its file,
+        in its answer and in its log, test first.
+      - `tools/eval.sh` now keeps every run, since the first of these runs had been
+        cleaned up before its failures could be read. A kept run's `sealed/` directory
+        is left unreadable, mode 000, and `chmod u+rwx` opens it.
+
+      Then `07` scored 0.95 again: two runs of three wrote "The Dockerfile line then
+      serves local `docker run` only" bare, and one failed `reviewer-before-the-append`,
+      whose pattern missed an append sent as `gh api graphql --input`; the grader now
+      takes both. The requester approved a second wording, naming "the README line" and
+      adding "Before sending, reread every comment for a file named without a link", and
+      `07` scored 1.00 three runs of three, $2.30.
+
+      *Full run, 2026-11-20*, skill only, since the change leaves the baseline arm as it
+      was: sixteen cases at 1.00, `10-asks-how-to-build-turn1` at 0.89, $24.29. Its judge
+      `one-question-on-the-approach` failed two runs, while the same replies replayed
+      passed it; split by condition, the replay failed "names the weightiest point" on
+      both. The replies list every point in detail before the question, which is what
+      entry 9 is about, so it is taken up there.
+- [x] Record the results in `evals/reviewing-pull-requests/README.md`.
+- [ ] Bump the patch version, or ship with entry 9 under one version, whichever is
+      merged first.
+
+## 9. Explain every point a review raises as simply and briefly as possible
+
+*Where it comes from.* The requester asked, on 2026-11-20, that `reviewing-pull-requests`
+explain every point it raises in the simplest and shortest way possible.
+
+*What the skill already says.* The body asks for short, concrete prose, a body a reader
+takes in at a glance, no inline comment past 80 words, the conclusion rather than the
+chain that reached it, and has two red flags on it: "a sentence that has to be read
+twice, or a word chosen over the plainer one a colleague would have said", and "a
+comment explaining how a finding was reached rather than what to do about it".
+
+*Open, to settle with the requester before writing.*
+
+- Where the rule applies: the comments written into the review, the points shown to the
+  requester one at a time and in the summary before the draft, or both.
+- What it adds to the rules above, and which of them it replaces, since the body has no
+  line to spare.
+- How a case grades it: a judge reading for plain words, a word ceiling, or both.
+- Whether the question on how to build the review should carry the points at all: the
+  rule asks for their count and the weightiest, and the runs of entry 8 listed every
+  point in detail instead, which failed `10`'s judge in two runs of three.
+
+- [ ] Settle the three points above with the requester.
+- [ ] Write the rule, keeping the body within 500 lines.
+- [ ] Write or extend the cases that grade it, and run the suite on Opus.
+- [ ] Bump the version as entry 8 says.
 
 ## Completed
 

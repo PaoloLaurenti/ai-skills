@@ -155,8 +155,25 @@ them:
   `find -delete`, which `tools/eval.sh` grants as `find`. The sandbox refuses both, and
   each run handed the command over in its reply.
 
-Two shortfalls are the skill's: one run of `06` named `app/server.py`, and one of `07`
+Two shortfalls were the skill's: one run of `06` named `app/server.py`, and one of `07`
 "the Dockerfile", without a link.
+
+**After the linking rule was strengthened**, the same day, to name "the Dockerfile" or
+"the README line" and a second mention, and to reread every comment before sending, the
+suite ran again with the skill only, three runs per case, $24.29: every case at 1.00 but
+`10-asks-how-to-build-turn1`, at 0.89. On the way, `07` showed three faults outside the
+skill, since corrected: `every-file-linked` counted "a Dockerfile `HEALTHCHECK`", the kind
+of instruction rather than this repo's file, and now skips a file name after "a"; the
+stand-in kept `-F body=@file` as the literal path rather than the file's contents;
+`reviewer-before-the-append` missed an append sent as `gh api graphql --input`. The
+rule worded as first approved still left "The Dockerfile line" bare in two runs of three,
+and the reread before sending closed it.
+
+`10`'s first turn failed `one-question-on-the-approach` in two runs, three votes each,
+while the same replies replayed from a file passed it three votes of three. Split into one
+condition each, the replay failed "names the weightiest point" on both: the replies list
+every point in detail and ask, without saying which point weighs most, which `SKILL.md`
+asks for. The baseline arm, which the change does not touch, was not run again.
 
 Without the skill, every run of `01` tried to submit its review, with an `event` or
 `gh pr review`, no run of `07` appended to the open draft, and no run of any case

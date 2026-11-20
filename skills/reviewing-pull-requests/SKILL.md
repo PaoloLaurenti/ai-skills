@@ -391,11 +391,11 @@ Write the inline comments first, then build the body from what is left over.
 ## Code references
 
 **Every mention of a file in the repo is a markdown link to a GitHub permalink.**
-Not just the ones carrying a line number: naming `AGENTS.md`, `Cargo.toml` or
-`mia-migration/README.md` in a sentence means linking it. A bare code span makes
-the reader hunt for a file the review could have handed them. Link every
-occurrence, including repeated ones, and add the line anchor whenever the finding
-points at specific lines.
+Not just the ones carrying a line number: `AGENTS.md`, `Cargo.toml`, "the Dockerfile"
+or "the README line" named in a sentence means a link, to the line when one is meant.
+A bare mention makes the reader hunt for a file the review could have handed them.
+Link every occurrence, a second one in the same comment included. Before sending,
+reread every comment for a file named without a link.
 
 Three things are not file references and stay plain: a bare extension such as
 "a new `.sql` file"; literal syntax quoted from a file, such as the `@AGENTS.md`
@@ -478,8 +478,8 @@ thread directly publishes at once, and it is the one memory reaches for.
 Any of these means the review is not ready:
 
 - An em dash somewhere in the review text.
-- Any repo file named in the review text without being wrapped in a
-  `[...](...)` link, whether or not it carries a line number.
+- Any repo file named in the review text without a `[...](...)` link, with or without a
+  line number, a second mention or a plain name such as "the Dockerfile" included.
 - A line number written from memory instead of checked at the pinned ref.
 - A body bullet whose file appears in the diff.
 - A verdict, a summary or a description of what was reviewed opening the body.
