@@ -870,6 +870,21 @@ The three GitHub suites, rebuilt around a fake `gh`:
         GraphQL request given as a file, and an outdated thread, the last one seen in the
         follow-up's photograph but not probed. They want probes in `record.sh`, which
         writes on GitHub.
+
+        *Done, 2026-11-20*, with the requester's go: `record.sh` gained three probes, a
+        review created from `-f` fields and read back, a thread added by a GraphQL
+        request file, and a general comment replaced from `-F body=@file`, the fourth
+        unrecorded answer found by entry 8, and read back. `tests/recorded.rs` replays
+        each, and each failed once its behaviour was broken on purpose; the replay
+        writes a recording's files again before every call, since the request file
+        names the draft the call before it created. Run with `--into`, so the
+        committed photograph of the addressing suite, whose histories name its comment
+        ids, stayed as it was; only the three new recordings were copied in. The
+        outdated thread was compared read-only instead: GitHub's `reviewThreads` for the
+        follow-up's pull request and the stand-in's answer from its photograph agree on
+        `isResolved`, `isOutdated`, `path`, `line` and `originalLine` for all three
+        threads. A replay would need the follow-up's photograph in `tests/recorded.rs`,
+        which reads the addressing suite's only.
       - The rewritten `setup.sh` has not run, since the fixture repo exists; the trees
         `files.sh` writes match GitHub's, which is what it relies on.
       - A change to the stand-in's log, the payload as `input`, and the `find` and `jq`

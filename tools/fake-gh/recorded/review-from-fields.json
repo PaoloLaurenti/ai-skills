@@ -1,0 +1,31 @@
+{
+  "files": {},
+  "calls": [
+    {
+      "args": [
+        "api",
+        "--method",
+        "POST",
+        "repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1/reviews",
+        "-f",
+        "commit_id=9108ee03fa01662f18f5fb47d18c3e3e55cad851",
+        "-f",
+        "body=A recorded draft."
+      ],
+      "exit": 0,
+      "stdout": "{\"id\":5995860655,\"node_id\":\"{{node_id}}\",\"user\":{\"login\":\"fixture-owner\",\"id\":1,\"node_id\":\"MDQ6VXNlcjE=\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/1?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/fixture-owner\",\"html_url\":\"https://github.com/fixture-owner\",\"followers_url\":\"https://api.github.com/users/fixture-owner/followers\",\"following_url\":\"https://api.github.com/users/fixture-owner/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/fixture-owner/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/fixture-owner/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/fixture-owner/subscriptions\",\"organizations_url\":\"https://api.github.com/users/fixture-owner/orgs\",\"repos_url\":\"https://api.github.com/users/fixture-owner/repos\",\"events_url\":\"https://api.github.com/users/fixture-owner/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/fixture-owner/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"body\":\"A recorded draft.\",\"state\":\"PENDING\",\"html_url\":\"https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5995860655\",\"pull_request_url\":\"https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1\",\"author_association\":\"OWNER\",\"is_copilot_code_review\":false,\"copilot_code_review_effort\":null,\"_links\":{\"html\":{\"href\":\"https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1#pullrequestreview-5995860655\"},\"pull_request\":{\"href\":\"https://api.github.com/repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1\"}},\"commit_id\":\"9108ee03fa01662f18f5fb47d18c3e3e55cad851\"}",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "api",
+        "repos/fixture-owner/ai-skills-eval-walkthrough/pulls/1/reviews",
+        "-q",
+        ".[] | select(.state == \"PENDING\") | .body"
+      ],
+      "exit": 0,
+      "stdout": "A recorded draft.\n",
+      "stderr": "hint: if you need to wait for this pull request to be reviewed, merged, or closed before continuing, use this instead of polling:\n    gh event listen --resource https://github.com/fixture-owner/ai-skills-eval-walkthrough/pull/1 --event com.github.pull_request.review.submitted.v1,com.github.pull_request.state.changed.v1\n  - It prints the first event as a JSON line on stdout and exits; run it again to wait for the next one.\n  - Add `--timeout` to stop waiting after a while, for example `--timeout 30m`; it then exits with status 8.\n  - Events carry no details; read the pull request to see what changed.\n  - It misses changes made before it starts, so read the pull request once it is running.\n  - See `gh event listen --help` for other event types.\n  - Event subscriptions are in preview and may not be enabled for your account.\n"
+    }
+  ]
+}

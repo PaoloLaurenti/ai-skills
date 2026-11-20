@@ -42,6 +42,21 @@ fn refuses_a_general_comment_for_a_draft_without_one_as_github_does() {
 }
 
 #[test]
+fn creates_a_pending_review_from_fields_as_github_does() {
+    replays("review-from-fields");
+}
+
+#[test]
+fn adds_a_thread_from_a_request_file_as_github_does() {
+    replays("thread-from-a-request-file");
+}
+
+#[test]
+fn replaces_the_general_comment_with_a_file_as_github_does() {
+    replays("general-comment-from-a-file");
+}
+
+#[test]
 fn tells_its_version_as_github_does() {
     replays("version");
 }
@@ -76,13 +91,19 @@ fn replays(recording: &str) {
     let recorded = read_json(recordings.join(format!("{recording}.json")));
     let pull_request = read_json(snapshot);
     let workspace = workspace_impersonating(pull_request);
-    for (name, text) in recorded["files"].as_object().expect("the files") {
-        let text = text.as_str().expect("a file's text");
-        fs::write(workspace.path().join(name), text).expect("a file of the recording");
-    }
 
     let mut node_id = String::new();
     for call in recorded["calls"].as_array().expect("the calls") {
+        // Written again before every call, since a file may name what a call before it
+        // created.
+        for (name, text) in recorded["files"].as_object().expect("the files") {
+            let text = text.as_str().expect("a file's text");
+            fs::write(
+                workspace.path().join(name),
+                text.replace("{{node_id}}", &node_id),
+            )
+            .expect("a file of the recording");
+        }
         let args: Vec<String> = call["args"]
             .as_array()
             .expect("a call's arguments")

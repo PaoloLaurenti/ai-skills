@@ -145,6 +145,41 @@ call api graphql \
 finish
 clear_pending
 
+start review-from-fields
+call api --method POST "repos/$repo/pulls/$number/reviews" -f "commit_id=$head" -f "body=A recorded draft."
+call api "repos/$repo/pulls/$number/reviews" -q '.[] | select(.state == "PENDING") | .body'
+finish
+clear_pending
+
+# The request file names the draft the call before it created, so it is written after.
+start thread-from-a-request-file
+file review.json "{\"commit_id\": \"$head\", \"body\": \"A recorded draft.\"}"
+call api --method POST "repos/$repo/pulls/$number/reviews" --input review.json
+# Built outside double quotes: inside "$(...)", /bin/sh on macOS split the query's
+# input object into one request per field.
+# shellcheck disable=SC2016 # GraphQL's variables, not the shell's.
+request=$(jq -n --arg rid "$node_id" \
+    --arg query 'mutation($rid:ID!,$body:String!,$path:String!,$line:Int!){ addPullRequestReviewThread(input:{pullRequestReviewId:$rid, body:$body, path:$path, line:$line, side:RIGHT}){ thread { id } } }' \
+    '{query: $query, variables: {rid: $rid, body: "A recorded comment.", path: "README.md", line: 10}}')
+file thread.json "$request"
+call api graphql --input thread.json
+finish
+clear_pending
+
+start general-comment-from-a-file
+file review.json "{\"commit_id\": \"$head\", \"body\": \"A recorded draft.\"}"
+file body.md "A recorded draft.
+One more point.
+"
+call api --method POST "repos/$repo/pulls/$number/reviews" --input review.json
+# shellcheck disable=SC2016 # GraphQL's variables, not the shell's.
+call api graphql \
+    -f 'query=mutation($rid:ID!,$body:String!){ updatePullRequestReview(input:{pullRequestReviewId:$rid, body:$body}){ pullRequestReview { state } } }' \
+    -f "rid=$node_id" -F "body=@body.md"
+call api "repos/$repo/pulls/$number/reviews" -q '.[] | select(.state == "PENDING") | .body'
+finish
+clear_pending
+
 start comment-on-the-conversation
 call pr comment "$number" --repo "$repo" --body "A recorded comment."
 finish
