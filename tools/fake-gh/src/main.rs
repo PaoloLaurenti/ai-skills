@@ -24,7 +24,7 @@ const VERSION: &str =
     "gh version 2.105.0 (2026-11-17)\nhttps://github.com/cli/cli/releases/tag/v2.105.0\n";
 
 fn main() {
-    let args: Vec<String> = env::args().skip(1).collect();
+    let args = with_files_read(env::args().skip(1).collect());
     let Some(described) = described_pull_request() else {
         eprintln!("gh: no pull request to answer about: {PULL_REQUEST} is missing");
         process::exit(1);
@@ -54,6 +54,23 @@ enum Refusal {
     Rejected(Rejection),
     /// A call this stand-in does not know, which a grader requires none of.
     Unhandled,
+}
+
+/// The arguments with each typed field naming a file, as in `-F body=@reply.md`, given
+/// that file's contents instead, as `gh` sends them.
+fn with_files_read(mut args: Vec<String>) -> Vec<String> {
+    for at in 1..args.len() {
+        if !matches!(args[at - 1].as_str(), "-F" | "--field") {
+            continue;
+        }
+        let Some((name, path)) = args[at].split_once("=@") else {
+            continue;
+        };
+        if let Ok(contents) = fs::read_to_string(path) {
+            args[at] = format!("{name}={contents}");
+        }
+    }
+    args
 }
 
 /// What `--input` hands over, a file or the standard input, read once for the call and

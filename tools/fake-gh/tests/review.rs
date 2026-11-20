@@ -453,6 +453,40 @@ fn replaces_the_general_comment_of_a_pending_review() {
 }
 
 #[test]
+fn replaces_the_general_comment_with_a_body_read_from_a_file() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer",
+        "reviews": [
+            {"id": 32, "node_id": "PRR_32", "user": {"login": "developer"}, "state": "PENDING", "body": "A draft."}
+        ]
+    }));
+    let new_body = "A draft.\nOne more point.\n";
+    fs::write(workspace.path().join("body.md"), new_body).expect("the body");
+
+    gh(
+        &workspace,
+        &[
+            "api",
+            "graphql",
+            "-f",
+            UPDATE_REVIEW_MUTATION,
+            "-f",
+            "rid=PRR_32",
+            "-F",
+            "body=@body.md",
+        ],
+    );
+
+    let body = gh(
+        &workspace,
+        &["api", "repos/acme/shop/pulls/1/reviews/32", "-q", "{body}"],
+    );
+    assert_eq!(body, json!({"body": new_body}));
+}
+
+#[test]
 fn adds_a_pending_reply_to_a_thread() {
     let workspace = workspace_impersonating(json!({
         "repository": "acme/shop",
@@ -861,6 +895,47 @@ fn logs_the_payload_a_review_is_created_from() {
     assert_eq!(
         recorded_calls(&workspace),
         vec![json!({"args": args, "input": payload})]
+    );
+}
+
+#[test]
+fn logs_a_field_read_from_a_file_with_its_contents() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer",
+        "reviews": [
+            {"id": 32, "node_id": "PRR_32", "user": {"login": "developer"}, "state": "PENDING", "body": "A draft."}
+        ]
+    }));
+    fs::write(workspace.path().join("body.md"), "One more point.\n").expect("the body");
+
+    run(
+        workspace.path(),
+        &[
+            "api",
+            "graphql",
+            "-f",
+            UPDATE_REVIEW_MUTATION,
+            "-f",
+            "rid=PRR_32",
+            "-F",
+            "body=@body.md",
+        ],
+    );
+
+    assert_eq!(
+        recorded_calls(&workspace),
+        vec![json!({"args": [
+            "api",
+            "graphql",
+            "-f",
+            UPDATE_REVIEW_MUTATION,
+            "-f",
+            "rid=PRR_32",
+            "-F",
+            "body=One more point.\n",
+        ]})]
     );
 }
 

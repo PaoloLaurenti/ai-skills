@@ -122,8 +122,9 @@ that sees `fake-gh` in the path of the `gh` it calls takes itself to be in a tes
   there what a write changes, so a later read sees it. A grader reads that file for the
   state a run left, such as a review still `PENDING`.
 - **It logs every call** in `.git/fake-gh/calls.jsonl`, one JSON object per line: its
-  `args`, and as `input` the payload a review is created from. A grader reads the review
-  a run wrote from there, with none of the fixture's own text around it.
+  `args`, and as `input` the payload a review is created from. A field read from a file,
+  `-F body=@reply.md`, is logged with the file's contents, as `gh` sends it. A grader
+  reads the review a run wrote from there, with none of the fixture's own text around it.
 - **A call it does not know is logged as `"unhandled"`**, and answered with an error.
   Every case requires none, so a skill reaching for a new call fails a case instead of
   passing on a wrong answer. Adding a call is test-first, in `tools/fake-gh/tests/`.
@@ -154,6 +155,12 @@ refuses a plugin holding a file with two names and cargo's build output is full 
 links. It puts the toolchain on `PATH`, fills in the plugin's directory in the
 histories, passes the fixed options, and writes the report to `evals/results/`.
 
+- **Every run is kept**, as `--keep-temp` does, in `/private/tmp/e-XXXX/`: its home and
+  workspace under `sealed/`, the stand-in's log included, and its trace under `out/`,
+  which the report's `tracePath` names. The command leaves `sealed/` with no
+  permissions at all, so open it with `chmod u+rwx` first. A failing grader is explained by
+  reading what the run wrote, so it is read there rather than paid for again; macOS
+  clears that directory on its own.
 - **Options after the skill override its defaults**, since the last value of a repeated
   option wins. While writing a case, run it alone and cheap:
   `--model haiku --runs 1 --case <case-name>`.

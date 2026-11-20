@@ -86,13 +86,16 @@ results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # run's home, where `walking-through-and-reviewing-pull-requests` keeps the review it
 # builds; outside the workspace, a run refuses both otherwise. `find` and `jq` are granted
 # because `reviewing-pull-requests` names them, to look for the repo's docs and to read
-# what `gh` answers.
+# what `gh` answers. --keep-temp leaves each run's directory under /private/tmp/e-*, its
+# workspace and trace included, since a grader's failure is explained only by reading
+# what the run wrote, and a run cleaned up has to be paid for again; macOS clears it.
 run_home='//private/tmp/e-*/home'
 collected="$run_home/.local/state/reviews/**"
 claude plugin eval "$copy" \
     --output-dir "$results" \
     --report "$results/report.html" \
     --no-publish \
+    --keep-temp \
     --scaffold \
     --trust-plugin \
     --model opus \
