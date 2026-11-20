@@ -1,11 +1,18 @@
 #!/bin/sh
-# Clears the pending review every run leaves behind, on every fixture pull
-# request.
+# Puts every pull request of the fixture back in the state the cases start from, before
+# `photograph.sh` takes them.
 #
-# GitHub allows one pending review per user per pull request, so a second POST
-# fails while a draft exists. That failure reads exactly like the skill getting the
-# delivery wrong, which is why this runs before every run rather than after a
-# failure.
+# - A pending review, which is what a run against the live pull request leaves behind:
+#   deleted.
+# - The published comments, which a run that submitted its review leaves behind: deleted
+#   one by one.
+# - A submitted review with a body, which can be neither deleted nor emptied, and which a
+#   case would read as a review the requester already wrote: the pull request is closed
+#   and replaced by a fresh one on the same branch, with the same title and description,
+#   so its number changes.
+#
+# The follow-up's seeded review has no body, so the follow-up pull request is cleared like
+# the others and seeded again by `seed-submitted-review.sh`.
 set -eu
 
 repo="${EVAL_FIXTURE_REPO:-$(gh api user -q .login)/ai-skills-eval-fixture}"
@@ -15,38 +22,28 @@ if ! gh repo view "$repo" >/dev/null 2>&1; then
     exit 1
 fi
 
-cleared=0
 for number in $(gh pr list --repo "$repo" --state open --json number -q '.[].number'); do
+    written=$(gh api --paginate "repos/$repo/pulls/$number/reviews" \
+        -q '.[] | select(.state != "PENDING" and (.body | length) > 0) | .id' | wc -l | tr -d ' ')
+    if [ "$written" -gt 0 ]; then
+        branch=$(gh pr view "$number" --repo "$repo" --json headRefName -q .headRefName)
+        title=$(gh pr view "$number" --repo "$repo" --json title -q .title)
+        body="$(mktemp)"
+        gh pr view "$number" --repo "$repo" --json body -q .body >"$body"
+        gh pr close "$number" --repo "$repo" >/dev/null
+        url=$(gh pr create --repo "$repo" --base main --head "$branch" \
+            --title "$title" --body-file "$body")
+        rm -f "$body"
+        echo "replaced #$number, which carried a written review, by #${url##*/}"
+        continue
+    fi
     for id in $(gh api "repos/$repo/pulls/$number/reviews" \
         -q '.[] | select(.state == "PENDING") | .id'); do
         gh api --method DELETE "repos/$repo/pulls/$number/reviews/$id" >/dev/null
         echo "cleared pending review $id on #$number"
-        cleared=$((cleared + 1))
     done
-    # A run that submitted its review, which a baseline without the skill is free to
-    # do, leaves published comments behind. Those can be deleted one by one, so the
-    # assertion that nothing leaked stays meaningful on the next run. The submitted
-    # review itself cannot be deleted, only dismissed, and it does not matter: every
-    # assertion here counts PENDING reviews.
-    for comment in $(gh api "repos/$repo/pulls/$number/comments" -q '.[].id'); do
+    for comment in $(gh api --paginate "repos/$repo/pulls/$number/comments" -q '.[].id'); do
         gh api --method DELETE "repos/$repo/pulls/comments/$comment" >/dev/null
         echo "cleared published comment $comment on #$number"
-        cleared=$((cleared + 1))
     done
 done
-
-# A review walked one point at a time, and a follow-up's replies, are collected in a local
-# file before any draft exists, the file walking-through-and-reviewing-pull-requests
-# keeps. A file left by an earlier run is the review so far to the next one, which would
-# then deliver comments it never added. Only the fixture's files match, never a review of
-# another repo.
-for file in "$HOME/.local/state/reviews/${repo%/*}-${repo#*/}-"*.json; do
-    [ -e "$file" ] || continue
-    rm "$file"
-    echo "cleared collected review $file"
-    cleared=$((cleared + 1))
-done
-
-if [ "$cleared" -eq 0 ]; then
-    echo "nothing to clear"
-fi

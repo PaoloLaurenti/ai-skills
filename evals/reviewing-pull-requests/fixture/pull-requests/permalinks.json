@@ -1,0 +1,135 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 3,
+  "title": "make the request timeout configurable",
+  "state": "open",
+  "head_ref": "permalinks",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Adds a timeout setting so it stops being hardcoded.",
+  "diff": "diff --git a/Dockerfile b/Dockerfile\nindex ba74ca5..0a19986 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -6,6 +6,7 @@ COPY --chmod=755 docker-entrypoint.sh ./\n COPY config/ ./config/\n COPY app/ ./app/\n \n+ENV APP_TIMEOUT=60\n EXPOSE 8080\n \n ENTRYPOINT [\"./docker-entrypoint.sh\"]\ndiff --git a/config/default.toml b/config/default.toml\nindex b5a7192..bef52cd 100644\n--- a/config/default.toml\n+++ b/config/default.toml\n@@ -3,3 +3,6 @@ port = 8080\n \n [database]\n url = \"postgres://localhost/example\"\n+\n+[limits]\n+timeout_seconds = 30\n",
+  "head_sha": "4be4b1c9cc235e7569f589f4064bb58d050bd7dd",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 4,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Adds a timeout setting so it stops being hardcoded.",
+    "changedFiles": 2,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-05T07:32:02Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-05T07:32:02Z",
+        "messageBody": "",
+        "messageHeadline": "make the request timeout configurable",
+        "oid": "c17b9e7834c948fd2f7d5e4d15345b241928d826"
+      },
+      {
+        "authoredDate": "2026-08-06T11:06:54Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T11:06:54Z",
+        "messageBody": "",
+        "messageHeadline": "merge main into permalinks",
+        "oid": "4be4b1c9cc235e7569f589f4064bb58d050bd7dd"
+      }
+    ],
+    "createdAt": "2026-08-05T07:32:06Z",
+    "deletions": 0,
+    "files": [
+      {
+        "path": "Dockerfile",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "config/default.toml",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4210157129",
+    "headRefName": "permalinks",
+    "headRefOid": "4be4b1c9cc235e7569f589f4064bb58d050bd7dd",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M768eZJ",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 3,
+    "potentialMergeCommit": {
+      "oid": "2787f41145a4ff6e28bfa9a9b081cc28841e0d34"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-06T11:07:36Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-06T11:07:18Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "make the request timeout configurable",
+    "updatedAt": "2026-08-06T11:06:56Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/3"
+  },
+  "viewed_as_text": "title:\tmake the request timeout configurable\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t3\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/3\nadditions:\t4\ndeletions:\t0\nauto-merge:\tdisabled\n--\nAdds a timeout setting so it stops being hardcoded.\n"
+}

@@ -833,3 +833,141 @@ fn rejects_an_unknown_graphql_operation_as_unhandled() {
         ]
     );
 }
+
+#[test]
+fn logs_the_payload_a_review_is_created_from() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer"
+    }));
+    let payload = json!({
+        "commit_id": "9fceb02",
+        "body": "Worth a look.",
+        "comments": [{"path": "src/cart.rs", "line": 3, "side": "RIGHT", "body": "Never called."}]
+    });
+    fs::write(workspace.path().join("review.json"), payload.to_string()).expect("the payload");
+    let args = [
+        "api",
+        "--method",
+        "POST",
+        "repos/acme/shop/pulls/1/reviews",
+        "--input",
+        "review.json",
+    ];
+
+    run(workspace.path(), &args);
+
+    assert_eq!(
+        recorded_calls(&workspace),
+        vec![json!({"args": args, "input": payload})]
+    );
+}
+
+#[test]
+fn logs_the_payload_a_review_is_created_from_on_standard_input() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer"
+    }));
+    let payload = json!({"commit_id": "9fceb02", "body": "Worth a look.", "comments": []});
+    let args = [
+        "api",
+        "--method",
+        "POST",
+        "repos/acme/shop/pulls/1/reviews",
+        "--input",
+        "-",
+    ];
+
+    run_fed(&workspace, &args, &payload.to_string());
+
+    assert_eq!(
+        recorded_calls(&workspace),
+        vec![json!({"args": args, "input": payload})]
+    );
+}
+
+#[test]
+fn tells_an_outdated_thread_and_the_line_it_was_written_on() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "reviews": [{"id": 31, "user": {"login": "reviewer"}, "state": "COMMENTED", "body": ""}],
+        "review_comments": [{
+            "id": 41, "pull_request_review_id": 31, "path": "src/cart.rs",
+            "line": null, "original_line": 8,
+            "user": {"login": "reviewer"}, "body": "Worth a `sum()`."
+        }]
+    }));
+
+    let threads = gh(
+        &workspace,
+        &[
+            &REVIEW_THREADS[..],
+            &["-q", ".data.repository.pullRequest.reviewThreads.nodes[] | {isOutdated, line, originalLine}"],
+        ]
+        .concat(),
+    );
+
+    assert_eq!(
+        threads,
+        json!({"isOutdated": true, "line": null, "originalLine": 8})
+    );
+}
+
+#[test]
+fn adds_a_thread_from_a_query_and_its_variables_given_as_a_file() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer",
+        "reviews": [
+            {"id": 32, "node_id": "PRR_32", "user": {"login": "developer"}, "state": "PENDING", "body": "A draft."}
+        ]
+    }));
+    let request = json!({
+        "query": ADD_THREAD_MUTATION.strip_prefix("query=").expect("the query"),
+        "variables": {"rid": "PRR_32", "body": "Never called.", "path": "src/cart.rs", "line": 3}
+    });
+    fs::write(workspace.path().join("thread.json"), request.to_string()).expect("the request");
+
+    let added = gh(&workspace, &["api", "graphql", "--input", "thread.json"]);
+
+    assert_eq!(
+        added,
+        json!({"data": {"addPullRequestReviewThread": {"thread": {"id": "PRRT_33"}}}})
+    );
+}
+
+#[test]
+fn creates_a_pending_review_from_fields() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer"
+    }));
+
+    let created = gh(
+        &workspace,
+        &[
+            "api",
+            "--method",
+            "POST",
+            "repos/acme/shop/pulls/1/reviews",
+            "-f",
+            "commit_id=9fceb02",
+            "-f",
+            "body=Worth a look.",
+        ],
+    );
+
+    assert_eq!(
+        created,
+        json!({
+            "id": 1, "node_id": "PRR_1", "user": {"login": "developer"},
+            "state": "PENDING", "body": "Worth a look.", "commit_id": "9fceb02"
+        })
+    );
+}

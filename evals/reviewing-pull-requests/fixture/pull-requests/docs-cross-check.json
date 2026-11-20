@@ -1,0 +1,141 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 5,
+  "title": "serve on port 3000",
+  "state": "open",
+  "head_ref": "docs-cross-check",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Moves the listening port off 8080, which collides with another service.",
+  "diff": "diff --git a/Dockerfile b/Dockerfile\nindex ba74ca5..1936b46 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -6,7 +6,7 @@ COPY --chmod=755 docker-entrypoint.sh ./\n COPY config/ ./config/\n COPY app/ ./app/\n \n-EXPOSE 8080\n+EXPOSE 3000\n \n ENTRYPOINT [\"./docker-entrypoint.sh\"]\n CMD [\"python\", \"-m\", \"app.server\"]\ndiff --git a/app/server.py b/app/server.py\nindex 013c0b2..5dbc959 100644\n--- a/app/server.py\n+++ b/app/server.py\n@@ -1,6 +1,6 @@\n \"\"\"Serves traffic. A fixture, not a real server.\"\"\"\n \n-PORT = 8080\n+PORT = 3000\n \n \n def main() -> None:\ndiff --git a/config/default.toml b/config/default.toml\nindex b5a7192..a0528be 100644\n--- a/config/default.toml\n+++ b/config/default.toml\n@@ -1,5 +1,5 @@\n [server]\n-port = 8080\n+port = 3000\n \n [database]\n url = \"postgres://localhost/example\"\n",
+  "head_sha": "121a5283e76edc28297d84877e9dd7bef1ffdd31",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 3,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Moves the listening port off 8080, which collides with another service.",
+    "changedFiles": 3,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-05T07:32:10Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-05T07:32:10Z",
+        "messageBody": "",
+        "messageHeadline": "serve on port 3000",
+        "oid": "c260bbc6b444bfeb489ec30db5bd653dad1b6326"
+      },
+      {
+        "authoredDate": "2026-08-06T11:06:57Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T11:06:57Z",
+        "messageBody": "",
+        "messageHeadline": "merge main into docs-cross-check",
+        "oid": "121a5283e76edc28297d84877e9dd7bef1ffdd31"
+      }
+    ],
+    "createdAt": "2026-08-05T07:32:13Z",
+    "deletions": 3,
+    "files": [
+      {
+        "path": "Dockerfile",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/server.py",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "config/default.toml",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4210158065",
+    "headRefName": "docs-cross-check",
+    "headRefOid": "121a5283e76edc28297d84877e9dd7bef1ffdd31",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M768enx",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 5,
+    "potentialMergeCommit": {
+      "oid": "59dd19a7c07306ef3cfe15c608b7ae03327b66f3"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-06T11:07:27Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-06T11:07:25Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "serve on port 3000",
+    "updatedAt": "2026-08-06T11:07:00Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/5"
+  },
+  "viewed_as_text": "title:\tserve on port 3000\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t5\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/5\nadditions:\t3\ndeletions:\t3\nauto-merge:\tdisabled\n--\nMoves the listening port off 8080, which collides with another service.\n"
+}

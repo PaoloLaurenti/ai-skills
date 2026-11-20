@@ -1,390 +1,171 @@
 # Evaluations for `reviewing-pull-requests`
 
-What the skill is supposed to do, written as scenarios that can be run and graded
-without judgement calls. One file per scenario, numbered. This file holds what
-they share: the fixture they run against, how a run is driven, and the assertions
-every run gets.
+What the skill is supposed to do, written as cases that `claude plugin eval` runs and
+grades. Each case directory holds a `case.yaml` with the prompt, a `scaffold.sh` building
+the workspace, and a `graders/` directory, one file per check, most of them read from
+what Claude did rather than judged.
 
-The skill body is a list of rules an agent under pressure will negotiate with. A
-scenario earns its place by covering one of those, and it is only worth trusting
-once the same scenario has been run **without** the skill, so the value of the
-rule is visible rather than assumed.
+The skill drives a pull request through `gh`, which the sandbox cannot reach. Every run
+talks to a stand-in instead, `tools/fake-gh`, which answers from the photographed pull
+request in the workspace's `.git/fake-gh/pull-request.json`, keeps what a run changes, and
+logs every call in `.git/fake-gh/calls.jsonl`, with the payload a review is created from
+as its `input`. A call it does not know is logged as `"unhandled"`, and every case
+requires none.
+
+## The cases
+
+One case per rule, each at its first turn and with a baseline arm, so its Δ shows what
+the rule adds. `09` and `10` go on through the turns that follow, resuming a recorded
+conversation.
+
+| Case | Pull request | Rule under test |
+| --- | --- | --- |
+| `01-pending-state-turn1` | `#14`, `pending-state` | non-negotiable 1: asked to "leave a review", the review is created pending, never submitted, and the reply gives the submit command |
+| `02-inline-versus-body-turn1` | `#2`, `inline-versus-body` | a finding whose file is in the diff sits inline, linking the `AGENTS.md` rule it breaks, and the general comment does not repeat it |
+| `03-permalinks-turn1` | `#3`, `permalinks` | every file named is a link pinned to the head, the README outside the diff included, and each line anchor falls on the line the finding is about |
+| `04-suggestion-blocks-turn1` | `#4`, `suggestions` | the `COPY` and `chmod` collapse into a `suggestion` anchored on every replaced line, the debug line's deletion gets no block, no block carries `+` or `-` |
+| `05-docs-cross-check-turn1` | `#5`, `docs-cross-check` | the stale port in `README.md`, outside the diff, quoted and linked in the general comment, with a proposal carrying no port |
+| `06-architectural-claims-turn1` | `#6`, `architectural-claims` | the deployed unit is `platform-api`, as the workflow defines it, never the `example-service` the description claims |
+| `07-append-to-open-draft-turn1` | `#7`, `open-draft` | non-negotiable 2: an open draft is appended to, its comments and general comment kept word for word, and the one breaking the conventions named in the reply |
+| `08-values-in-docs-turn1` | `#8`, `values-in-docs` | the doc section copying two values is answered inline with prose that carries no number and names `app/limits.py` |
+| `09-follow-up-first-thread-turn1` | `#13`, `follow-up` | a follow-up counts two threads, presents the first alone, proposes resolving it and asks, with nothing written to GitHub |
+| `10-asks-how-to-build-turn1` | `#4`, `suggestions` | a request naming no approach gets one question, after the reviewer, between the draft now and one point at a time |
+
+The later turns, each resuming the conversation recorded up to it:
+
+| Case | Prompt | Rule under test |
+| --- | --- | --- |
+| `09-follow-up-resolve-turn2` | "sì" | the yes resolves the first thread at once and nothing else, and thread 2 of 2 follows in the same message |
+| `09-follow-up-final-turn-turn3` | "sì" | the second thread resolved, then the final turn: the untouched two-decimals thread, `app/currency.py` changed by no thread, and the question whether to review the new commits |
+| `09-follow-up-delivery-turn4` | "no, niente review dei nuovi commit…", with a reply to add | one pending draft holding the reply on the two-decimals thread, by GraphQL, nothing published or submitted, the submit command given |
+| `10-one-at-a-time-turn2` | "uno alla volta" | point 1 of 3 alone, its comment in a fenced block, one question, nothing written anywhere |
+| `10-drop-collects-nothing-turn3` | "scarta" | nothing collected, point 2 of 3 in the same message |
+| `10-add-with-a-change-turn4` | "aggiungilo, ma togli l'ultima frase" | the comment collected in `~/.local/state/reviews/` without its last sentence, never sent to GitHub, point 3 of 3 next |
+| `10-delivery-turn5` | "aggiungi" | one `POST` creating the draft with the two comments added, nothing submitted, the submit command given, the local file deleted |
+
+Every case that delivers a review also checks, over the payload in the log, what the
+hand-run suite checked on every review: one `POST` and no `event`, nothing published, no
+em dash, no first or second person, every repo file linked outside a `suggestion` block,
+every permalink at the workspace's head, no inline comment's prose past 80 words before
+its block, English, and the reviewer dispatched before anything was written.
 
 ## The fixture
 
-Every scenario needs a real pull request: a diff, a head SHA, and a repo where
-`gh api` can create a pending review. `fixture/setup.sh` creates that sandbox: one
-repo, one branch and one open pull request per scenario, with file contents fixed
-so line numbers in the assertions stay true.
+A private repo of the owner's, `ai-skills-eval-fixture`, holding a small service with a
+`Dockerfile`, an entrypoint, a config file, a `README.md`, an `AGENTS.md` and a deploy
+workflow, and one pull request per branch, each planting what its case looks for.
 
-The repo on `main` also carries `.github/workflows/deploy.yml`, which exists for scenario
-06 alone: everything else in the fixture calls the service `example-service`, and that
-file is the only place saying the deployed image and rollout target are called
-`platform-api`. Two constraints hold anything added to it. It triggers on a branch that
-does not exist, so pushing to the fixture never runs it, and it names no port, no base
-image and no entrypoint, so it cannot become a second finding inside the five scenarios
-that predate it. It was added to the live fixture after those five were recorded, which is
-why their results mention no workflow.
+`fixture/files.sh <branch>` writes `main` and the branch's commit, and both
+`fixture/setup.sh`, which creates the repo on GitHub once, and `fixture/workspace.sh`,
+which builds a case's workspace, call it, so the two hold the same files.
+`fixture/photograph.sh` puts every pull request back as the cases start from it with
+`fixture/reset.sh`, seeds the follow-up's submitted review, author's fix and reply with
+`fixture/seed-submitted-review.sh`, and photographs each pull request into
+`fixture/pull-requests/<branch>.json` with `tools/fake-gh/photograph.sh`. Run it again
+only with the histories below in mind.
 
-**A new file on `main` has to reach every branch, and forgetting that cost a false
-failure.** `deploy.yml` was pushed to `main` after the five original branches were cut, so
-it did not exist at their head SHAs. Three of them then linked it at the commit that
-introduced it, because a head-SHA permalink to a file the head does not contain returns
-`404`. E7 flagged all three, and read quickly that is three regressions in the rule
-scenario 03 exists for. It was the fixture: the runs produced the only link that works,
-and scenarios 06 and 07, cut after the workflow landed, linked it at their head SHA with
-nothing flagged.
+`fixture/workspace.sh <branch>` builds a workspace with no network: the repo on the branch
+with fixed commit dates, the follow-up's fix included; `origin.git`, a bare repo inside
+the workspace standing for GitHub; and the photograph, its commits replaced by the
+workspace's own, since the follow-up fetches the reviewed commit and logs what changed
+since. On `open-draft` it creates the draft someone left open, `fixture/open-draft.json`,
+through the stand-in, since GitHub lists a pending review's comments nowhere a photograph
+reads; given thread ids, it resolves them, as a recorded turn of the follow-up did.
 
-`main` has since been merged into all five, so the file is reachable at every head SHA and
-the diffs are unchanged, the merge base having moved with them. The constraint written
-above covered the risk of the workflow becoming a second *finding*, and that held. It did
-not cover it becoming a new *link target*, which is the channel the contamination came
-through. **Anything added to `main` from now on gets merged into every open branch in the
-same change**, and `setup.sh` needs no fix for this, since it writes the workflow into the
-initial commit and a rebuilt fixture never has the problem. Only a live fixture patched in
-place drifts this way.
-
-**Scenario 08 was added later and paid none of that**, because everything it needs sits on
-its own branch. That is the cheaper shape and worth reaching for first: a scenario whose
-fixture touches `main` costs the merge into every open branch, and risks its new files
-becoming a finding inside every scenario that predates it. Only reach for `main` when the
-scenario genuinely needs the file to exist before its own diff.
+## Running
 
 ```bash
-evals/reviewing-pull-requests/fixture/setup.sh          # creates the repo and the PRs
-evals/reviewing-pull-requests/fixture/reset.sh          # clears pending reviews between runs
+tools/eval.sh reviewing-pull-requests
 ```
 
-The repo defaults to `<the authenticated login>/ai-skills-eval-fixture`, private,
-and both scripts take `EVAL_FIXTURE_REPO` to point somewhere else. The owner is
-read from `gh api user -q .login` at run time rather than written down, so nothing
-here names anyone.
-
-**The reset step is not optional.** GitHub allows one pending review per user per
-pull request, so every run leaves one behind and the next `POST` fails while it is
-there. A failed second run reads exactly like a skill failure, which is the trap
-`reset.sh` exists to remove. Run it before every run, including the first.
-
-It also deletes the fixture's collected reviews, `~/.local/state/reviews/<owner>-<repo>-N.json`.
-A review walked one point at a time and a follow-up's replies are kept there before any
-draft exists, and a file an earlier run left is, to the next one, the review so far.
-
-**Scenario 07 is the exception, and it inverts two of the rules on this page.** It tests
-what happens to a draft that is already open, so it needs one to exist when the run
-starts. `fixture/seed-open-draft.sh` puts it there, and it has to land after `reset.sh`
-rather than before, so `run.sh` takes `EVAL_SKIP_RESET=1` for that scenario alone:
+The defaults are those of `tools/eval.sh`: Opus, three runs per arm, Sonnet as judge and
+the threshold of 1.0. Its ceiling of 16 dollars is too low for this suite: the first
+turns cost about $22 and the later ones about $8, so a full run passes
+`--max-cost-usd 35`. While a case is being written, run it alone and cheap:
 
 ```bash
-evals/reviewing-pull-requests/fixture/reset.sh
-evals/reviewing-pull-requests/fixture/seed-open-draft.sh
-EVAL_SKIP_RESET=1 evals/reviewing-pull-requests/run.sh opus "dammi un parere sulla PR #7"
+tools/eval.sh reviewing-pull-requests --model haiku --runs 1 --case 05-docs-cross-check-turn1
 ```
 
-Scenario 09 needs the same inversion for another reason: it starts from a submitted review
-with published threads, which `reset.sh` deletes. `fixture/seed-submitted-review.sh` puts
-them back after the reset, and its file gives the three commands.
+**An edit to `SKILL.md` reruns the suite before it is offered**, and records the histories
+again when the edit changes what an earlier turn says.
 
-Setting `EVAL_SKIP_RESET` anywhere else reintroduces exactly the failure the reset step
-exists to prevent. The second inversion is in grading, and it is described with the
-every-run assertions below.
+## Later-turn cases
 
-Scenarios refer to their pull request by branch name, so no generated state is
-kept in this repo. Resolve the number when running:
+The later turns of `09` and `10` resume a conversation recorded with Opus, as
+`evals/README.md` describes: each turn rebuilt by `tools/history-from-trace.sh` from a
+passing run of the case before it, kept with `--keep-temp`, the earlier history passed as
+its third argument. `10`'s first turn was recorded from a run whose reviewer left three
+points, the chown with no `USER`, the `COPY` and `chmod` pair, and the debug line.
 
-```bash
-number=$(gh pr list --repo "$EVAL_FIXTURE_REPO" --head docs-cross-check --json number -q '.[0].number')
-```
+Three things tie a history to the state it was recorded in:
 
-## Running a scenario
+- **What a turn changed on the pull request.** The workspace starts from the photograph,
+  so `fixture/workspace.sh` replays a recorded turn's writes before the run: given thread
+  ids, it resolves them through the stand-in, as `09`'s turns 2 and 3 did.
+- **A file a turn wrote in the run's home** goes in the case's directory, for its
+  scaffold to copy: `10-delivery-turn5/collected/` is the collected review as turn 4 left
+  it, which the scaffold puts in `~/.local/state/reviews/`.
+- **The comment ids** in `09`'s histories are those of
+  `fixture/pull-requests/follow-up.json`. `photograph.sh` seeds the review again under
+  new ids, so running it again means recording those histories again.
 
-Each scenario file carries its prompt verbatim. The prompt is written the way the
-thing is actually asked for, which is also what the skill's `description` is
-matched against, so a scenario doubles as a check that the skill loads at all.
+## Results
 
-Scenarios 01 to 08 end their prompt on ", con tutti i punti in una volta". Without it
-the skill asks whether to create the draft at once or walk the points one at a time, and
-a single-prompt run stops at that question. The phrase names neither the draft nor
-pending, since scenario 01 grades the pending state nobody asked for. Results recorded
-before 2026-10-29 ran on the prompt without it.
+Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.329, 2026-11-20.
 
-Two scripts do this, and they are the shortest path to a run:
+| Case | With the skill | Without | Cost |
+| --- | --- | --- | --- |
+| `01-pending-state-turn1` | 1.00 | 0.45 | $2.32 |
+| `02-inline-versus-body-turn1` | 1.00 | 0.56 | $2.05 |
+| `03-permalinks-turn1` | 1.00 | 0.67 | $2.23 |
+| `04-suggestion-blocks-turn1` | 1.00 | 0.67 | $2.21 |
+| `05-docs-cross-check-turn1` | 0.96 | 0.56 | $2.36 |
+| `06-architectural-claims-turn1` | 0.94 | 0.56 | $2.35 |
+| `07-append-to-open-draft-turn1` | 0.91 | 0.74 | $2.67 |
+| `08-values-in-docs-turn1` | 0.98 | 0.60 | $2.28 |
+| `09-follow-up-first-thread-turn1` | 1.00 | 0.43 | $1.57 |
+| `10-asks-how-to-build-turn1` | 1.00 | 0.40 | $2.02 |
+| `09-follow-up-resolve-turn2` | 1.00 | | $0.76 |
+| `09-follow-up-final-turn-turn3` | 1.00 | | $0.81 |
+| `09-follow-up-delivery-turn4` | 1.00 | | $1.20 |
+| `10-one-at-a-time-turn2` | 0.94 | | $0.86 |
+| `10-drop-collects-nothing-turn3` | 1.00 | | $0.85 |
+| `10-add-with-a-change-turn4` | 0.94 | | $1.59 |
+| `10-delivery-turn5` | 0.88 | | $1.44 |
 
-```bash
-evals/reviewing-pull-requests/run.sh      opus "dammi un parere sulla PR #5"
-evals/reviewing-pull-requests/baseline.sh opus "dammi un parere sulla PR #5"
-```
+Several fell short on graders or on the stand-in, since corrected, and the same runs pass
+them:
 
-`run.sh` clones the fixture, clears the previous pending review, runs the prompt, retries
-while the API is overloaded, and prints where it left the output, the log and the clone.
+- `every-file-linked` read a file named inside a fenced block, or inside a sentence
+  proposed as a document's new wording, where a link would corrupt the text handed over:
+  two runs of `05`, one of `08`. It now reads a mention only outside both.
+- `example-service-not-the-deployed-unit`, a regex in `06`, matched the reviews that
+  corrected the description's claim. It is gone; the judge on the deployed unit passed
+  every run.
+- `comments-under-80-words` measured as one comment the general comment `07` appended to
+  the open draft by GraphQL. It now measures the comments a run adds.
+- The stand-in did not know a GraphQL request given as a file, `gh api graphql --input`,
+  which one run of `07` sent, nor a review created from `-f` fields, which one run of
+  `09`'s turn 4 sent. It knows both now, and `09`'s turn 4, run again, scored 1.00.
+- The judges of `10`'s turns 2 and 4 asked for a fence of three backticks and for the
+  final text shown in the reply, which `SKILL.md` does not ask; replayed, the failing
+  replies passed 8 votes of 9 and 6 of 6.
+- `local-file-deleted` in `10`'s turn 5 looked for `rm`, and every run used
+  `find -delete`, which `tools/eval.sh` grants as `find`. The sandbox refuses both, and
+  each run handed the command over in its reply.
 
-More prompts after the first make a conversation, for the rules that only act after an
-answer: the first turn starts the session and each later one continues it with
-`--continue` from the same clone. Turn N writes its reply to `run.turn<N>.txt` and the
-state of the pull request right after it to `run.turn<N>.state`, one `key value` per
-line: `pending_reviews`, `pending_comments`, `submitted_reviews`, `published_comments`,
-`resolved_threads`, and `collected_comments`, `collected_held` and `collected_replies`
-from the collected review, `-` where there is no draft or no file. The state after the
-last turn cannot show what an earlier turn did, such as a thread resolved before its
-yes. The pull request comes from the first `#<number>` in the first prompt, and a
-conversation without one stops before it starts. A single prompt still writes `run.txt`
-and no state.
+Two shortfalls are the skill's: one run of `06` named `app/server.py`, and one of `07`
+"the Dockerfile", without a link.
 
-`baseline.sh` takes the same arguments and hands them straight to `run.sh` with the
-plugin disabled, so a baseline and the run it is compared against differ in one thing
-only. Both leave the clone in place, because the payload the skill posted from is in it.
+Without the skill, every run of `01` tried to submit its review, with an `event` or
+`gh pr review`, no run of `07` appended to the open draft, and no run of any case
+dispatched a reviewer.
 
-What each of them does, and why, in case either needs changing.
+## Before `claude plugin eval`
 
-A run happens from inside a clone of the fixture, the way a real review does, so
-that `gh` resolves the repo from the remote and the skill reads the repo's own docs
-from the working tree it is reviewing:
-
-```bash
-git clone "git@github.com:$EVAL_FIXTURE_REPO.git" /tmp/fixture-clone
-evals/reviewing-pull-requests/fixture/reset.sh
-cd /tmp/fixture-clone
-claude -p "$prompt" --model "$model" \
-    --allowedTools Read Write Edit Grep Glob Agent Skill \
-    "Bash(gh:*)" "Bash(find:*)" "Bash(git:*)" "Bash(jq:*)"
-```
-
-The tool list is deliberate rather than a bypass. `--dangerously-skip-permissions`
-would be shorter, and the `gh` token reaches every repo the account can see, so a
-sandbox fixture is not a reason to widen what a headless run may do. `Write` is on
-the list because the delivery mechanism needs it: the review is posted from a JSON
-file, per the skill body. `Edit` and `jq` are there for the collected review and the
-delivery of a follow-up's replies. A probe on 2026-10-29 found `jq` running without being
-listed, so something outside this script allowed it; it is named rather than left to that.
-
-`Agent` and `Skill` are on it for non-negotiable 7, which sends the finding to
-`superpowers:requesting-code-review` and so needs a subagent dispatched. Without
-them a run quietly reviews the diff itself, every assertion still passes, and the
-rule goes unmeasured, which is the vacuous pass this suite has recorded before.
-`Agent` is the name this CLI accepts, confirmed by dispatching one under
-`--allowedTools Agent` rather than guessed against `Task`.
-
-Confirm the skill loaded before reading anything into the result. A run where it
-never loaded is a description failure, not a rule failure, and the two need
-different fixes.
-
-**Expect to retry.** Several runs answered `API Error: 529 Overloaded` within seconds
-of starting, one of them four times in a row across twenty minutes. Wrap the run in a
-loop that retries while the output carries 529 and stops on anything else, so a real
-failure is not buried under a backoff. Stopping on anything else is the part that
-matters: the run that died with "Not logged in" looked identical from the outside, and
-a loop that retried everything would have hidden it behind ten attempts.
-
-## Grading
-
-The assertions below are commands. Set `R` to the fixture repo and `N` to the pull
-request number, then read the review the run produced:
-
-```bash
-id=$(gh api "repos/$R/pulls/$N/reviews" -q '.[] | select(.state=="PENDING") | .id')
-body=$(gh api "repos/$R/pulls/$N/reviews/$id" -q .body)
-inline=$(gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[].body')
-text="$body
-$inline"
-```
-
-`$body` is the general comment, `$inline` every inline comment, and `$text` the
-two together, which is what the style assertions read.
-
-**When nothing was posted, the reply is the text to grade.** Eight of the ten baselines
-recorded so far created no review at all, which leaves `$id` empty and the whole chain
-above with nothing in it. Read `$out` instead and run every style assertion over that,
-since the review is in there. E1 and E2 then record an absence rather than reporting a
-failure, and any assertion about where a finding sits, inline or in the body, is
-ungradeable rather than failed: there is no body and no inline comment to place it in. The inline comments come
-from an endpoint of their own: a pending review's comments are not in
-`repos/$R/pulls/$N/comments`, which is why the assertion below expects that one to
-be empty.
-
-**What that endpoint does not tell you: where a comment is anchored.** A pending
-review's comments come back with `position` and `original_position` populated and
-`line`, `start_line` and `side` all `null`, no matter which of them the payload
-carried. Anything about the anchor has to be graded from the payload the run wrote,
-which sits in the clone the run happened in:
-
-```bash
-cat "$clone"/review*.json
-```
-
-This is worth stating plainly because the `null` reads like evidence. Grading it as
-evidence once produced a confident, wrong failure, and an amendment to the skill body
-answering a failure that had not happened. The rule the skill body sets for reviews
-holds for grading them too: read the thing that defines the claim, rather than the
-thing that looks conclusive.
-
-**Where the payload is not in the clone, the transcript has it.** Nothing tells a run
-where to put that file, and three runs so far have written it to the parent directory or
-to `/tmp`, which leaves the anchor ungradeable by the line above. The `Write` tool call
-that produced it is in the transcript named under E10 below, with the full contents, so
-the anchor is recoverable rather than lost.
-
-### Assertions on every run
-
-These are the rules a model violates most naturally, because they fight its
-default writing style. Every review any scenario produces gets all of them. E10 is the
-odd one out: it grades where the findings came from rather than how they read, and it is
-the only row here that the review itself cannot answer.
-
-**With one exception, scenario 07.** Its fixture seeds a comment that breaks E3 and E4 on
-purpose, since the rule under test is that the skill leaves such a comment alone. Running
-these over the merged review would report two violations the run did not commit and
-scoring them would punish the rule working. Grade them over the text the run **added**:
-the general comment minus the seeded prefix, and the comments minus the seeded two.
-
-| | Assertion | Command |
-|---|---|---|
-| E1 | Exactly one review exists, and it is `PENDING` | `gh api "repos/$R/pulls/$N/reviews" -q '[.[] \| select(.state=="PENDING")] \| length'` is `1` |
-| E2 | Nothing leaked as a published comment | `gh api "repos/$R/pulls/$N/comments" -q length` is `0` |
-| E3 | No em dash anywhere in the review | `printf '%s' "$text" \| grep -c '—'` is `0` |
-| E4 | No first or second person | `printf '%s' "$text" \| grep -niE "\b(I\|I'd\|I'm\|we\|us\|our\|you\|your\|me\|my)\b"` finds nothing outside quoted material |
-| E5 | Written in English | by eye, and it is the one assertion here that is |
-| E6 | Every repo file named in the text is a markdown link | `printf '%s' "$text" \| perl -pe 's/\[[^]]*\]\([^)]*\)//g' \| grep -onE '(README\.md\|AGENTS\.md\|Dockerfile\|default\.toml\|deploy\.yml)'`, then read what survives |
-| E7 | Every permalink is pinned to the head SHA | `printf '%s' "$text" \| grep -oE 'blob/[0-9a-f]{7,40}'` and compare against `gh pr view "$N" --repo "$R" --json headRefOid -q .headRefOid` |
-| E8 | No `event` was sent, which E1 already proves | E1 |
-| E9 | No inline comment's prose runs past 80 words | the command below |
-| E10 | A reviewer subagent was dispatched | the command below |
-
-E9 counts prose only, so a `suggestion` block does not push a comment over: the block is
-the fix rather than the explaining, and a rule that counted it would punish the very shape
-the skill asks for.
-
-```bash
-gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[].body' \
-  | awk '/^```/{f=!f; next} !f' | awk 'BEGIN{RS="\0"} {print NF}'
-```
-
-That counts the whole set as one number. For a per-comment count, which is what the
-assertion is about, read them one at a time:
-
-```bash
-gh api "repos/$R/pulls/$N/reviews/$id/comments" -q '.[] | @base64' \
-  | while read -r c; do printf '%s' "$c" | base64 -d \
-      | jq -r .body | awk '/^```/{f=!f; next} !f{w+=NF} END{print w}'; done
-```
-
-**E10 is graded from the run's own transcript, because the review cannot show it.**
-Non-negotiable 7 asks for the findings to come back from a dispatched reviewer subagent,
-and a run that skips the dispatch still writes a review that passes every other assertion
-here. That is not hypothetical: two of the seven runs on 2026-08-07 loaded
-`superpowers:requesting-code-review`, read its template, then reviewed the diff
-themselves, and nothing in E1 through E9 saw it. A headless run's transcript sits under
-`~/.claude/projects/`, in a directory named after the working directory with every `/`
-turned into `-`:
-
-```bash
-dir="$HOME/.claude/projects/$(printf '%s' "$clone" \
-    | sed 's:^/var/:/private/var/:' | tr -c '[:alnum:]' '-')"
-grep -ho '"name":"Agent","input"' "$dir"/*.jsonl | wc -l
-```
-
-**Every non-alphanumeric character becomes a `-`, and macOS resolves `/var` first.** A
-plain `tr / -` leaves the `.` in a `mktemp` directory name intact and misses the
-`/private` prefix, so it names a directory that does not exist and the count comes back
-`0`. That is the shape of a run that skipped the dispatch, and it has already been
-misread as one.
-
-At least `1` passes and `0` fails. The pattern matches a tool-use record rather than
-prose, so a reply that merely talks about dispatching one does not count. Reading it with
-an eye is worth the extra minute on a first run: the same transcript carries what the
-subagent returned, which is the only way to see whether its findings are the ones that
-shipped or whether it was dispatched and then ignored.
-
-**Not applicable to a baseline.** Without the skill there is nothing telling a run to
-dispatch anything, so a zero there records an absence rather than a failure, the same
-shape as E1 and E2 on a baseline that posts nothing.
-
-**Where the 80 came from.** The seven post-split runs produced inline comments between 18
-and 179 words. The two comments a person wrote by hand for scenario 07's fixture are 18
-and 22. So a model left alone writes five to eight times what a person writes on the same
-kind of finding, and the rule exists to answer that rather than a style preference. 80 is
-set above every human-written comment in the fixture and below most of what the runs
-produced, so it bites where the gap is.
-
-**E4 as first written listed six forms**, `I` through `your`, and missed `me`, `my` and
-the contractions. The Opus baseline on scenario 01 carried all three of "I'd", "me" and
-"my" and would have passed. The pattern above is the corrected one, and it is the fourth
-assertion defect a run has exposed.
-
-**E4 is English-only, which makes it useless on a baseline.** Scenario 06 measured this:
-on its two baselines the pattern returned two hits and zero, and both numbers are wrong.
-The two are the Italian article `i`, folded into `\bI\b` by `grep -i`; the zero is a reply
-opening "Ho guardato" and "non la mergerei", first person throughout, invisible to a
-pattern looking for pronouns in a language that puts first person in the verb. This costs
-nothing on a graded review, which E5 already requires to be English, and everything on a
-baseline, where the reply comes back in the language of the prompt. Every baseline in this
-suite is Italian, so E4 has never actually caught first person in one: the prose in each
-scenario file reporting it came from a person reading the text. Treat E4 on a baseline as
-unrun rather than as passed, and grade that row by eye.
-
-E4 will also match an `I` or a `you` inside a claim quoted from the fixture's own
-files. That is why it reads "outside quoted material": the check finds candidates,
-and a person confirms. E6 is the same shape, since deciding what counts as a file
-reference needs the three exceptions the skill body lists, a bare extension,
-literal syntax quoted from a file, and a runtime path inside a container. Scenario 03
-added a fourth in practice: a filename inside replacement wording drafted for a
-document, where a link would corrupt the text being handed over.
-
-Both are stated as "strip, then read" rather than as counts on purpose. Two counts
-compared against each other is how E6 was first written, and it reported violations
-on a clean review, because every link carries its filename twice, once in the text
-and once in the URL.
-
-### Per-scenario assertions
-
-Each scenario file lists its own, marked **M** where a command settles it and
-**E** where a person has to look. A scenario whose assertions are all **E** is not
-a regression test, and should be rewritten until at least the rule under test is
-mechanical.
-
-## Baselines
-
-A rule is worth its place in the skill body only if an agent without the skill
-gets it wrong. Record that first, and record the reasoning verbatim, because the
-rationalisation is what the rule has to answer.
-
-A baseline run needs the plugin genuinely absent, and the symlink loads it in every
-session on this machine. Disable it for the run and put it back afterwards:
-
-```bash
-claude plugin disable myai@skills-dir
-claude plugin list                    # expect no skills-directory plugin loaded
-claude -p "$(the prompt)" --model "$model" --allowedTools ...
-claude plugin enable myai@skills-dir
-```
-
-Re-enable from a trap rather than a following line, so a run that is killed does not
-leave the skill switched off:
-
-```bash
-trap 'claude plugin enable myai@skills-dir' EXIT INT TERM
-```
-
-**Not with an empty `CLAUDE_CONFIG_DIR`.** That does make the plugin absent, and it
-also makes the CLI unauthenticated: `claude plugin list` answers fine without
-credentials, so the check passes, and then the run dies with "Not logged in". The
-credentials are in the keychain, keyed to the real configuration directory. This is
-worth stating because the empty-directory route was written here first, with only the
-half that works verified.
-
-Verify the plugin is absent every time before trusting a baseline, and keep that
-verification in the log next to the result.
-
-Each scenario file keeps its baseline under a heading of its own, holding what the
-run produced and the reasoning it gave, quoted rather than summarised.
-
-## The model set
-
-Every scenario runs against both of these, and a rule is settled only when both
-agree:
-
-| Model | `--model` | Why it is in the set |
-|---|---|---|
-| Opus 5 | `opus` | The model these reviews are actually asked for on. A rule that fails here fails in practice. |
-| Sonnet 5 | `sonnet` | Where a lighter session lands. The style rules are the first to give on a less capable model, since they fight its default writing voice. |
-
-Haiku 4.5 is deliberately out: no review is delivered on it, and a model the skill
-never runs on is not worth the calls.
+The scenarios used to be run by hand against the live pull requests, with `run.sh` and
+`baseline.sh`, the state of the fixture read by command after every turn, and Sonnet as
+a second model. Their files and results, with and without the skill, from 2026-08-05 to
+2026-10-30, are in git history: `git log --diff-filter=D -- evals/reviewing-pull-requests/run.sh`
+names the commit that deleted them, and its parent holds them.

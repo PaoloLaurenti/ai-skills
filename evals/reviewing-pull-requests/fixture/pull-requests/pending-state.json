@@ -1,0 +1,129 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 14,
+  "title": "track the current python 3 image",
+  "state": "open",
+  "head_ref": "pending-state",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Keeps the base image on the current 3.x release.\n",
+  "diff": "diff --git a/Dockerfile b/Dockerfile\nindex ba74ca5..8562339 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -1,4 +1,4 @@\n-FROM python:3.12-slim\n+FROM python:3-slim\n \n WORKDIR /app\n \n",
+  "head_sha": "f05d22463fa1984a2d453dce238b44b856720547",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 1,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Keeps the base image on the current 3.x release.\n",
+    "changedFiles": 1,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-05T07:31:55Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-05T07:31:55Z",
+        "messageBody": "",
+        "messageHeadline": "track the current python 3 image",
+        "oid": "c99450f4fbf94c6c5770afe7f0b4dc8a85d8c522"
+      },
+      {
+        "authoredDate": "2026-08-06T11:06:50Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T11:06:50Z",
+        "messageBody": "",
+        "messageHeadline": "merge main into pending-state",
+        "oid": "f05d22463fa1984a2d453dce238b44b856720547"
+      }
+    ],
+    "createdAt": "2026-11-20T08:12:58Z",
+    "deletions": 1,
+    "files": [
+      {
+        "path": "Dockerfile",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "5410052413",
+    "headRefName": "pending-state",
+    "headRefOid": "f05d22463fa1984a2d453dce238b44b856720547",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M8AAAABQnbZPQ",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "UNSTABLE",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 14,
+    "potentialMergeCommit": {
+      "oid": "4a6292bd06ec2019a9880d550c5b510e098f06f8"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "0001-01-01T00:00:00Z",
+        "conclusion": "",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-11-20T08:13:02Z",
+        "status": "IN_PROGRESS",
+        "workflowName": ""
+      }
+    ],
+    "title": "track the current python 3 image",
+    "updatedAt": "2026-11-20T08:12:58Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/14"
+  },
+  "viewed_as_text": "title:\ttrack the current python 3 image\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t14\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/14\nadditions:\t1\ndeletions:\t1\nauto-merge:\tdisabled\n--\nKeeps the base image on the current 3.x release.\n\n"
+}

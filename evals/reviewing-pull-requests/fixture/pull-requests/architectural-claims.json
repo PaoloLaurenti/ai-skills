@@ -1,0 +1,120 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 6,
+  "title": "expose the metrics port",
+  "state": "open",
+  "head_ref": "architectural-claims",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Adds a metrics listener so the example-service container can be scraped.",
+  "diff": "diff --git a/Dockerfile b/Dockerfile\nindex ba74ca5..449cdc5 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -7,6 +7,7 @@ COPY config/ ./config/\n COPY app/ ./app/\n \n EXPOSE 8080\n+EXPOSE 9090\n \n ENTRYPOINT [\"./docker-entrypoint.sh\"]\n CMD [\"python\", \"-m\", \"app.server\"]\ndiff --git a/config/default.toml b/config/default.toml\nindex b5a7192..c025bc6 100644\n--- a/config/default.toml\n+++ b/config/default.toml\n@@ -3,3 +3,6 @@ port = 8080\n \n [database]\n url = \"postgres://localhost/example\"\n+\n+[metrics]\n+port = 9091\n",
+  "head_sha": "04d228e00318fc566dabb6cb894e9ada778dbc70",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 4,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Adds a metrics listener so the example-service container can be scraped.",
+    "changedFiles": 2,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-06T09:03:18Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T09:03:18Z",
+        "messageBody": "",
+        "messageHeadline": "expose the metrics port",
+        "oid": "04d228e00318fc566dabb6cb894e9ada778dbc70"
+      }
+    ],
+    "createdAt": "2026-08-06T09:03:22Z",
+    "deletions": 0,
+    "files": [
+      {
+        "path": "Dockerfile",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "config/default.toml",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4219461985",
+    "headRefName": "architectural-claims",
+    "headRefOid": "04d228e00318fc566dabb6cb894e9ada778dbc70",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M77f-Fh",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 6,
+    "potentialMergeCommit": {
+      "oid": "9eaabbeab0579bf6cdea9fbb7b2b811099267b8b"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-06T09:04:11Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-06T09:03:27Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "expose the metrics port",
+    "updatedAt": "2026-08-06T09:03:22Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/6"
+  },
+  "viewed_as_text": "title:\texpose the metrics port\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t6\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/6\nadditions:\t4\ndeletions:\t0\nauto-merge:\tdisabled\n--\nAdds a metrics listener so the example-service container can be scraped.\n"
+}

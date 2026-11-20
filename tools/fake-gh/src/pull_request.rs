@@ -303,10 +303,11 @@ impl PullRequest {
         json!({
             "id": thread_id(first.id),
             "isResolved": self.resolved_threads.contains(&first.id),
-            "isOutdated": false,
+            // GitHub gives an outdated comment no line, only the one it was written on.
+            "isOutdated": first.line.is_none(),
             "path": first.path,
             "line": first.line,
-            "originalLine": first.line,
+            "originalLine": first.rest.get("original_line").cloned().unwrap_or(json!(first.line)),
             "comments": {"nodes": nodes},
         })
     }

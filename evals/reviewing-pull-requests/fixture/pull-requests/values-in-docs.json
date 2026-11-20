@@ -1,0 +1,126 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 8,
+  "title": "bound how long a migration runs and how much it does at once",
+  "state": "open",
+  "head_ref": "values-in-docs",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Adds a timeout and a batch size to the migration step.",
+  "diff": "diff --git a/AGENTS.md b/AGENTS.md\nindex aca227b..9b3807e 100644\n--- a/AGENTS.md\n+++ b/AGENTS.md\n@@ -5,3 +5,8 @@ Rules this repo sets for itself.\n - Every shell script runs under `set -eu`.\n - The base image is pinned to a minor version, never a floating tag.\n - Documentation moves in the same change as the behaviour it describes.\n+\n+## Batch limits\n+\n+Each run times out after 30 seconds and processes batches of 100. Both limits\n+apply to the migration step.\ndiff --git a/app/limits.py b/app/limits.py\nnew file mode 100644\nindex 0000000..6aaa476\n--- /dev/null\n+++ b/app/limits.py\n@@ -0,0 +1,4 @@\n+\"\"\"Limits applied to each batch run. A fixture, not a real limiter.\"\"\"\n+\n+TIMEOUT_SECONDS = 45\n+BATCH_SIZE = 250\ndiff --git a/app/migrate.py b/app/migrate.py\nindex f3b5ad6..1a7d2a5 100644\n--- a/app/migrate.py\n+++ b/app/migrate.py\n@@ -1,5 +1,7 @@\n \"\"\"Applies migrations. A fixture, not a real migrator.\"\"\"\n \n+from app.limits import BATCH_SIZE, TIMEOUT_SECONDS\n+\n \n def main() -> None:\n-    print(\"nothing to migrate\")\n+    print(f\"migrating {BATCH_SIZE} at a time, {TIMEOUT_SECONDS}s per batch\")\n",
+  "head_sha": "e1cdb0b13c30b0be110b29bc8380faa4ddff95ca",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 12,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Adds a timeout and a batch size to the migration step.",
+    "changedFiles": 3,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-28T13:45:15Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-28T13:45:15Z",
+        "messageBody": "",
+        "messageHeadline": "bound how long a migration runs and how much it does at once",
+        "oid": "e1cdb0b13c30b0be110b29bc8380faa4ddff95ca"
+      }
+    ],
+    "createdAt": "2026-08-28T13:45:19Z",
+    "deletions": 1,
+    "files": [
+      {
+        "path": "AGENTS.md",
+        "additions": 5,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/limits.py",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/migrate.py",
+        "additions": 3,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4385204312",
+    "headRefName": "values-in-docs",
+    "headRefOid": "e1cdb0b13c30b0be110b29bc8380faa4ddff95ca",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M8AAAABBWDoWA",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 8,
+    "potentialMergeCommit": {
+      "oid": "621191e01e733c229f43e696c3c5fa8012cf892b"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-28T13:45:23Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-28T13:45:23Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "bound how long a migration runs and how much it does at once",
+    "updatedAt": "2026-08-28T13:45:19Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/8"
+  },
+  "viewed_as_text": "title:\tbound how long a migration runs and how much it does at once\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t8\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/8\nadditions:\t12\ndeletions:\t1\nauto-merge:\tdisabled\n--\nAdds a timeout and a batch size to the migration step.\n"
+}

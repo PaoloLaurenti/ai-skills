@@ -1,0 +1,135 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 4,
+  "title": "give the entrypoint an owner and the executable bit",
+  "state": "open",
+  "head_ref": "suggestions",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Sets ownership and permissions on the entrypoint explicitly.",
+  "diff": "diff --git a/Dockerfile b/Dockerfile\nindex ba74ca5..8f02797 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -2,7 +2,9 @@ FROM python:3.12-slim\n \n WORKDIR /app\n \n-COPY --chmod=755 docker-entrypoint.sh ./\n+COPY docker-entrypoint.sh ./\n+RUN chmod +x docker-entrypoint.sh\n+RUN chown 1000:1000 docker-entrypoint.sh\n COPY config/ ./config/\n COPY app/ ./app/\n \ndiff --git a/docker-entrypoint.sh b/docker-entrypoint.sh\nindex d8497d0..d5e1b01 100755\n--- a/docker-entrypoint.sh\n+++ b/docker-entrypoint.sh\n@@ -1,6 +1,7 @@\n #!/bin/sh\n set -eu\n \n+echo \"DEBUG: entrypoint starting\"\n echo \"running migrations\"\n python -m app.migrate\n \n",
+  "head_sha": "d52ac4fb1a1317268c87600a6ddd63cab7868274",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 4,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Sets ownership and permissions on the entrypoint explicitly.",
+    "changedFiles": 2,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-05T07:32:06Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-05T07:32:06Z",
+        "messageBody": "",
+        "messageHeadline": "give the entrypoint an owner and the executable bit",
+        "oid": "57c5aeb403a9d8e18b276a6399188ce1729d9201"
+      },
+      {
+        "authoredDate": "2026-08-06T11:06:55Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T11:06:55Z",
+        "messageBody": "",
+        "messageHeadline": "merge main into suggestions",
+        "oid": "d52ac4fb1a1317268c87600a6ddd63cab7868274"
+      }
+    ],
+    "createdAt": "2026-08-05T07:32:10Z",
+    "deletions": 1,
+    "files": [
+      {
+        "path": "Dockerfile",
+        "additions": 3,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docker-entrypoint.sh",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4210157572",
+    "headRefName": "suggestions",
+    "headRefOid": "d52ac4fb1a1317268c87600a6ddd63cab7868274",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M768egE",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 4,
+    "potentialMergeCommit": {
+      "oid": "d20b1d6925ff912d30c27cc743eb8ca33dc13a2f"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-06T11:07:37Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-06T11:07:20Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "give the entrypoint an owner and the executable bit",
+    "updatedAt": "2026-08-06T11:06:58Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/4"
+  },
+  "viewed_as_text": "title:\tgive the entrypoint an owner and the executable bit\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t4\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/4\nadditions:\t4\ndeletions:\t1\nauto-merge:\tdisabled\n--\nSets ownership and permissions on the entrypoint explicitly.\n"
+}

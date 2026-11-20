@@ -1,0 +1,129 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 2,
+  "title": "log a line before the migrations run",
+  "state": "open",
+  "head_ref": "inline-versus-body",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Adds a startup line to the entrypoint so the logs show it came up.",
+  "diff": "diff --git a/docker-entrypoint.sh b/docker-entrypoint.sh\nindex d8497d0..d9fff45 100755\n--- a/docker-entrypoint.sh\n+++ b/docker-entrypoint.sh\n@@ -1,6 +1,6 @@\n #!/bin/sh\n-set -eu\n \n+echo \"starting up\"\n echo \"running migrations\"\n python -m app.migrate\n \n",
+  "head_sha": "81ca907a3976aa961e9c0b31a9f5560740006140",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 1,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Adds a startup line to the entrypoint so the logs show it came up.",
+    "changedFiles": 1,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-05T07:31:59Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-05T07:31:59Z",
+        "messageBody": "",
+        "messageHeadline": "log a line before the migrations run",
+        "oid": "d0fcaadeef48252d2e968ef0b2e37c3e87c2ab56"
+      },
+      {
+        "authoredDate": "2026-08-06T11:06:52Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T11:06:52Z",
+        "messageBody": "",
+        "messageHeadline": "merge main into inline-versus-body",
+        "oid": "81ca907a3976aa961e9c0b31a9f5560740006140"
+      }
+    ],
+    "createdAt": "2026-08-05T07:32:02Z",
+    "deletions": 1,
+    "files": [
+      {
+        "path": "docker-entrypoint.sh",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4210156618",
+    "headRefName": "inline-versus-body",
+    "headRefOid": "81ca907a3976aa961e9c0b31a9f5560740006140",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M768eRK",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 2,
+    "potentialMergeCommit": {
+      "oid": "b7f26a8c60d130e63eb4deebc43b866b4dec83fa"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-06T11:07:18Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-06T11:07:16Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "log a line before the migrations run",
+    "updatedAt": "2026-08-06T11:06:54Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/2"
+  },
+  "viewed_as_text": "title:\tlog a line before the migrations run\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t2\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/2\nadditions:\t1\ndeletions:\t1\nauto-merge:\tdisabled\n--\nAdds a startup line to the entrypoint so the logs show it came up.\n"
+}

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: 10-one-at-a-time-turn2
+tags: [reviewing-pull-requests]
+context:
+  history_file: history.jsonl
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 40
+  append_system_prompt: "The shell in this environment refuses loops such as `for` and `while`, and a command opening with a variable assignment such as `R=owner/repo;`, so run each command on its own with its values written out. `gh`, `git`, `find` and `jq` on their own always run, and nothing else does: write a file with the Write tool rather than with `echo` or `cat`."
+  prompt: "uno alla volta"

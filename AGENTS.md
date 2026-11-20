@@ -210,6 +210,13 @@ costs that one command per clone. `git commit --no-verify` skips it where there 
 a reason to. What it reads is the working tree rather than what is staged, the
 usual imprecision of a hook this shape: a fix left unstaged still counts.
 
+The hook then takes a second step, at most once a day per clone:
+`tools/fake-gh/check-against-github.sh` records GitHub's answers again into a temporary
+directory and replays them against the stand-in for `gh` the pull request suites run
+on, failing when the two differ. It needs the owner's credentials and fixture repo, so
+it skips with a warning, never blocking the commit, where it cannot reach them, and it
+stays out of `tools/check.sh` and CI. The day it last passed is kept in `.git/`.
+
 The suite is both the gate and the specification: every rule is a named test, and
 two of those tests run the checks over this repo itself. On a skill file it covers
 the shape only, whether the frontmatter parses, whether `name` matches the
@@ -300,10 +307,10 @@ graders behave in ways its docs leave out, such as a grader passing on a failed 
 or a run cut off at ten turns, and a case written without them grades something other
 than the rule. What each suite tests and costs is in `evals/<skill-name>/README.md`.
 
-The skills driving a pull request through `gh`, which the sandbox cannot reach, run
-against `tools/fake-gh`, a stand-in answering from a recorded pull request and logging
-every call for the graders; `tools/fake-gh/record.sh` records the real `gh`'s answers
-it is built from, and the pre-commit hook checks it against GitHub once a day.
-`addressing-pull-request-reviews` and `walking-through-and-reviewing-pull-requests` are
-cases on it; the suite of `reviewing-pull-requests` is still scenarios run by hand, as its
-own `README.md` describes, until `docs/PLAN.md` turns it into cases too.
+The three skills driving a pull request through `gh`, which the sandbox cannot reach,
+run against `tools/fake-gh`, a stand-in answering from a pull request photographed on
+GitHub and logging every call for the graders. Its answers come from the real `gh`,
+never from memory: each suite's `fixture/photograph.sh` takes its pull requests,
+`tools/fake-gh/record.sh` records the answers the stand-in must give as GitHub does, and
+the hook's second step checks them once a day. `evals/README.md` says when each is run
+again and what that costs.

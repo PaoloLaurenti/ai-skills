@@ -29,10 +29,12 @@ fn main() {
         eprintln!("gh: no pull request to answer about: {PULL_REQUEST} is missing");
         process::exit(1);
     };
-    let response = respond(&args, &described);
+    let input = input(&args);
+    let response = respond(&args, input.as_deref(), &described);
     record(
         &described.with_file_name(CALLS),
         &args,
+        input.as_deref(),
         matches!(response, Err(Refusal::Unhandled)),
     );
     match response {
@@ -54,12 +56,21 @@ enum Refusal {
     Unhandled,
 }
 
+/// What `--input` hands over, a file or the standard input, read once for the call and
+/// its log.
+fn input(args: &[String]) -> Option<String> {
+    match option(args, "--input")? {
+        "-" => io::read_to_string(io::stdin()).ok(),
+        file => fs::read_to_string(file).ok(),
+    }
+}
+
 /// What `gh` prints for the call, changing the pull request first when the call does.
-fn respond(args: &[String], described: &Path) -> Result<String, Refusal> {
+fn respond(args: &[String], input: Option<&str>, described: &Path) -> Result<String, Refusal> {
     let mut pull_request = PullRequest::load(described);
-    let call = Call::recognised(args, &pull_request)?;
+    let call = Call::recognised(args, input, &pull_request)?;
     let changes = call.changes_the_pull_request();
-    let printed = answer(call, &mut pull_request)?;
+    let printed = answer(call, input, &mut pull_request)?;
     if changes {
         pull_request.save(described);
     }
@@ -90,7 +101,11 @@ fn fail(refusal: &Refusal, args: &[String]) -> ! {
 }
 
 /// Answers the call, applying it to the pull request first when it is a write.
-fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal> {
+fn answer(
+    call: Call,
+    input: Option<&str>,
+    pull_request: &mut PullRequest,
+) -> Result<String, Refusal> {
     let answer = match call {
         Call::Version => VERSION.to_string(),
         Call::RepositoryView(fields) => json_line(
@@ -112,12 +127,12 @@ fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal>
         Call::OpenPullRequests => json_line(&json!([{ "number": pull_request.number }])),
         Call::View(fields) => json_line(&pull_request.viewed(&fields).ok_or(Refusal::Unhandled)?),
         Call::ViewAsText => pull_request.viewed_as_text().ok_or(Refusal::Unhandled)?,
-        Call::CreateReview(file) => {
-            let payload = match file.as_str() {
-                "-" => io::read_to_string(io::stdin()).expect("the review payload"),
-                file => fs::read_to_string(file).expect("the review payload"),
-            };
-            let draft = serde_json::from_str(&payload).expect("the review payload as JSON");
+        Call::CreateReview(fields) => {
+            let draft = match fields {
+                Some(fields) => serde_json::from_value(fields),
+                None => serde_json::from_str(input.expect("the review payload")),
+            }
+            .expect("the review payload as JSON");
             json_line(&json!(
                 pull_request
                     .create_review(draft)
@@ -204,17 +219,20 @@ fn json_line(json: &Value) -> String {
 }
 
 /// Logs the call for the graders, which read the log once the run is over.
-fn record(calls: &Path, args: &[String], unhandled: bool) {
+fn record(calls: &Path, args: &[String], input: Option<&str>, unhandled: bool) {
     let mut calls = OpenOptions::new()
         .create(true)
         .append(true)
         .open(calls)
         .expect("the call log");
-    let call = if unhandled {
+    let mut call = if unhandled {
         json!({ "args": args, "unhandled": true })
     } else {
         json!({ "args": args })
     };
+    if let Some(payload) = input.and_then(|input| serde_json::from_str::<Value>(input).ok()) {
+        call["input"] = payload;
+    }
     writeln!(calls, "{call}").expect("the call is logged");
 }
 

@@ -1,0 +1,541 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 13,
+  "title": "add order totals",
+  "state": "open",
+  "head_ref": "follow-up",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Adds the subtotal, the VAT and a printable total.",
+  "diff": "diff --git a/app/currency.py b/app/currency.py\nnew file mode 100644\nindex 0000000..9473f5f\n--- /dev/null\n+++ b/app/currency.py\n@@ -0,0 +1,3 @@\n+\"\"\"The currency totals are printed in. A fixture, not a real converter.\"\"\"\n+\n+CURRENCY = \"EUR\"\ndiff --git a/app/pricing.py b/app/pricing.py\nnew file mode 100644\nindex 0000000..a9bbd10\n--- /dev/null\n+++ b/app/pricing.py\n@@ -0,0 +1,15 @@\n+\"\"\"Order totals for example-service. A fixture, not a real shop.\"\"\"\n+\n+VAT = 0.22\n+\n+\n+def subtotal(prices: list[float]) -> float:\n+    return sum(prices)\n+\n+\n+def with_vat(amount: float) -> float:\n+    return amount * (1 + VAT)\n+\n+\n+def describe(amount: float) -> str:\n+    return \"total: \" + str(amount)\n",
+  "head_sha": "ec5f33074f47f9858ca8a2b229fcd3ef2604cd8d",
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020626",
+      "pull_request_review_id": 5989444065,
+      "id": 4640020626,
+      "node_id": "PRRC_kwDOTucK_M8AAAABFJEYkg",
+      "diff_hunk": "@@ -0,0 +1,18 @@\n+\"\"\"Order totals for example-service. A fixture, not a real shop.\"\"\"\n+\n+VAT = 0.22\n+\n+\n+def subtotal(prices: list[float]) -> float:\n+    total = 0.0\n+    for price in prices:",
+      "path": "app/pricing.py",
+      "commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "original_commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Worth replacing the loop with `sum(prices)`, which says the same in one line.",
+      "created_at": "2026-11-20T08:13:04Z",
+      "updated_at": "2026-11-20T08:13:05Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640020626",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020626"
+        },
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640020626"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13"
+        }
+      },
+      "reactions": {
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020626/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 8,
+      "side": "RIGHT",
+      "author_association": "OWNER",
+      "original_position": 8,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_severity": null,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020638",
+      "pull_request_review_id": 5989444065,
+      "id": 4640020638,
+      "node_id": "PRRC_kwDOTucK_M8AAAABFJEYng",
+      "diff_hunk": "@@ -0,0 +1,18 @@\n+\"\"\"Order totals for example-service. A fixture, not a real shop.\"\"\"\n+\n+VAT = 0.22\n+\n+\n+def subtotal(prices: list[float]) -> float:\n+    total = 0.0\n+    for price in prices:\n+        total = total + price\n+    return total\n+\n+\n+def with_vat(amount: float) -> float:\n+    return amount * 1 + VAT",
+      "path": "app/pricing.py",
+      "commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "original_commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "`amount * 1 + VAT` adds 0.22 rather than 22 percent. The intent reads as `amount * (1 + VAT)`.",
+      "created_at": "2026-11-20T08:13:04Z",
+      "updated_at": "2026-11-20T08:13:05Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640020638",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020638"
+        },
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640020638"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13"
+        }
+      },
+      "reactions": {
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020638/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 14,
+      "side": "RIGHT",
+      "author_association": "OWNER",
+      "original_position": 14,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_severity": null,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020648",
+      "pull_request_review_id": 5989444065,
+      "id": 4640020648,
+      "node_id": "PRRC_kwDOTucK_M8AAAABFJEYqA",
+      "diff_hunk": "@@ -0,0 +1,18 @@\n+\"\"\"Order totals for example-service. A fixture, not a real shop.\"\"\"\n+\n+VAT = 0.22\n+\n+\n+def subtotal(prices: list[float]) -> float:\n+    total = 0.0\n+    for price in prices:\n+        total = total + price\n+    return total\n+\n+\n+def with_vat(amount: float) -> float:\n+    return amount * 1 + VAT\n+\n+\n+def describe(amount: float) -> str:\n+    return \"total: \" + str(amount)",
+      "path": "app/pricing.py",
+      "commit_id": "ec5f33074f47f9858ca8a2b229fcd3ef2604cd8d",
+      "original_commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Worth formatting the total with two decimals, `f\"total: {amount:.2f}\"`, so a total never prints as `0.30000000000000004`.",
+      "created_at": "2026-11-20T08:13:05Z",
+      "updated_at": "2026-11-20T08:13:05Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640020648",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020648"
+        },
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640020648"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13"
+        }
+      },
+      "reactions": {
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640020648/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 15,
+      "original_line": 18,
+      "side": "RIGHT",
+      "author_association": "OWNER",
+      "original_position": 18,
+      "position": 15,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_severity": null,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640021197",
+      "pull_request_review_id": 5989444701,
+      "id": 4640021197,
+      "node_id": "PRRC_kwDOTucK_M8AAAABFJEazQ",
+      "diff_hunk": "@@ -0,0 +1,18 @@\n+\"\"\"Order totals for example-service. A fixture, not a real shop.\"\"\"\n+\n+VAT = 0.22\n+\n+\n+def subtotal(prices: list[float]) -> float:\n+    total = 0.0\n+    for price in prices:",
+      "path": "app/pricing.py",
+      "commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "original_commit_id": "62828b389f4191b8102bd57f604ec190a3407041",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Switched to `sum()`.",
+      "created_at": "2026-11-20T08:13:08Z",
+      "updated_at": "2026-11-20T08:13:08Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640021197",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640021197"
+        },
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#discussion_r4640021197"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13"
+        }
+      },
+      "reactions": {
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/comments/4640021197/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 8,
+      "side": "RIGHT",
+      "in_reply_to_id": 4640020626,
+      "author_association": "OWNER",
+      "original_position": 8,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_severity": null,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "issue_comments": [],
+  "reviews": [
+    {
+      "id": 5989444065,
+      "node_id": "PRR_kwDOTucK_M8AAAABZP-p4Q",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "",
+      "state": "COMMENTED",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#pullrequestreview-5989444065",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13",
+      "author_association": "OWNER",
+      "is_copilot_code_review": false,
+      "copilot_code_review_effort": null,
+      "_links": {
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#pullrequestreview-5989444065"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13"
+        }
+      },
+      "submitted_at": "2026-11-20T08:13:04Z",
+      "commit_id": "62828b389f4191b8102bd57f604ec190a3407041"
+    },
+    {
+      "id": 5989444701,
+      "node_id": "PRR_kwDOTucK_M8AAAABZP-sXQ",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "",
+      "state": "COMMENTED",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#pullrequestreview-5989444701",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13",
+      "author_association": "OWNER",
+      "is_copilot_code_review": false,
+      "copilot_code_review_effort": null,
+      "_links": {
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13#pullrequestreview-5989444701"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-fixture/pulls/13"
+        }
+      },
+      "submitted_at": "2026-11-20T08:13:08Z",
+      "commit_id": "62828b389f4191b8102bd57f604ec190a3407041"
+    }
+  ],
+  "viewed": {
+    "additions": 18,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Adds the subtotal, the VAT and a printable total.",
+    "changedFiles": 2,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-10-29T08:57:12Z",
+        "authors": [
+          {
+            "email": "eval@example.invalid",
+            "id": "",
+            "login": "",
+            "name": "eval fixture"
+          }
+        ],
+        "committedDate": "2026-10-29T08:57:12Z",
+        "messageBody": "",
+        "messageHeadline": "add order totals",
+        "oid": "62828b389f4191b8102bd57f604ec190a3407041"
+      },
+      {
+        "authoredDate": "2026-11-20T08:13:06Z",
+        "authors": [
+          {
+            "email": "eval@example.invalid",
+            "id": "",
+            "login": "",
+            "name": "eval fixture"
+          }
+        ],
+        "committedDate": "2026-11-20T08:13:06Z",
+        "messageBody": "",
+        "messageHeadline": "sum the prices, apply VAT to the whole amount, name the currency",
+        "oid": "ec5f33074f47f9858ca8a2b229fcd3ef2604cd8d"
+      }
+    ],
+    "createdAt": "2026-10-29T08:57:16Z",
+    "deletions": 0,
+    "files": [
+      {
+        "path": "app/currency.py",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/pricing.py",
+        "additions": 15,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "fullDatabaseId": "5065139425",
+    "headRefName": "follow-up",
+    "headRefOid": "ec5f33074f47f9858ca8a2b229fcd3ef2604cd8d",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M8AAAABLefk4Q",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 13,
+    "potentialMergeCommit": {
+      "oid": "42b4a26bae2ba3cd353acb5cb04926996089f41e"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [
+      {
+        "id": "PRR_kwDOTucK_M8AAAABZP-p4Q",
+        "author": {
+          "login": "fixture-owner"
+        },
+        "authorAssociation": "OWNER",
+        "body": "",
+        "submittedAt": "2026-11-20T08:13:04Z",
+        "includesCreatedEdit": false,
+        "reactionGroups": [],
+        "state": "COMMENTED",
+        "commit": {
+          "oid": "62828b389f4191b8102bd57f604ec190a3407041"
+        }
+      },
+      {
+        "id": "PRR_kwDOTucK_M8AAAABZP-sXQ",
+        "author": {
+          "login": "fixture-owner"
+        },
+        "authorAssociation": "OWNER",
+        "body": "",
+        "submittedAt": "2026-11-20T08:13:08Z",
+        "includesCreatedEdit": false,
+        "reactionGroups": [],
+        "state": "COMMENTED",
+        "commit": {
+          "oid": "62828b389f4191b8102bd57f604ec190a3407041"
+        }
+      }
+    ],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-20T08:13:16Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-11-20T08:13:15Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "add order totals",
+    "updatedAt": "2026-11-20T08:13:08Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/13"
+  },
+  "viewed_as_text": "title:\tadd order totals\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t13\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/13\nadditions:\t18\ndeletions:\t0\nauto-merge:\tdisabled\n--\nAdds the subtotal, the VAT and a printable total.\n"
+}

@@ -1,23 +1,20 @@
 #!/bin/sh
-# Puts scenario 09's pull request in the state a follow-up starts from: a review
+# Puts the follow-up pull request in the state the `09` cases start from: a review
 # submitted on it, a commit from the author fixing two of its three threads, and a reply
-# on one of them.
-#
-#   reset.sh && seed-submitted-review.sh && EVAL_SKIP_RESET=1 run.sh <model> <prompt>
-#
-# After reset.sh for the reason seed-open-draft.sh gives: reset.sh deletes every
-# published comment, and the threads seeded here are published comments.
+# on one of them. `photograph.sh` runs it after `reset.sh`, which deletes every published
+# comment, the threads seeded here among them.
 #
 # The branch goes back to the follow-up-base tag first, so every seeding starts from the
-# same head and the fix lands as one new commit. The review is submitted with an empty
-# body because GitHub never deletes a submitted review: the ones earlier seedings left
-# behind keep no threads once reset.sh has cleared their comments, and with no body
-# they say nothing either.
+# same head and the fix lands as one new commit, the one `follow-up-fix.sh` writes. The
+# review is submitted with an empty body because GitHub never deletes a submitted review:
+# the ones earlier seedings left behind keep no threads once reset.sh has cleared their
+# comments, and with no body they say nothing either, and `reset.sh` does not replace a
+# pull request for them.
 #
-# Prints what the assertions compare against: the counts of submitted reviews and
-# published comments right after seeding.
+# Prints the counts of submitted reviews and published comments right after seeding.
 set -eu
 
+here="$(cd "$(dirname "$0")" && pwd)"
 repo="${EVAL_FIXTURE_REPO:-$(gh api user -q .login)/ai-skills-eval-fixture}"
 branch=follow-up
 
@@ -53,14 +50,7 @@ gh api --method POST "repos/$repo/pulls/$number/reviews" --input - -q .id >/dev/
 }
 EOF
 
-perl -0pi -e 's{    total = 0\.0\n    for price in prices:\n        total = total \+ price\n    return total\n}{    return sum(prices)\n}; s{amount \* 1 \+ VAT}{amount * (1 + VAT)}' app/pricing.py
-cat > app/currency.py <<'PY'
-"""The currency totals are printed in. A fixture, not a real converter."""
-
-CURRENCY = "EUR"
-PY
-git add -A
-git commit -qm "sum the prices, apply VAT to the whole amount, name the currency"
+"$here/follow-up-fix.sh"
 git push -q origin "$branch"
 
 loop=$(gh api "repos/$repo/pulls/$number/comments" \

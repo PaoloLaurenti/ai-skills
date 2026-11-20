@@ -113,7 +113,7 @@ and each skill gets the prefix `myai:`, as in `/myai:reviewing-pull-requests`. I
 each skill into `~/.agents/skills/` for Codex and GitHub Copilot, which use the skill's
 name with no prefix. It leaves alone every link and directory there that belongs to
 something else. And it points git at `.githooks/`, so a commit runs `tools/check.sh`
-first.
+first, and once a day checks the stand-in for `gh` the evaluations use against GitHub.
 
 `claude plugin list` shows the plugin under the heading "Skills-directory plugins", and
 `claude plugin validate <repo-path>` checks its manifest.
@@ -171,12 +171,11 @@ cases stay out of `tools/check.sh` and the commit hook: whoever changes a skill 
 them. `evals/README.md` is where writing a case starts, and each `evals/<name>/README.md`
 says what its suite tests.
 
-The pull request skills run against a stand-in for `gh`, since the command's sandbox
-cannot reach GitHub: `addressing-pull-request-reviews` and
-`walking-through-and-reviewing-pull-requests` are cases on it. The suite of
-`reviewing-pull-requests` still drives a test repository on GitHub by hand, with its
-results recorded in the scenario files, as its own `README.md` explains, until it becomes
-cases too.
+The three pull request skills run against a stand-in for `gh`, `tools/fake-gh`, since
+the command's sandbox cannot reach GitHub. It answers from pull requests photographed on
+test repositories of the owner's, and it is checked against the real `gh` by the commit
+hook once a day, which needs the owner's credentials and skips with a warning without
+them.
 
 ### Contributing
 
@@ -188,9 +187,7 @@ these are the ones a first change meets:
   exception;
 - `tools/check.sh` passes before a commit, which the hook set by `tools/link-skills.sh`
   enforces;
-- a change to a skill passes its eval cases, run with `tools/eval.sh <name>`, or, for
-  the three pull request skills, runs their scenarios with and without the skill and
-  records the results;
+- a change to a skill passes its eval cases, run with `tools/eval.sh <name>`;
 - a change to a skill bumps the version in `.claude-plugin/plugin.json`; once it is
   merged, the maintainer tags it and publishes the release, as "Releasing" in `AGENTS.md`
   explains.

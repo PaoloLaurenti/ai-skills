@@ -1,0 +1,14 @@
+{
+  "commit_id": "b49064032d8eb694c582c59561c5e9150a3b5dfe",
+  "body": "",
+  "comments": [
+    {
+      "path": "Dockerfile",
+      "start_line": 5,
+      "start_side": "RIGHT",
+      "line": 6,
+      "side": "RIGHT",
+      "body": "The previous `COPY --chmod=755` set the mode in the same instruction, with no extra layer, and kept it even from a checkout that drops the executable bit.\n\n```suggestion\nCOPY --chmod=755 docker-entrypoint.sh ./\n```"
+    }
+  ]
+}

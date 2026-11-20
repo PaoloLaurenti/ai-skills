@@ -1,7 +1,7 @@
 //! What a `gh` invocation asks for, recognised once from its arguments.
 
 use crate::Refusal;
-use serde_json::json;
+use serde_json::{Value, json};
 
 use crate::pull_request::{PullRequest, ReviewEvent};
 
@@ -23,8 +23,9 @@ pub enum Call {
     OpenPullRequests,
     View(String),
     ViewAsText,
-    /// From a file, or from standard input when the file is `-`.
-    CreateReview(String),
+    /// Its payload comes through `--input`, a file or standard input when the file is `-`,
+    /// or as the fields given with `-f`, held here.
+    CreateReview(Option<Value>),
     ResolveThread(String),
     UnresolveThread(String),
     AddReply {
@@ -58,7 +59,11 @@ pub enum Call {
 }
 
 impl Call {
-    pub fn recognised(args: &[String], pull_request: &PullRequest) -> Result<Self, Refusal> {
+    pub fn recognised(
+        args: &[String],
+        input: Option<&str>,
+        pull_request: &PullRequest,
+    ) -> Result<Self, Refusal> {
         if let [only] = args
             && only == "--version"
         {
@@ -68,7 +73,7 @@ impl Call {
             return Err(Refusal::Unhandled);
         };
         let call = match (command.as_str(), subcommand.as_str()) {
-            ("api", "graphql") => return graphql(args),
+            ("api", "graphql") => return graphql(&with_request(args, input)),
             ("api", "user") => Call::User,
             ("api", _) => return rest(args, pull_request),
             ("repo", "view") => {
@@ -106,6 +111,25 @@ impl Call {
                 | Call::ReplaceDescription(_)
         )
     }
+}
+
+/// The arguments of a `gh api graphql` call, with the query and variables of a request
+/// given through `--input` added as if each had been passed with `-f`.
+fn with_request(args: &[String], input: Option<&str>) -> Vec<String> {
+    let mut args = args.to_vec();
+    let request: Option<Value> = input.and_then(|input| serde_json::from_str(input).ok());
+    if let Some(request) = request {
+        if let Some(query) = request["query"].as_str() {
+            args.push(format!("query={query}"));
+        }
+        if let Some(variables) = request["variables"].as_object() {
+            args.extend(variables.iter().map(|(name, value)| match value {
+                Value::String(text) => format!("{name}={text}"),
+                other => format!("{name}={other}"),
+            }));
+        }
+    }
+    args
 }
 
 /// A `gh api graphql` call, told apart by the operation its query names, its variables
@@ -183,7 +207,10 @@ fn rest(args: &[String], pull_request: &PullRequest) -> Result<Call, Refusal> {
         ("GET", "pulls", ["reviews"]) => Call::Reviews,
         ("GET", "pulls", ["reviews", id]) => Call::Review(id_in(id)?),
         ("GET", "pulls", ["reviews", id, "comments"]) => Call::CommentsOfReview(id_in(id)?),
-        ("POST", "pulls", ["reviews"]) => Call::CreateReview(required(option(args, "--input"))?),
+        ("POST", "pulls", ["reviews"]) => match option(args, "--input") {
+            Some(_) => Call::CreateReview(None),
+            None => Call::CreateReview(Some(fields(args))),
+        },
         ("DELETE", "pulls", ["reviews", id]) => Call::DeleteReview(id_in(id)?),
         ("POST", "pulls", ["reviews", id, "events"]) => Call::SubmitReview {
             review: id_in(id)?,
@@ -210,6 +237,17 @@ fn id_in(segment: &str) -> Result<u64, Refusal> {
 /// A call missing what it needs is one the stand-in cannot answer as `gh` would.
 fn required(value: Option<&str>) -> Result<String, Refusal> {
     value.map(str::to_string).ok_or(Refusal::Unhandled)
+}
+
+/// The fields `-f` and `-F` give, as the JSON object `gh` sends with a `POST`.
+fn fields(args: &[String]) -> Value {
+    let given = args
+        .windows(2)
+        .filter(|pair| matches!(pair[0].as_str(), "-f" | "-F" | "--field" | "--raw-field"))
+        .filter_map(|pair| pair[1].split_once('='))
+        .map(|(name, value)| (name.to_string(), json!(value)))
+        .collect();
+    Value::Object(given)
 }
 
 /// The value given to a command-line option, as in `--body TEXT`.

@@ -84,7 +84,9 @@ results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # granted because a skill may dispatch a reviewer, as `addressing-pull-request-reviews`
 # does before publishing. Read and Edit are granted on the collected reviews under each
 # run's home, where `walking-through-and-reviewing-pull-requests` keeps the review it
-# builds; outside the workspace, a run refuses both otherwise.
+# builds; outside the workspace, a run refuses both otherwise. `find` and `jq` are granted
+# because `reviewing-pull-requests` names them, to look for the repo's docs and to read
+# what `gh` answers.
 run_home='//private/tmp/e-*/home'
 collected="$run_home/.local/state/reviews/**"
 claude plugin eval "$copy" \
@@ -96,6 +98,6 @@ claude plugin eval "$copy" \
     --model opus \
     --judge-model sonnet \
     --max-cost-usd 16 \
-    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' "Read(/$copy/**)" 'Read(//private/tmp/e-*/tmp/**)' "Read($collected)" "Edit($collected)" \
+    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' 'Bash(find:*)' 'Bash(jq:*)' "Read(/$copy/**)" 'Read(//private/tmp/e-*/tmp/**)' "Read($collected)" "Edit($collected)" \
     --tag "$skill" \
     "$@"

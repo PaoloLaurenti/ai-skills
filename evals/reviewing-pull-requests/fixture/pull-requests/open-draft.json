@@ -1,0 +1,114 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-fixture",
+  "number": 7,
+  "title": "add a container healthcheck",
+  "state": "open",
+  "head_ref": "open-draft",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Lets the orchestrator restart the container when it stops answering.",
+  "diff": "diff --git a/Dockerfile b/Dockerfile\nindex ba74ca5..2a4b8e3 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -7,6 +7,7 @@ COPY config/ ./config/\n COPY app/ ./app/\n \n EXPOSE 8080\n+HEALTHCHECK CMD curl -f http://localhost:8081/health || exit 1\n \n ENTRYPOINT [\"./docker-entrypoint.sh\"]\n CMD [\"python\", \"-m\", \"app.server\"]\n",
+  "head_sha": "89993a88a702058a76f0499341a6b55f490306b1",
+  "review_comments": [],
+  "issue_comments": [],
+  "reviews": [],
+  "viewed": {
+    "additions": 1,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "2a2ca60e45e4339fe818e70687c028467a3e6a87",
+    "body": "Lets the orchestrator restart the container when it stops answering.",
+    "changedFiles": 1,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-08-06T10:04:47Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-08-06T10:04:47Z",
+        "messageBody": "",
+        "messageHeadline": "add a container healthcheck",
+        "oid": "89993a88a702058a76f0499341a6b55f490306b1"
+      }
+    ],
+    "createdAt": "2026-08-06T10:04:51Z",
+    "deletions": 0,
+    "files": [
+      {
+        "path": "Dockerfile",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4219879422",
+    "headRefName": "open-draft",
+    "headRefOid": "89993a88a702058a76f0499341a6b55f490306b1",
+    "headRepository": {
+      "id": "R_kgDOTucK_A",
+      "name": "ai-skills-eval-fixture",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-fixture"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOTucK_M77hj_-",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 7,
+    "potentialMergeCommit": {
+      "oid": "ada203000c7c2a4613ca3288cb91a067fa671939"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-06T10:05:52Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-08-06T10:05:17Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "add a container healthcheck",
+    "updatedAt": "2026-08-06T10:04:51Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-fixture/pull/7"
+  },
+  "viewed_as_text": "title:\tadd a container healthcheck\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t7\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-fixture/pull/7\nadditions:\t1\ndeletions:\t0\nauto-merge:\tdisabled\n--\nLets the orchestrator restart the container when it stops answering.\n"
+}

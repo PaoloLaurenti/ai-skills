@@ -6,8 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Two things are open: entry 1, unblocked now that `claude plugin eval` is out of
-early access, and entry 7, a new skill.
+One thing is open: entry 7, a new skill. Entry 1, the move onto `claude plugin eval`,
+was completed on 2026-11-20.
 
 Already in line, so absent from this plan: the `description` field states
 triggering conditions without summarising the workflow, trigger phrasings reach
@@ -478,7 +478,7 @@ The three GitHub suites, rebuilt around a fake `gh`:
       day it last passed is kept in `.git/fake-gh-checked`. Measured: 37 seconds the
       first time in a day, 0.03 the next; an unreachable fixture repo skips with a
       warning and exit 0, and leaves no day behind.
-- [ ] **Turn each suite into cases**, as for `developing-with-tdd`, and delete its
+- [x] **Turn each suite into cases**, as for `developing-with-tdd`, and delete its
       hand-built files.
 
       *Decided 2026-11-19*, for `addressing-pull-request-reviews`: four cases on one
@@ -798,11 +798,96 @@ The three GitHub suites, rebuilt around a fake `gh`:
       there; `AGENTS.md` and `README.md` say the suite is cases. Still open from it:
       strengthening the read-back sentence and rerunning `07`. Next:
       `reviewing-pull-requests`.
-- [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
-      its responses, and the hook's second step.
 
-Only the move of the collected review touches `skills/`, and it earns 1.0.1, as recorded
-above; the rest earns no version and no release.
+      *Read-back strengthened, 2026-11-20*: "Add" in
+      `walking-through-and-reviewing-pull-requests` now says to read the file back with
+      `Read`, every time, even when the write reported success, since it is the only
+      check that the comment landed where the delivery will look for it. `07`'s history
+      held the old `SKILL.md`, loaded at turn 1, so turns 1 to 6 were recorded again
+      through throwaway cases, about $2.30, and the new conversation took another path:
+      six steps, its first proposal at step 4 on `docs/USAGE.md`, left undecided by an
+      "avanti". `07` now resumes it, its graders following that path, while `02` to `06`
+      and `08` keep the conversation recorded before the edit. Opus, three runs, three
+      times, $3.87: the read-back in 9 runs of 9, the last batch 1.00, the one before
+      0.96 on a judge vote whose trace was not kept.
+
+      *Decided 2026-11-20*, for `reviewing-pull-requests`: one case per scenario at its
+      first turn, `01` to `10`, each with a baseline arm, and the later turns of `09`
+      and `10` as resumed cases. Each case's workspace is built locally from
+      `fixture/files.sh <branch>`, which `setup.sh` now calls too, so the two cannot
+      drift: the tree of every branch it writes matched the tree of the branch's head
+      on GitHub, read with `gh api repos/…/commits/<branch>`. The pull requests are
+      photographed by `fixture/photograph.sh` into `fixture/pull-requests/<branch>.json`.
+      Its `reset.sh` replaces a pull request carrying a submitted review with a body,
+      which `pending-state` had from two August baselines, so that one is now `#14`; the
+      follow-up's seed runs on GitHub before the photograph, its fix written by
+      `fixture/follow-up-fix.sh`, which the workspace commits too. `workspace.sh`
+      replaces the photographed commits with the workspace's own, the head, the base
+      and the reviewed commit, the head's parent, since the follow-up fetches and logs
+      the reviewed SHA. Scenario 07's open draft is not photographed, since GitHub lists a
+      pending review's comments nowhere the photograph reads: the workspace creates it
+      through the stand-in from `fixture/open-draft.json`, then empties the log.
+      `seed-open-draft.sh` goes.
+
+      Two changes to the stand-in, test-first: the log carries the payload a review is
+      created from, as `input`, so the graders read the review the run wrote from the
+      log alone, without the fixture's own text around it; and a thread whose first
+      comment GitHub gives no line is outdated, with its `original_line`, as the
+      follow-up's photograph shows two of its three threads. `tools/eval.sh` grants
+      `Bash(find:*)` and `Bash(jq:*)`, which the skill's commands name. Every case's
+      system prompt says only `gh`, `git`, `find` and `jq` run, after haiku's first run
+      of `05` took a refused `echo` for all of Bash and posted nothing.
+
+      What the hand-run assertions read by command is read from the log: one `POST` of
+      the review and no `event`, nothing published, no em dash, no first or second
+      person, every repo file linked outside a `suggestion` block, every permalink at the
+      workspace's head, no inline comment's prose past 80 words before its block, each a
+      regex over the payload's JSON line; English is a judge over the log. The anchors
+      of `03` and `04` are read from the payload as sent, which the hand runs could not
+      read back from GitHub.
+
+      *Done, 2026-11-20*: seventeen cases, ten first turns with a baseline arm, three
+      later turns of `09` and four of `10`, each later one resumed from a passing run of
+      the case before it. Opus, three runs per arm, about $37 in all with the haiku
+      trials, the replays and one rerun: every case at 1.00 with the skill but `06` and
+      `07`, one run each naming a repo file without a link, once the graders and the
+      stand-in were corrected as the suite's `README.md` records; without the skill,
+      0.40 to 0.74, every run of `01` trying to submit and none dispatching a reviewer.
+      Measured on the way: `05` alone, one run per arm, cost $0.79, so a full first-turn
+      run of the suite costs about $22. The scenarios, `run.sh`, `baseline.sh` and
+      `seed-open-draft.sh` are deleted, their results in git history. A full run costs
+      about $30, above `tools/eval.sh`'s ceiling of 16, so the suite's `README.md` says to
+      pass `--max-cost-usd 35`.
+
+      *Open*, from this suite:
+      - Two runs named a repo file without a link, `app/server.py` in `06` and "the
+        Dockerfile" in `07`, so a full run may fall below the threshold there. Whether
+        to strengthen the linking rule of `reviewing-pull-requests` is the requester's
+        call, being a change of behaviour.
+      - Three answers of the stand-in were written from what a run sent and from
+        GitHub's documented behaviour, not recorded: a review created from `-f` fields, a
+        GraphQL request given as a file, and an outdated thread, the last one seen in the
+        follow-up's photograph but not probed. They want probes in `record.sh`, which
+        writes on GitHub.
+      - The rewritten `setup.sh` has not run, since the fixture repo exists; the trees
+        `files.sh` writes match GitHub's, which is what it relies on.
+      - A change to the stand-in's log, the payload as `input`, and the `find` and `jq`
+        grants reach every suite; after them every case of the three suites ran once on
+        haiku, $0.81, which proves the cases load and the scaffolds build, not the
+        scores. Only the recording of `07` and the cases of this suite ran on Opus since.
+- [x] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
+      its responses, and the hook's second step.
+      *Done 2026-11-20.* `evals/README.md` has a section on the stand-in: what it reads
+      and logs, `"unhandled"`, the photographs and `record.sh` that its answers come
+      from, both run on request only since they write on GitHub, the histories a new
+      photograph invalidates, the daily check, and a scaffold writing through it.
+      `AGENTS.md` describes the hook's second step beside the first, and points to that
+      section; `README.md` says the three suites run on the stand-in and what the hook
+      checks once a day.
+
+Two changes touch `skills/`, the move of the collected review and the read-back sentence
+below, and together they earn 1.0.1, as recorded above; the rest earns no version and no
+release.
 
 Deliberately not doing: a checker of its own for the mechanical assertions. It was
 queued here as the obvious next tool, and `claude plugin eval` grading from the trace,

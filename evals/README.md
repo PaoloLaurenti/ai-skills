@@ -2,7 +2,7 @@
 
 What a case author needs to know about `claude plugin eval` beyond its
 [docs](https://code.claude.com/docs/en/plugin-evals.md). Every fact here was measured on
-a run, at CLI 2.1.322 to 2.1.328, and the entry of `docs/PLAN.md` that moved
+a run, at CLI 2.1.322 to 2.1.329, and the entry of `docs/PLAN.md` that moved
 `developing-with-tdd` onto the command records how. A later CLI may change any of them:
 when a run contradicts one, probe it in a throwaway plugin, with haiku, one run and a low
 `--max-cost-usd`, and correct it here.
@@ -110,6 +110,41 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **A skill's reference files are refused unless `Read` is granted on the plugin**, as
   they sit beside the skill, outside the workspace. `tools/eval.sh` grants it on the copy
   it evaluates.
+
+## The stand-in for `gh`
+
+The pull request suites run against `tools/fake-gh`, a Rust crate whose binary is named
+`gh`, built and put first on `PATH` by `tools/eval.sh` under its own name, since a run
+that sees `fake-gh` in the path of the `gh` it calls takes itself to be in a test.
+
+- **It answers about one pull request**, the one the workspace describes in
+  `.git/fake-gh/pull-request.json`, looked for from the current directory up, and saves
+  there what a write changes, so a later read sees it. A grader reads that file for the
+  state a run left, such as a review still `PENDING`.
+- **It logs every call** in `.git/fake-gh/calls.jsonl`, one JSON object per line: its
+  `args`, and as `input` the payload a review is created from. A grader reads the review
+  a run wrote from there, with none of the fixture's own text around it.
+- **A call it does not know is logged as `"unhandled"`**, and answered with an error.
+  Every case requires none, so a skill reaching for a new call fails a case instead of
+  passing on a wrong answer. Adding a call is test-first, in `tools/fake-gh/tests/`.
+- **Its answers come from the real `gh`, never from memory.** Each suite's
+  `fixture/photograph.sh` resets its pull requests on GitHub and photographs them with
+  `tools/fake-gh/photograph.sh`, which keeps what `gh pr view` answers with every field
+  and as text, and scrubs the account out. `tools/fake-gh/record.sh` records the answers
+  the stand-in must give as GitHub does, its errors included, into
+  `tools/fake-gh/recorded/`, which `tests/recorded.rs` replays. Both write on GitHub,
+  so both run on request only.
+- **A photograph ties the histories to it.** A reset posts the planted comments again
+  under new ids, which a recorded conversation names, so photographing a suite again
+  means recording its histories again.
+- **The commit hook checks it once a day**: `tools/fake-gh/check-against-github.sh`
+  records again into a temporary directory and replays, failing when GitHub or `gh`
+  now answers otherwise. It skips with a warning where the owner's credentials or
+  fixture repo are out of reach.
+- **A scaffold may write through it**, as `reviewing-pull-requests`' does to open a
+  draft that GitHub would not photograph. It runs as the caller, with `tools/eval.sh`'s
+  `PATH`, so it checks first that the `gh` it finds is the stand-in, since the real one
+  would write to GitHub, and empties the log after.
 
 ## Launching
 
