@@ -50,6 +50,10 @@ commit them, and what closes a piece of work is a summary of what changed rather
 than a commit. Committing on the agent's own initiative removes the reading that
 was going to happen before it.
 
+The same holds for merging into `main`, pushing, and tagging a release: each waits
+for a request that says to do it. They reach users, as [Releasing](#releasing)
+explains, and an approval of the commit does not extend to them.
+
 ## Commit messages
 
 Imperative mood, opening in lower case, and English like everything else here.
