@@ -276,6 +276,37 @@ fn creates_a_pending_review_from_a_payload_file() {
 }
 
 #[test]
+fn creates_a_pending_review_when_the_method_is_given_as_its_short_option() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewer": "developer"
+    }));
+    let payload = json!({"commit_id": "9fceb02", "body": "Worth a look.", "comments": []});
+    fs::write(workspace.path().join("review.json"), payload.to_string()).expect("the payload");
+
+    let created = gh(
+        &workspace,
+        &[
+            "api",
+            "-X",
+            "POST",
+            "repos/acme/shop/pulls/1/reviews",
+            "--input",
+            "review.json",
+        ],
+    );
+
+    assert_eq!(
+        created,
+        json!({
+            "id": 1, "node_id": "PRR_1", "user": {"login": "developer"},
+            "state": "PENDING", "body": "Worth a look.", "commit_id": "9fceb02"
+        })
+    );
+}
+
+#[test]
 fn reads_the_payload_of_a_review_from_standard_input() {
     let workspace = workspace_impersonating(json!({
         "repository": "acme/shop",

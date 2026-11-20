@@ -1,0 +1,257 @@
+{
+  "repository": "fixture-owner/ai-skills-eval-guided-review",
+  "number": 1,
+  "title": "mark items at or below five units as low in the report",
+  "state": "open",
+  "head_ref": "guided-1",
+  "base_ref": "main",
+  "author": "fixture-owner",
+  "viewer": "fixture-owner",
+  "body": "Items at or below five units are now marked as low in the report, so they can be reordered before they run out.\n\n- `Stock.is_low` says whether an item is low, against the new `LOW_STOCK` threshold.\n- The report adds ` (low)` after the level of every low item.\n",
+  "diff": "diff --git a/stock/levels.py b/stock/levels.py\nindex e4cf721..27b1b8a 100644\n--- a/stock/levels.py\n+++ b/stock/levels.py\n@@ -1,3 +1,7 @@\n+# An item at or below this many units is low.\n+LOW_STOCK = 5\n+\n+\n class Stock:\n     def __init__(self, levels):\n         self.levels = dict(levels)\n@@ -7,3 +11,6 @@ def add(self, item, quantity):\n \n     def remove(self, item, quantity):\n         self.levels[item] = max(0, self.levels.get(item, 0) - quantity)\n+\n+    def is_low(self, item):\n+        return self.levels.get(item, 0) < LOW_STOCK\ndiff --git a/stock/report.py b/stock/report.py\nindex 817f5d3..1f1373e 100644\n--- a/stock/report.py\n+++ b/stock/report.py\n@@ -1,5 +1,6 @@\n def report(stock):\n     lines = []\n     for item in sorted(stock.levels):\n-        lines.append(f\"{item}: {stock.levels[item]}\")\n+        marker = \" (low)\" if stock.is_low(item) else \"\"\n+        lines.append(f\"{item}: {stock.levels[item]}{marker}\")\n     return \"\\n\".join(lines)\ndiff --git a/tests/test_levels.py b/tests/test_levels.py\nindex 05112de..e4be121 100644\n--- a/tests/test_levels.py\n+++ b/tests/test_levels.py\n@@ -5,3 +5,8 @@ def test_removing_more_than_there_is_leaves_zero():\n     stock = Stock({\"apples\": 2})\n     stock.remove(\"apples\", 5)\n     assert stock.levels[\"apples\"] == 0\n+\n+\n+def test_an_item_under_the_threshold_is_low():\n+    stock = Stock({\"pears\": 3})\n+    assert stock.is_low(\"pears\")\n",
+  "head_sha": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c",
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/comments/4629661230",
+      "pull_request_review_id": 5976253811,
+      "id": 4629661230,
+      "node_id": "PRRC_kwDOUrYrvs8AAAABE_MGLg",
+      "diff_hunk": "@@ -7,3 +11,6 @@ def add(self, item, quantity):\n \n     def remove(self, item, quantity):\n         self.levels[item] = max(0, self.levels.get(item, 0) - quantity)\n+\n+    def is_low(self, item):\n+        return self.levels.get(item, 0) < LOW_STOCK",
+      "path": "stock/levels.py",
+      "commit_id": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c",
+      "original_commit_id": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This compares with `<`, while the comment on `LOW_STOCK` and the description say at or below, so an item with exactly five units is not marked low. Worth `<=` here.",
+      "created_at": "2026-11-19T13:51:43Z",
+      "updated_at": "2026-11-19T13:51:43Z",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-guided-review/pull/1#discussion_r4629661230",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/1",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/comments/4629661230"
+        },
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-guided-review/pull/1#discussion_r4629661230"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/1"
+        }
+      },
+      "reactions": {
+        "url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/comments/4629661230/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 16,
+      "original_line": 16,
+      "side": "RIGHT",
+      "author_association": "OWNER",
+      "original_position": 14,
+      "position": 14,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "issue_comments": [],
+  "reviews": [
+    {
+      "id": 5976253811,
+      "node_id": "PRR_kwDOUrYrvs8AAAABZDZlcw",
+      "user": {
+        "login": "fixture-owner",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/fixture-owner",
+        "html_url": "https://github.com/fixture-owner",
+        "followers_url": "https://api.github.com/users/fixture-owner/followers",
+        "following_url": "https://api.github.com/users/fixture-owner/following{/other_user}",
+        "gists_url": "https://api.github.com/users/fixture-owner/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/fixture-owner/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/fixture-owner/subscriptions",
+        "organizations_url": "https://api.github.com/users/fixture-owner/orgs",
+        "repos_url": "https://api.github.com/users/fixture-owner/repos",
+        "events_url": "https://api.github.com/users/fixture-owner/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/fixture-owner/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "",
+      "state": "COMMENTED",
+      "html_url": "https://github.com/fixture-owner/ai-skills-eval-guided-review/pull/1#pullrequestreview-5976253811",
+      "pull_request_url": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/1",
+      "author_association": "OWNER",
+      "is_copilot_code_review": false,
+      "copilot_code_review_effort": null,
+      "_links": {
+        "html": {
+          "href": "https://github.com/fixture-owner/ai-skills-eval-guided-review/pull/1#pullrequestreview-5976253811"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/fixture-owner/ai-skills-eval-guided-review/pulls/1"
+        }
+      },
+      "submitted_at": "2026-11-19T13:51:43Z",
+      "commit_id": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c"
+    }
+  ],
+  "viewed": {
+    "additions": 14,
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE=",
+      "is_bot": false,
+      "login": "fixture-owner",
+      "name": "Fixture Owner"
+    },
+    "autoMergeRequest": null,
+    "baseRefName": "main",
+    "baseRefOid": "c96c8df72e262cb552c96e6c20755fc6c9f0b4ba",
+    "body": "Items at or below five units are now marked as low in the report, so they can be reordered before they run out.\n\n- `Stock.is_low` says whether an item is low, against the new `LOW_STOCK` threshold.\n- The report adds ` (low)` after the level of every low item.\n",
+    "changedFiles": 3,
+    "closed": false,
+    "closedAt": null,
+    "closingIssuesReferences": [],
+    "comments": [],
+    "commits": [
+      {
+        "authoredDate": "2026-09-25T14:33:43Z",
+        "authors": [
+          {
+            "email": "fixture-owner@users.noreply.github.com",
+            "id": "MDQ6VXNlcjE=",
+            "login": "fixture-owner",
+            "name": "fixture-owner"
+          }
+        ],
+        "committedDate": "2026-09-25T14:33:43Z",
+        "messageBody": "",
+        "messageHeadline": "mark items at or below five units as low in the report",
+        "oid": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c"
+      }
+    ],
+    "createdAt": "2026-09-25T14:33:54Z",
+    "deletions": 1,
+    "files": [
+      {
+        "path": "stock/levels.py",
+        "additions": 7,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "stock/report.py",
+        "additions": 2,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tests/test_levels.py",
+        "additions": 5,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "fullDatabaseId": "4639174996",
+    "headRefName": "guided-1",
+    "headRefOid": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c",
+    "headRepository": {
+      "id": "R_kgDOUrYrvg",
+      "name": "ai-skills-eval-guided-review",
+      "nameWithOwner": "fixture-owner/ai-skills-eval-guided-review"
+    },
+    "headRepositoryOwner": {
+      "id": "MDQ6VXNlcjE=",
+      "name": "Fixture Owner",
+      "login": "fixture-owner"
+    },
+    "id": "PR_kwDOUrYrvs8AAAABFIQxVA",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "labels": [],
+    "latestReviews": [],
+    "maintainerCanModify": false,
+    "mergeCommit": null,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "mergedAt": null,
+    "mergedBy": null,
+    "milestone": null,
+    "number": 1,
+    "potentialMergeCommit": {
+      "oid": "5a0275a33ae4a3b8d2cb93c663a768b0d75594f4"
+    },
+    "projectCards": null,
+    "projectItems": [],
+    "reactionGroups": [],
+    "reviewDecision": "",
+    "reviewRequests": [],
+    "reviews": [
+      {
+        "id": "PRR_kwDOUrYrvs8AAAABZDZlcw",
+        "author": {
+          "login": "fixture-owner"
+        },
+        "authorAssociation": "OWNER",
+        "body": "",
+        "submittedAt": "2026-11-19T13:51:43Z",
+        "includesCreatedEdit": false,
+        "reactionGroups": [],
+        "state": "COMMENTED",
+        "commit": {
+          "oid": "8c173b6706c1e3424d7d97d59f2909b9fb51e23c"
+        }
+      }
+    ],
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-25T14:57:19Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-09-25T14:57:18Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "mark items at or below five units as low in the report",
+    "updatedAt": "2026-11-19T13:27:25Z",
+    "url": "https://github.com/fixture-owner/ai-skills-eval-guided-review/pull/1"
+  },
+  "viewed_as_text": "title:\tmark items at or below five units as low in the report\nstate:\tOPEN\nauthor:\tfixture-owner (Fixture Owner)\nlabels:\t\nassignees:\t\nreviewers:\t\nprojects:\t\nmilestone:\t\nnumber:\t1\nurl:\thttps://github.com/fixture-owner/ai-skills-eval-guided-review/pull/1\nadditions:\t14\ndeletions:\t1\nauto-merge:\tdisabled\n--\nItems at or below five units are now marked as low in the report, so they can be reordered before they run out.\n\n- `Stock.is_low` says whether an item is low, against the new `LOW_STOCK` threshold.\n- The report adds ` (low)` after the level of every low item.\n\n"
+}

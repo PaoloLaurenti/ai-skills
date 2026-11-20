@@ -10,7 +10,9 @@
 #
 # Paths inside the run's workspace become relative: Claude copies a recorded path as it
 # is, so a placeholder would send its edits into a directory named after it. The run's
-# home and the real one become `<home>`, the real temporary directory `<tmp>`, and the
+# home becomes `~`, which a resumed run reads as its own home, so a file a recorded turn
+# kept there, such as a collected review, is found again once its scaffold has put it
+# back. The real home becomes `<home>`, the real temporary directory `<tmp>`, and the
 # run's own `../../tmp`, where it sits beside the run's home in every run: a resumed run
 # finds there the files a recorded turn kept outside the workspace, once its scaffold has
 # copied them in. The login, which `ls -l` prints as the owner of every file, `<owner>`.
@@ -18,6 +20,12 @@
 # `<plugin-root>`, and `tools/eval.sh` fills it in with the copy it evaluates, so the
 # skill's reference files stay reachable. `tools/check.sh` is what proves nothing
 # machine-local is left.
+#
+# A background agent that finishes inside the turn wakes the session, which the trace
+# records as a second `init`, and its report reaches the trace only as a
+# `task_notification` event. That event becomes the user message a session receives for
+# it, in the shape a recorded session of CLI 2.1.328 holds, so a resumed run finds the
+# report instead of dispatching the agent again.
 set -eu
 
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
@@ -37,14 +45,24 @@ jq -c -n \
     --arg login "$(id -un)" \
     --arg tmp "${TMPDIR:-/tmp}" '
     def variants: if startswith("/private/") then ., ltrimstr("/private") else . end;
+    def notification_message:
+        { role: "user",
+          content: ([ "<task-notification>",
+                      "<task-id>\(.task_id)</task-id>",
+                      "<tool-use-id>\(.tool_use_id)</tool-use-id>",
+                      "<status>\(.status)</status>",
+                      "<summary>\(.summary)</summary>" ]
+                    + (if .summary_is_report then [ "<result>\(.summary)</result>" ]
+                       else [] end)
+                    + [ "</task-notification>" ] | join("\n")) };
 
-    ($trace[] | select(.type == "system" and .subtype == "init")) as $init
+    first($trace[] | select(.type == "system" and .subtype == "init")) as $init
     | $init.cwd as $workspace
     | ($workspace | sub("/[^/]*$"; "")) as $run_home
     # Longest first, since the run home holds the workspace.
     | [ ($workspace + "/" | variants | [., ""]),
         ($workspace | variants | [., "."]),
-        ($run_home | variants | [., "<home>"]),
+        ($run_home | variants | [., "~"]),
         ($run_home | sub("/home$"; "/tmp") | variants | [., "../../tmp"]),
         [$home, "<home>"],
         ($init.plugins[] | select(.source | endswith("@inline")) | .path | variants
@@ -61,9 +79,12 @@ jq -c -n \
           timestamp: (first($trace[] | .timestamp // empty)),
           message: { role: "user", content: $prompt } } ]
       + [ $trace[]
-          | select((.type == "user" or .type == "assistant") and .parent_tool_use_id == null)
-          | { type, uuid, timestamp, message }
-            + (if has("tool_use_result") then { toolUseResult: .tool_use_result } else {} end) ]
+          | if .type == "system" and .subtype == "task_notification" then
+                { type: "user", uuid, timestamp, message: notification_message }
+            elif (.type == "user" or .type == "assistant") and .parent_tool_use_id == null then
+                { type, uuid, timestamp, message }
+                + (if has("tool_use_result") then { toolUseResult: .tool_use_result } else {} end)
+            else empty end ]
     | map(. + { isSidechain: false, userType: "external", cwd: ".", sessionId: $session,
                 version: $init.claude_code_version })
     | reduce .[] as $entry ({ previous: $after, entries: [] };

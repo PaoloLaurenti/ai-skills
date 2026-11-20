@@ -536,10 +536,273 @@ The three GitHub suites, rebuilt around a fake `gh`:
       arm: 1.00 on every case, 0.86 without the skill on `01`, $4.26. The suite's
       `README.md` holds the results, the hand-built files are deleted, and `AGENTS.md`,
       `README.md` and `evals/README.md` say it is cases.
+
+      *Decided 2026-11-19*, for `walking-through-and-reviewing-pull-requests`: eight cases
+      on one recorded conversation, since the three scenarios open with the same two
+      prompts, the planted comment sits on every pull request of the fixture, and until a
+      step proposes a comment "avanti" and "aggiungi i commenti che proponi, poi avanti"
+      do the same. The trunk: `level-first`, the turn-1 prompt, the only case with a
+      baseline arm; `step-one-only` after "sono nuovo del repo"; `step-two-only` after
+      "avanti"; `existing-comment-cited`, the "avanti" reaching `is_low`;
+      `first-proposal`, the "avanti" reaching the first step that proposes. Two branches
+      resume that one: `avanti-approves-nothing` with "avanti", and `yes-collects` with
+      "aggiungi i commenti che proponi, poi avanti", which goes on to `delivery`, the yes
+      to the general comment, one `POST` creating the pending review. Named by rule, as
+      the turn each falls on is known only once recorded. Lost in the move: the baselines
+      of scenarios 02 and 03, where "avanti" published the review, since a resumed case
+      runs with the skill only; they stay in git history. Left out: the turn after
+      delivery, which would cost one more recording and the fake's state after it.
+      About nine Opus turns to record, against about thirteen for three conversations.
+      Two probes come first: whether the collected review in `~/.claude/reviews/` can be
+      written, read and placed by a scaffold inside the sandbox, and whether the reviewer
+      dispatched in the background leaves the level menu as turn 1's final reply.
+
+      *Probe of the collected review, 2026-11-19*, at CLI 2.1.328 with haiku, one run
+      each, in a throwaway plugin whose skill writes and reads files under the home, for
+      less than a cent in all. The run's home is `/private/tmp/e-XXXX/home` and the
+      workspace its `cwd`, and the scaffold sees the same `$HOME`, so it can place a
+      file in `$HOME/.claude/reviews/`, which a run then reads with
+      `Read(//private/tmp/e-*/home/**)` granted. Below, `<home>` stands for
+      `//private/tmp/e-*/home`. But a `Write` into `~/.claude/` is refused "in don't ask
+      mode" whatever the grant: `Write` whole, `Write(<home>/.claude/reviews/**)`,
+      `Edit(<home>/.claude/reviews/**)`, `Edit(~/.claude/reviews/**)` and
+      `Edit(<home>/**)` all failed on it, while the last let a `Write` into
+      `~/elsewhere/` through, and `Edit(<home>/.local/state/reviews/**)` one into
+      `~/.local/state/reviews/`. A `Write` into the workspace's `.git/` is refused too,
+      "in a directory that is denied by your permission settings". A file grader cannot
+      read outside the workspace, its path refused as escaping the sandbox, so what a run
+      collects is read from the trace. As the skill stands, cases `yes-collects` and
+      `delivery` would record a refused `Write`. The hand-run scenario 03 of 2026-10-14
+      wrote the file from `python3` rather than with `Write`, granted both, which hints
+      that a real session meets the same refusal.
+
+      *Decided 2026-11-19*: the collected review moves to
+      `~/.local/state/reviews/OWNER-REPO-N.json`, in both skills that name it and in
+      `reviewing-pull-requests`' `reference/following-up-a-review.md`, and in the
+      hand-run scripts still reading it. A file left in the old place by a review in
+      progress is no longer found. `plugin.json` goes to 1.0.1, a patch, the steps being
+      the same; the merge gets the tag `v1.0.1` and a release saying where the file now
+      lives. `tools/eval.sh` will grant `Edit` and `Read` on that directory of the run's
+      home when the cases need it.
+
+      *Probe of the background reviewer, 2026-11-19*, at CLI 2.1.328 with haiku, one
+      run per turn, in a throwaway plugin whose skill dispatches an agent with
+      `run_in_background` to read a word from a file, then asks a three-option menu and
+      stops; under a cent. Three findings:
+      - **The report wakes the session inside the turn.** The trace holds the menu, then
+        a `task_notification` carrying the agent's report as `summary`, then a second
+        `init` and one more reply: "The background reader has finished, but I'm holding
+        its result until you answer the level question", with the menu again. That last
+        reply is what `last_message` grades. Haiku repeated the menu; the hand runs saw
+        Opus close on a line about the reviewer alone, the menu in the message before.
+      - **The report is not in a rebuilt history.** It reaches the trace only as that
+        system event and as the agent's own messages, which carry a
+        `parent_tool_use_id`, and `tools/history-from-trace.sh` keeps neither. A case
+        resuming the history with "b" dispatched the agent again and waited for it. So
+        every resumed walkthrough case would dispatch the reviewer anew.
+      - **A second `init` doubles the history.** The script reads the trace's `init`
+        event as one value, and with two it writes the whole conversation twice: 22
+        entries for 11.
+
+      *Fixed the same day* in `tools/history-from-trace.sh`: it reads the first `init`
+      only, and turns each `task_notification` into a user message in the shape a session
+      recorded at CLI 2.1.328 holds, `<task-notification>` with the task id, tool use id,
+      status and summary, and the summary again as `<result>` when the event marks it as
+      the report. The probe's history went from 22 entries to 12, and resumed with "b" it
+      answered from the report with no new dispatch. The existing histories hold no
+      duplicate and no notification, so none needs recording again. Open: whether
+      `summary` carries the whole of a long report, such as the reviewer's on Opus, to be
+      read from the first recorded turn 1.
+
+      *Decided 2026-11-19*, how `level-first` is graded, since its `last_message` may be
+      the line the session writes when the reviewer's report wakes it, with the menu in
+      the message before, and an `llm` judge on the `trace` sees only its first 12 and
+      last 12 messages: a `trace` regex finding a main-session reply that offers the
+      three levels; a `trace` regex finding no main-session reply naming `is_low`,
+      `LOW_STOCK` or `(low)`, which the reviewer's own messages may; and a judge on
+      `last_message` passing the menu or a line waiting for the level, failing a step,
+      an explanation of the pull request or a verdict. A main-session reply is a trace
+      line holding `"parent_tool_use_id":null`, which needs the regex to read line by
+      line, `flags: m`, to be checked on the case's first run.
+
+      *Fixture, 2026-11-19*: one pull request is enough, since each case runs in a
+      workspace of its own, so the suite uses `guided-1` alone. `fixture/files.sh` writes
+      the two commits `setup.sh` used to write inline, byte for byte the same tree and
+      diff; `fixture/workspace.sh` builds a case's workspace on `guided-1`, with
+      `origin.git` and the photographed pull request; `fixture/photograph.sh` resets
+      `guided-1` and photographs it into `fixture/pull-request.json`, planted comment
+      `4629374144` on `stock/levels.py` line 16. Taking the photograph out of `record.sh`
+      gave `tools/fake-gh/photograph.sh`, which both call, and `tools/fake-gh/scrub.sh`,
+      the one place the account is scrubbed, run on each file before it lands in the
+      repo. The stand-in answered `gh pr view`, `gh pr diff` and the comments from that
+      workspace with no number given.
+      `record.sh --into` a temporary directory, run by hand after the change: the
+      photograph equal to the one in the repo but for ids, dates and commit SHAs; ten
+      probes of eleven equal, the eleventh only in the `submittedAt` of the empty reviews
+      each reset leaves; no login left; `tests/recorded.rs` 11 of 11 against it.
+
+      *First run of `01-level-first-turn1`, 2026-11-19*, haiku, one run per arm, $0.03:
+      0.89 with the skill, 0.44 without. `flags: m` works: `offers-the-levels` matched
+      the main session's menu, and without the skill it found none, while
+      `explains-nothing-of-the-diff` found the diff explained. The judge passed the
+      skill's last message 3 votes of 3 and failed the baseline's. Both arms failed
+      `no-unhandled-call`, on `gh pr view` with no `--json`, as text, and on `--json`
+      fields the stand-in does not know: `statusCheckRollup`, `closingIssuesReferences`,
+      `reviewDecision`, `isDraft`, `additions`, `deletions`.
+
+      *Fixed the same day*, test-first in `tests/pull_request.rs`: a photograph now keeps
+      `viewed`, what `gh pr view --json` answers with every field this `gh` knows, 46 at
+      2.105, and `viewed_as_text`, what `gh pr view` prints; the stand-in answers from
+      them every field it does not keep itself, and the text view, and still refuses
+      both as unhandled when a photograph lacks them, as `addressing-pull-request-reviews`'
+      does. `guided-1` photographed again, planted comment `4629661230`. The fields
+      `viewed` holds are GitHub's as photographed, so the commit SHAs in it, such as
+      `baseRefOid` or `commits`, name GitHub's commits rather than the workspace's.
+      Second run, haiku: no unhandled call, 0.89 with the skill and 0.56 without. With
+      the skill the judge failed the last message 3 votes of 3, rightly: after the
+      reviewer woke the session, haiku asked the level again but first said the reviewer
+      had found three points and the `<` and `<=` mismatch already covered, a finding
+      before the level.
+
+      *Opus, three runs per arm, 2026-11-19*, $1.90: 0.96 with the skill, 0.56 without.
+      Every run with the skill asked the level as a three-option menu, explained nothing
+      of the diff, dispatched the reviewer, was woken by its report and closed on the
+      menu again or a line asking for the level, and every judge vote passed. One run
+      failed `offers-the-levels`, its menu reading "Non conosci il repository" rather
+      than any form of "nuovo": the regex now asks for "espert" or "expert" and "repo",
+      which matches the three runs with the skill and the haiku one, and none of the four
+      without. Without the skill every run explained the pull request in its first turn
+      and dispatched nothing. The notification's `summary` held the reviewer's whole
+      report, 2.7 to 4 thousand characters, the same text as its last message, so a
+      rebuilt history carries it. The second run's trace is the one turn 1 is recorded
+      from.
+
+      *`02-step-one-turn2`, 2026-11-19*: resumes turn 1 rebuilt from that trace, 41
+      entries with the reviewer's report as a notification; `Agent` must not be called
+      again. Haiku once, $0.02, then Opus three runs, $0.93: every mechanical grader
+      passed and no run dispatched the reviewer again, but the one judge of step 1 failed
+      every run. Replayed from files, the four replies passed each of the judge's ten
+      conditions asked one at a time, 30 votes of 30, and failed the whole rubric nearly
+      every time, whatever its wording. So the judge is three: `has-every-part`, the six
+      parts of step 1; `proposes-nothing`; `explains-no-code-yet`. Replayed twice, the
+      three Opus replies passed all three, 17 votes of 18; haiku's failed
+      `proposes-nothing`, rightly, having listed the reviewer's findings and announced it
+      would ask about each. A verdict is no longer judged, never having appeared. The
+      `eval.sh` grants on the collected reviews came after turn 1 was recorded, so its
+      history holds a refused read of `~/.local/state/reviews/`, which every step 1
+      reports.
+      Recorded again under those grants, $0.85: turn 1 scored 1.00, checking that
+      directory with `ls` and finding none; `02` resumed the new 32-entry history and
+      scored 1.00, all three judges passing every vote. Its trace is the one turn 2 is
+      recorded from.
+
+      *`03-step-two-turn3`, 2026-11-19*: resumes turns 1 and 2, 42 entries, with
+      "avanti"; graders `header-two-of-seven`, the total step 1 fixed in the recording,
+      and three judges, `is-step-two`, `presents-no-other-step` and
+      `explains-without-quizzing`. Haiku's run, $0.03, failed `presents-no-other-step`
+      on a correct step 2 that named the rules of `AGENTS.md` and the steps they serve:
+      the criteria now fail only an explanation of what the pull request changes in a
+      later step's concept, and the same reply replayed passed 6 votes of 6. Opus, three
+      runs, $1.04: 1.00 on each, every one `2/7` on the basics, closing on step 3, with
+      no tool but `Read`. The second run's trace is the one turn 3 is recorded from.
+
+      *`04-existing-comment-cited-turn4`, 2026-11-19*: resumes turns 1 to 3, 52 entries,
+      with "avanti"; graders `header-three-of-seven` and three judges,
+      `cites-the-published-comment`, `proposes-no-duplicate` and `stays-on-step-three`.
+      Haiku, $0.04: 1.00. Opus, three runs, $1.02: every run named the `<` against "at
+      or below", quoted the published comment as covering it, proposed nothing on it and
+      set aside the unknown item counted as zero; two failed `stays-on-step-three` on a
+      sentence saying the report and the test rely on `is_low`. The criteria now allow
+      that sentence, and the four replies replayed passed 24 votes of 24. The first
+      run's trace is the one turn 4 is recorded from.
+
+      *Turn 5 recorded, 2026-11-19*, through a case written for it and deleted once run,
+      Opus, one run, $0.33: step `4/7` on the report proposed nothing and set aside a
+      missing test of the report's marker, the reviewer's minor finding. So the first
+      proposal comes at step 5, turn 6, and `first-proposal` resumes turns 1 to 5.
+
+      *`05-first-proposal-turn6`, 2026-11-19*: resumes turns 1 to 5, 60 entries, with
+      "avanti"; graders `header-five-of-seven`, `no-write` for nothing collected before a
+      yes, and two judges, `proposes-the-comment`, the boundary comment in full on
+      `tests/test_levels.py`, in English with no em or en dash, and `asks-about-each`, a
+      closed menu per comment. Haiku, $0.03, and Opus, three runs, $1.09: 1.00 on every
+      run. Opus proposed one comment on line 12, a `suggestion` adding the tests at five
+      and six, noting the one at five fails until `<` becomes `<=`, then the four-option
+      menu, and set aside using `LOW_STOCK` in the tests, its import being outside the
+      diff. The first run's trace is the one turn 6 is recorded from, for both branches.
+
+      *`06-avanti-approves-nothing-turn7`, 2026-11-19*: resumes turns 1 to 6, 63
+      entries, with "avanti"; graders `no-write` and `no-edit` for nothing collected,
+      `no-next-step`, no bold `6/7` header at the start of a line, which a check against
+      such a line and against an invitation naming step 6 told apart, and the judge
+      `asks-again`. Haiku, $0.01, and Opus, three runs, $0.97: 1.00 on every run. The
+      branch ends here, so no trace is kept.
+
+      *`07-yes-collects-turn7`, 2026-11-19*: the same history as `06`, with "aggiungi i
+      commenti che proponi, poi avanti"; graders on the trace, since the collected review
+      sits outside the workspace: a `Write` of `state/reviews/…-1.json` holding the
+      comment on `tests/test_levels.py`, the tool's answer that the file was created, a
+      `Read` of it back, the bold `6/7` header following in the same message, and the
+      judge `says-it-is-collected`. The grant on the collected reviews works: the kept
+      file held the payload, `commit_id`, an empty `body` and the comment on line 12.
+      Haiku, $0.02: 1.00. Opus, three runs, $1.29: 0.96, one run skipping the read-back
+      the skill asks for after every addition and reading `docs/USAGE.md` instead. Step 6
+      proposed the `docs/USAGE.md` finding in every run, to be held for the general
+      comment. The first run's trace and the collected file it wrote are the ones turn 7
+      is recorded from.
+      *Decided*: `collected-review-read-back` stays, since the read-back is what catches
+      a write that went wrong, and the case stays below 1.0 while Opus skips it. Open:
+      strengthen that sentence of `walking-through-and-reviewing-pull-requests`, once
+      the suite is done, and rerun `07` to see it hold.
+
+      *Turn 8 recorded, 2026-11-19*, through a case written for it and deleted once run,
+      Opus, one run, $0.46, its scaffold putting turn 7's collected file back in the
+      run's home. `tools/history-from-trace.sh` now writes the run's home as `~` rather
+      than `<home>`, since a resumed run copies the path a recorded turn wrote to, and
+      `~` is its own home; the real home stays `<home>`. The histories already recorded
+      hold `<home>` once, in the output of turn 1's `ls`, and were left as they are. The
+      run's `Write` to `~/.local/state/reviews/…` was refused as the file had changed
+      since the recorded read, the scaffold having copied it in; it read the file again
+      and added the `docs/USAGE.md` finding under `held` with an `Edit`, read it back,
+      and presented step `7/7`: the general comment written from the held finding, what
+      the review will hold, the published comment left alone, and the question on the
+      general comment.
+
+      *`08-delivery-turn9`, first run, 2026-11-19*, haiku, $0.03, 0.63: the run settled
+      the body and removed `held` in the collected file, then sent `gh api -X POST
+      …/pulls/1/reviews --input ~/.local/state/reviews/…json`, and the stand-in answered
+      with the list of reviews: it reads the method from `--method` only, so `-X POST`
+      passed for a GET and created nothing, logged as handled. The run tried once more,
+      saw no draft, kept the local file and stopped asking leave to try GraphQL. Whether
+      the stand-in can read a payload in the run's home is still to be seen.
+
+      *Fixed, 2026-11-20*: the stand-in reads `-X` as `--method`, through the test
+      `creates_a_pending_review_when_the_method_is_given_as_its_short_option` in
+      `tests/review.rs`. Rerun on haiku, twice, 1.00 each at $0.02 and $0.03: one `POST`
+      of the file, the payload read from the run's home, the review read back, nothing
+      published, and the submit command stated, never run. The `rm` of the local file
+      was refused, as no grant covers it, and the run handed the command over in its
+      reply, which keeps the run on course; `local-file-deleted` counts the attempt.
+      `pending-review-holds-both` reads the state the stand-in saved: the inline comment
+      on `tests/test_levels.py` belongs to a review still `PENDING` whose body names
+      `docs/USAGE.md`, tied by a backreference, which the grader's regex honours. Checked
+      by replay: it matched the state the run left, and failed on the fixture's own, on
+      that state with the body emptied, and with the comment moved to the submitted
+      review. Then Opus, 3 runs, $1.89, 1.00 on every grader in each; each run had its
+      `rm` refused and handed the command over in its reply.
+
+      *Done, 2026-11-20*: the suite's `README.md` holds the cases, the fixture, the
+      histories and the results; the three scenarios, `run.sh`, `arm.sh` and
+      `baseline.sh` are deleted, their results in git history; `fixture/reset.sh` no
+      longer deletes a collected review in the real home, which only the hand runs left
+      there; `AGENTS.md` and `README.md` say the suite is cases. Still open from it:
+      strengthening the read-back sentence and rerunning `07`. Next:
+      `reviewing-pull-requests`.
 - [ ] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
 
-None of this touches `skills/`, so it earns no version and no release.
+Only the move of the collected review touches `skills/`, and it earns 1.0.1, as recorded
+above; the rest earns no version and no release.
 
 Deliberately not doing: a checker of its own for the mechanical assertions. It was
 queued here as the obvious next tool, and `claude plugin eval` grading from the trace,
@@ -833,6 +1096,10 @@ was later deleted. They belong in a skill, so that the next session starts from 
   words of the screen".
 - **The Definition of Done stays out of the card**, since it holds for every card. A card
   names one of its points only to skip it.
+- **The team's Definition of Ready wins.** The skill reads the team's Definition of Ready
+  when one exists, and where the two differ, the Definition of Ready wins. The rules of
+  the skill are the default for a team that has none. A team that wrote its standard down
+  keeps it in one place, and the skill does not copy it.
 - **No hook.** A `PreToolUse` hook that blocks card ids in descriptions was considered, to
   stop the tracker from turning a link into a relation on a card outside the scope. It was
   rejected: it would also block the links between cards in scope, which the requester
@@ -885,6 +1152,9 @@ in it is **sourced**.
   exceptions, validations and edge cases.
 
 ## One card
+
+When the team has a Definition of Ready, its sections, criteria form and wording
+rules replace the ones below wherever the two differ.
 
 The sections, in this order:
 
@@ -950,7 +1220,8 @@ say what moves it to ready. It goes in the requester's "to refine" status.
 ## Steps
 
 1. **Read the sources and the current cards.** Read the team's Definition of Done
-   too, and ask where it is when nobody has named it. Read the heavy sources, such
+   and Definition of Ready too, and ask where they are when nobody has named them;
+   a team may have no Definition of Ready. Read the heavy sources, such
    as design files and long lists of cards, through a subagent that returns text
    only, and ask for an image at the smallest size that is still readable. Done
    when every source the

@@ -3,7 +3,8 @@
 # rather than from memory. Two things land in the repo:
 #
 # - `evals/addressing-pull-request-reviews/fixture/pull-request.json`, the fixture pull
-#   request as the stand-in reads it, for that suite's cases to start from;
+#   request as the stand-in reads it, taken by `photograph.sh`, for that suite's cases to
+#   start from;
 # - `tools/fake-gh/recorded/<name>.json`, one per answer the stand-in must give as GitHub
 #   does, each the calls in order with their exit status and output, which
 #   `tests/recorded.rs` replays against the stand-in.
@@ -45,56 +46,12 @@ number=$(gh pr list --repo "$repo" --head walkthrough --state open --json number
 head=$(gh pr view "$number" --repo "$repo" --json headRefOid -q .headRefOid)
 cd "$work"
 
-# The account's number and its GraphQL id lead back to it as surely as its login, so
-# they become those of account 1, `MDQ6VXNlcjE=` being `04:User1` in base64.
-account="$(gh api user -q .id)"
-account_node="$(gh api user -q .node_id)"
-# The account's display name, which `gh pr view --json author` carries.
-account_name="$(gh api user -q .name)"
-scrub() {
-    sed -E \
-        -e "s/$owner/fixture-owner/g" \
-        -e "s/$login/fixture-owner/g" \
-        -e "s|$account_node|MDQ6VXNlcjE=|g" \
-        -e "s/$account_name/Fixture Owner/g" \
-        -e "s/(^|[^0-9])$account([^0-9]|$)/\\11\\2/g"
-}
-
-# The fixture pull request. Reviews with no body and no planted comment are left out:
-# GitHub never deletes a submitted review, so every reset leaves one more behind.
-gh api "repos/$repo/pulls/$number" >pr.json
-gh api "repos/$repo/pulls/$number/comments" >comments.json
-gh api "repos/$repo/issues/$number/comments" >conversation.json
-gh api "repos/$repo/pulls/$number/reviews" >reviews.json
-gh pr diff "$number" --repo "$repo" >diff.txt
-jq -n \
-    --slurpfile pr pr.json \
-    --slurpfile comments comments.json \
-    --slurpfile conversation conversation.json \
-    --slurpfile reviews reviews.json \
-    --rawfile diff diff.txt \
-    --arg viewer "$login" \
-    '$pr[0] as $pr | $comments[0] as $comments | {
-        repository: $pr.base.repo.full_name,
-        number: $pr.number,
-        title: $pr.title,
-        state: $pr.state,
-        head_ref: $pr.head.ref,
-        base_ref: $pr.base.ref,
-        author: $pr.user.login,
-        viewer: $viewer,
-        body: $pr.body,
-        diff: $diff,
-        head_sha: $pr.head.sha,
-        review_comments: $comments,
-        issue_comments: $conversation[0],
-        reviews: [$reviews[0][] | select(.body != "" or (.id as $id | $comments | any(.pull_request_review_id == $id)))]
-    }' | scrub >"$snapshot"
+"$here/photograph.sh" "$repo" "$number" "$snapshot"
 
 # A probe is a list of calls run in order. `call` runs one and appends it to the probe;
 # a node id a call answers with is remembered, and written as `{{node_id}}` wherever a
 # later call sends it back, since the stand-in gives its own.
-mkdir -p "$recordings"
+mkdir -p "$recordings" unscrubbed
 node_id=""
 start() {
     probe="$1"
@@ -120,8 +77,8 @@ call() {
 }
 finish() {
     jq -s --slurpfile files files.json '{files: $files[0], calls: .}' calls.jsonl |
-        if [ -n "$node_id" ]; then sed "s/$node_id/{{node_id}}/g"; else cat; fi |
-        scrub >"$recordings/$probe.json"
+        if [ -n "$node_id" ]; then sed "s/$node_id/{{node_id}}/g"; else cat; fi \
+            >"unscrubbed/$probe.json"
     node_id=""
 }
 clear_pending() {
@@ -191,5 +148,10 @@ clear_pending
 start comment-on-the-conversation
 call pr comment "$number" --repo "$repo" --body "A recorded comment."
 finish
+
+# Scrubbed in one pass, before anything lands in the repo, so a failure halfway leaves
+# no login behind.
+"$here/scrub.sh" "$owner" unscrubbed/*.json
+cp unscrubbed/*.json "$recordings/"
 
 echo "recorded #$number of $repo into $snapshot and $recordings/"

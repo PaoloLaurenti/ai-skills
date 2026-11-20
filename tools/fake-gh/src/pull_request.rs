@@ -30,6 +30,13 @@ pub struct PullRequest {
     /// Each named by the id of the comment that opened it.
     #[serde(default)]
     resolved_threads: Vec<u64>,
+    /// What `gh pr view --json` answered with every field when the pull request was
+    /// photographed, for the fields this stand-in does not keep itself.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    viewed: Option<Map<String, Value>>,
+    /// What `gh pr view` printed as text when the pull request was photographed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    viewed_as_text: Option<String>,
 }
 
 /// A comment on a line of the diff. A reply names the comment that opened its thread.
@@ -238,8 +245,13 @@ impl PullRequest {
             ),
             "author" => Some(json!({"login": self.author})),
             "url" => Some(json!(self.url())),
-            _ => None,
+            _ => self.viewed.as_ref()?.get(field).cloned(),
         })
+    }
+
+    /// What `gh pr view` prints with no `--json`, as photographed.
+    pub fn viewed_as_text(&self) -> Option<String> {
+        self.viewed_as_text.clone()
     }
 
     /// What `gh pr view --comments` prints: each review with a body, then the general

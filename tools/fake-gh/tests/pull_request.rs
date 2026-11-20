@@ -860,3 +860,96 @@ fn lists_the_files_a_pull_request_changes_with_their_patches() {
         }])
     );
 }
+
+#[test]
+fn shows_a_photographed_field_of_a_pull_request_view() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewed": {"isDraft": true}
+    }));
+
+    let answer = gh(&workspace, &["pr", "view", "1", "--json", "isDraft"]);
+
+    assert_eq!(answer, json!({"isDraft": true}));
+}
+
+#[test]
+fn shows_the_pull_request_as_text_as_photographed() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "viewed_as_text": "title:\tRound every total\nstate:\tOPEN\n"
+    }));
+
+    let answer = gh_text(&workspace, &["pr", "view", "1"]);
+
+    assert_eq!(answer, "title:\tRound every total\nstate:\tOPEN\n");
+}
+
+#[test]
+fn prefers_the_state_it_keeps_to_the_photographed_view() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1,
+        "body": "Rounds every total down.",
+        "viewed": {"body": "Rounds every total.", "isDraft": false}
+    }));
+
+    let answer = gh(&workspace, &["pr", "view", "1", "--json", "body,isDraft"]);
+
+    assert_eq!(
+        answer,
+        json!({"body": "Rounds every total down.", "isDraft": false})
+    );
+}
+
+#[test]
+fn refuses_a_field_neither_kept_nor_photographed() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1
+    }));
+
+    let refusal = run(workspace.path(), &["pr", "view", "1", "--json", "isDraft"]);
+
+    assert_eq!(
+        (
+            refusal.status.code(),
+            String::from_utf8_lossy(&refusal.stderr).into_owned()
+        ),
+        (
+            Some(1),
+            "gh: `gh pr view 1 --json isDraft` is not available here\n".to_string()
+        )
+    );
+    assert_eq!(
+        recorded_calls(&workspace),
+        vec![json!({"args": ["pr", "view", "1", "--json", "isDraft"], "unhandled": true})]
+    );
+}
+
+#[test]
+fn refuses_the_text_view_of_a_pull_request_never_photographed() {
+    let workspace = workspace_impersonating(json!({
+        "repository": "acme/shop",
+        "number": 1
+    }));
+
+    let refusal = run(workspace.path(), &["pr", "view", "1"]);
+
+    assert_eq!(
+        (
+            refusal.status.code(),
+            String::from_utf8_lossy(&refusal.stderr).into_owned()
+        ),
+        (
+            Some(1),
+            "gh: `gh pr view 1` is not available here\n".to_string()
+        )
+    );
+    assert_eq!(
+        recorded_calls(&workspace),
+        vec![json!({"args": ["pr", "view", "1"], "unhandled": true})]
+    );
+}

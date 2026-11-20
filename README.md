@@ -172,9 +172,11 @@ them. `evals/README.md` is where writing a case starts, and each `evals/<name>/R
 says what its suite tests.
 
 The pull request skills run against a stand-in for `gh`, since the command's sandbox
-cannot reach GitHub: `addressing-pull-request-reviews` is cases on it. The suites of the
-other two still drive a test repository on GitHub by hand, with their results recorded
-in the scenario files, as their own `README.md` explains, until they become cases too.
+cannot reach GitHub: `addressing-pull-request-reviews` and
+`walking-through-and-reviewing-pull-requests` are cases on it. The suite of
+`reviewing-pull-requests` still drives a test repository on GitHub by hand, with its
+results recorded in the scenario files, as its own `README.md` explains, until it becomes
+cases too.
 
 ### Contributing
 

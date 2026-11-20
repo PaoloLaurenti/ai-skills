@@ -300,6 +300,6 @@ The skills driving a pull request through `gh`, which the sandbox cannot reach, 
 against `tools/fake-gh`, a stand-in answering from a recorded pull request and logging
 every call for the graders; `tools/fake-gh/record.sh` records the real `gh`'s answers
 it is built from, and the pre-commit hook checks it against GitHub once a day.
-`addressing-pull-request-reviews` is cases on it; the suites of `reviewing-pull-requests`
-and `walking-through-and-reviewing-pull-requests` are still scenarios run by hand, as
-their own `README.md` describes, until `docs/PLAN.md` turns them into cases too.
+`addressing-pull-request-reviews` and `walking-through-and-reviewing-pull-requests` are
+cases on it; the suite of `reviewing-pull-requests` is still scenarios run by hand, as its
+own `README.md` describes, until `docs/PLAN.md` turns it into cases too.

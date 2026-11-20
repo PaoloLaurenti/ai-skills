@@ -22,6 +22,7 @@ pub enum Call {
     Diff,
     OpenPullRequests,
     View(String),
+    ViewAsText,
     /// From a file, or from standard input when the file is `-`.
     CreateReview(String),
     ResolveThread(String),
@@ -76,7 +77,10 @@ impl Call {
             ("pr", "diff") => Call::Diff,
             ("pr", "list") => Call::OpenPullRequests,
             ("pr", "view") if args.iter().any(|arg| arg == "--comments") => Call::CommentsAsText,
-            ("pr", "view") => Call::View(option(args, "--json").unwrap_or_default().to_string()),
+            ("pr", "view") => match option(args, "--json") {
+                Some(fields) => Call::View(fields.to_string()),
+                None => Call::ViewAsText,
+            },
             ("pr", "comment") => Call::Comment(required(option(args, "--body"))?),
             ("pr", "edit") => Call::ReplaceDescription(required(option(args, "--body-file"))?),
             _ => return Err(Refusal::Unhandled),
@@ -159,7 +163,9 @@ fn rest(args: &[String], pull_request: &PullRequest) -> Result<Call, Refusal> {
         .ok_or(Refusal::NotFound)?
         .split('/')
         .collect();
-    let method = option(args, "--method").unwrap_or("GET");
+    let method = option(args, "--method")
+        .or_else(|| option(args, "-X"))
+        .unwrap_or("GET");
     // A review comment is reached by its id alone, with no pull request in its path.
     if let ("DELETE", ["pulls", "comments", id]) = (method, segments.as_slice()) {
         return Ok(Call::DeleteComment(id_in(id)?));

@@ -65,6 +65,10 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   correct replies. Say what counts as present ("anywhere, in any form and any order")
   and what is not a reason to fail, and ask nothing a one-word answer cannot carry, such
   as naming what is missing.
+- **A rubric of many conditions fails replies that pass each one.** A judge asked for
+  six parts and the absence of three faults failed nearly every correct reply, while ten
+  judges asking one condition each passed all of them. Split a rubric into a few judges
+  of one concern each, and replay to find which condition a failing one trips on.
 - **To find out why a judge failed a reply, replay it from a file.** A throwaway case,
   on haiku with one run, whose scaffold writes the reply into `reply.txt`, graded by a
   copy of the grader with `focus: { source: file, path: reply.txt }`. A `claude -p`
@@ -92,6 +96,17 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   that first instead. A push needs a remote the sandbox reaches, such as a bare
   repository the scaffold creates inside the workspace, and a grader reads what arrived
   from a file of it, such as `origin.git/refs/heads/main`.
+- **The run's home is `/private/tmp/e-XXXX/home`, and the workspace is its `cwd`.**
+  The scaffold sees the same `$HOME`, so it can place a file the skill expects under
+  the home. A run reads there once `Read(//private/tmp/e-*/home/**)` is granted, and
+  writes into a directory of the home once `Edit` is granted on it, the same pattern
+  followed by that directory, such as `.local/state/reviews/**`.
+- **A `Write` into `~/.claude/` or into the workspace's `.git/` is refused whatever the
+  grant**, at CLI 2.1.328. A file a skill keeps there cannot be written in a run. A
+  program writing there through Bash, such as `tools/fake-gh`, is not affected.
+- **A file grader reads inside the workspace only**: a path with `..` or an absolute one
+  is refused as escaping the sandbox. What a run wrote elsewhere is read from the
+  `Write` call in the trace.
 - **A skill's reference files are refused unless `Read` is granted on the plugin**, as
   they sit beside the skill, outside the workspace. `tools/eval.sh` grants it on the copy
   it evaluates.
@@ -121,6 +136,12 @@ histories, passes the fixed options, and writes the report to `evals/results/`.
   with `tools/history-from-trace.sh`, which also appends a turn to an earlier history
   for a third turn. A session recorded with `claude -p` carries the recording machine's
   environment and language instead.
+- **A background agent's report wakes the session inside the turn.** An agent
+  dispatched with `run_in_background` that finishes inside the turn makes the session
+  reply once more, and that reply, not the one before it, is the turn's `last_message`.
+  The report reaches the trace only as a `task_notification` event, which
+  `tools/history-from-trace.sh` turns into the message a session receives for it, so a
+  resumed case finds the report and does not dispatch the agent again.
 - **Paths in a history are relative or placeholders.** Claude copies a recorded path as
   it is, so a placeholder for the workspace sends its edits into a directory of that
   literal name. The script makes workspace paths relative, writes `<home>`, `<tmp>` and

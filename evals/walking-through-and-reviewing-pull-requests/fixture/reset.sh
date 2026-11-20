@@ -1,12 +1,12 @@
 #!/bin/sh
-# Puts one scenario's pull request back in the state every run starts from, and runs
-# before every run, the first one included.
+# Puts one pull request of the fixture back in the state the cases start from, before
+# `photograph.sh` takes it, and once for each when `setup.sh` opens them.
 #
 #   reset.sh <branch>
 #
-# One branch at a time, because the scenarios of an arm run side by side and a reset of
-# every pull request would wipe the runs still going. A run may change five things, and
-# each is undone here:
+# One branch at a time, as the hand-run scenarios once ran side by side, one per pull
+# request. A conversation against the live pull request may change five things, and each
+# is undone here:
 #
 # - the branch, when a run commits and pushes: it goes back to the `guided-base` tag,
 #   forced;
@@ -15,12 +15,10 @@
 # - the description, when a run edits it: `pr-body.md` goes back in;
 # - a pending review, which is what a run is expected to leave: deleted;
 # - the published comments, the planted one included: every one is deleted, and
-#   `review.json` posts the planted one again;
-# - the collected review, the local file a walkthrough builds before the pending review
-#   exists: deleted, since the next run would take it for the review so far.
+#   `review.json` posts the planted one again.
 #
-# The planted comment comes back with a new id on every reset, which is why a scenario
-# reads it from the API instead of writing it down. It is posted on its own rather than
+# The planted comment comes back with a new id on every reset, which is why photographing
+# again means recording again every history of the suite. It is posted on its own rather than
 # inside a review: GitHub never deletes a submitted review, and one posted on its own
 # leaves behind a review with no body, which gives a run nothing to read into.
 set -eu
@@ -45,8 +43,7 @@ gh api --method PATCH "repos/$repo/git/refs/heads/$branch" -f sha="$base" -F for
 
 # A submitted review with a body can be neither deleted nor emptied, and the next run would
 # read it as a review someone already wrote. So a pull request carrying one is closed and
-# replaced by a fresh one on the same branch, which is why the prompts name the branch
-# rather than a number.
+# replaced by a fresh one on the same branch.
 written=$(gh api --paginate "repos/$repo/pulls/$number/reviews" \
     -q '.[] | select(.state != "PENDING" and (.body | length) > 0) | .id' | wc -l | tr -d ' ')
 if [ "$written" -gt 0 ]; then
@@ -58,7 +55,6 @@ if [ "$written" -gt 0 ]; then
     number="${url##*/}"
 fi
 gh api --method PATCH "repos/$repo/pulls/$number" -F "body=@$here/pr-body.md" >/dev/null
-rm -f "$HOME/.claude/reviews/$(echo "$repo" | tr / -)-$number.json"
 
 for id in $(gh api "repos/$repo/pulls/$number/reviews" -q '.[] | select(.state == "PENDING") | .id'); do
     gh api --method DELETE "repos/$repo/pulls/$number/reviews/$id" >/dev/null

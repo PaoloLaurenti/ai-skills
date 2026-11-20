@@ -111,6 +111,7 @@ fn answer(call: Call, pull_request: &mut PullRequest) -> Result<String, Refusal>
         Call::Diff => pull_request.diff.clone().expect("the diff"),
         Call::OpenPullRequests => json_line(&json!([{ "number": pull_request.number }])),
         Call::View(fields) => json_line(&pull_request.viewed(&fields).ok_or(Refusal::Unhandled)?),
+        Call::ViewAsText => pull_request.viewed_as_text().ok_or(Refusal::Unhandled)?,
         Call::CreateReview(file) => {
             let payload = match file.as_str() {
                 "-" => io::read_to_string(io::stdin()).expect("the review payload"),

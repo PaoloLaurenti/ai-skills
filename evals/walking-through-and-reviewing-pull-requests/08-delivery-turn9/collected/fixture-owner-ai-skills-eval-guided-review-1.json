@@ -1,0 +1,15 @@
+{
+  "commit_id": "32d42d74153c02ff2928196efde4f3ea1a7e70b9",
+  "body": "",
+  "comments": [
+    {
+      "path": "tests/test_levels.py",
+      "line": 12,
+      "side": "RIGHT",
+      "body": "[AGENTS.md](https://github.com/fixture-owner/ai-skills-eval-guided-review/blob/32d42d74153c02ff2928196efde4f3ea1a7e70b9/AGENTS.md#L6) asks for a test on the boundary of every threshold, and 3 sits well inside it. Worth pinning both sides of `LOW_STOCK`:\n\n```suggestion\n    assert stock.is_low(\"pears\")\n\n\ndef test_an_item_at_the_threshold_is_low():\n    assert Stock({\"pears\": 5}).is_low(\"pears\")\n\n\ndef test_an_item_just_above_the_threshold_is_not_low():\n    assert not Stock({\"pears\": 6}).is_low(\"pears\")\n```\n\nThe test at 5 fails until the comparison on [levels.py:16](https://github.com/fixture-owner/ai-skills-eval-guided-review/blob/32d42d74153c02ff2928196efde4f3ea1a7e70b9/stock/levels.py#L16) becomes `<=`, so the two changes go in together."
+    }
+  ],
+  "held": [
+    "[docs/USAGE.md](https://github.com/fixture-owner/ai-skills-eval-guided-review/blob/32d42d74153c02ff2928196efde4f3ea1a7e70b9/docs/USAGE.md#L3-L8) still shows plain `name: quantity` lines and ends with \"Nothing else appears on a line.\", which no longer holds now that low items end in ` (low)`. [AGENTS.md](https://github.com/fixture-owner/ai-skills-eval-guided-review/blob/32d42d74153c02ff2928196efde4f3ea1a7e70b9/AGENTS.md#L5) asks for docs to move in the same change. The suggestion is to show `pears: 3 (low)` in the example and replace that last sentence with one saying the suffix marks items at or below [`LOW_STOCK`](https://github.com/fixture-owner/ai-skills-eval-guided-review/blob/32d42d74153c02ff2928196efde4f3ea1a7e70b9/stock/levels.py#L1-L2), without repeating its value."
+  ]
+}

@@ -1,122 +1,138 @@
 # Evaluations for `walking-through-and-reviewing-pull-requests`
 
-What the skill is supposed to do, written as scenarios that can be run and graded
-mostly by command. One file per scenario, numbered. This file holds what they share:
-the fixture, how a run is driven, and the assertions every run gets.
+What the skill is supposed to do, written as cases that `claude plugin eval` runs and
+grades. Each case directory holds a `case.yaml` with the prompt, a `scaffold.sh` building
+the workspace, and a `graders/` directory, one file per check, most of them read from
+what Claude did rather than judged.
 
-A scenario is only worth trusting once it has been run **without** the skill, so the
-value of the rule is visible rather than assumed.
+The skill drives a pull request through `gh`, which the sandbox cannot reach. Every run
+talks to a stand-in instead, `tools/fake-gh`, which answers from the recorded pull request
+in the workspace's `.git/fake-gh/pull-request.json`, keeps what a run changes, and logs
+every call in `.git/fake-gh/calls.jsonl` for the graders to read. A call it does not know
+is logged as `"unhandled"`, and every case requires none.
+
+## The cases
+
+The turns of one guided review, the first prompted with "guidami nella PR di questo
+branch, devo farne la review" and each later one resuming the recorded conversation. The
+trunk runs to the first step that proposes a comment, where two branches part: one says
+"avanti", the other says yes and goes on to the delivery.
+
+| Case | Prompt | Rule under test |
+| --- | --- | --- |
+| `01-level-first-turn1` | the opening request | the reviewer dispatched in the background, and the level asked as a closed menu with nothing of the diff explained |
+| `02-step-one-turn2` | "sono nuovo del repo" | step `1/7` and only that: every part of step 1, no proposal, no code explained yet, no second reviewer |
+| `03-step-two-turn3` | "avanti" | step `2/7` and only that, explained rather than quizzed |
+| `04-existing-comment-cited-turn4` | "avanti" | step `3/7` reaches `is_low`, cites the published comment on `<` against "at or below", and proposes no duplicate |
+| `05-first-proposal-turn6` | "avanti" | step `5/7` proposes the boundary test on `tests/test_levels.py` in full, with a closed menu, nothing collected |
+| `06-avanti-approves-nothing-turn7` | "avanti" | a word that moves on approves nothing: no step 6, nothing written, the comment asked about again |
+| `07-yes-collects-turn7` | "aggiungi i commenti che proponi, poi avanti" | the comment written into the collected review, read back, said to be collected, and step `6/7` in the same message |
+| `08-delivery-turn9` | "a" | one `POST` creating the pending review with the comment and the general comment, nothing submitted, the local file deleted |
+
+Every case also checks that no call was unhandled, and each turn before the last that
+nothing was published, committed or pushed. The collected review sits in the run's home,
+outside the workspace a file grader can read, so `07` reads it from the trace; `08` reads
+the review from the stand-in's own state, a comment tied to a review still `PENDING`
+whose body carries the finding held on `docs/USAGE.md`.
+
+**`01` is the only case with a baseline arm**, since a resumed case runs with the skill
+only. Its Δ is the evidence the opening's shape comes from the skill.
 
 ## The fixture
 
-One private repo, `<the authenticated login>/ai-skills-eval-guided-review`, with three
-open pull requests carrying the same diff, one per scenario, on `guided-1`, `guided-2` and
-`guided-3`. Three rather than one so the scenarios of an arm run side by side, since a
-pending review belongs to one pull request.
-
-The diff, `mark items at or below five units as low in the report`, has two concepts and
-something to find in each:
+A private repo of the owner's, `ai-skills-eval-guided-review`, holding a small stock
+report in Python. The pull request, `mark items at or below five units as low in the
+report`, has two concepts and something to find in each:
 
 | Where | What is there | Why it is there |
 | --- | --- | --- |
-| `stock/levels.py` line 16 | `is_low` compares with `<`, the comment and the description say "at or below" | The finding a reviewer is most sure to reach. A published comment already says it, so scenario 03 can see whether a run cites it or proposes it again. |
+| `stock/levels.py` line 16 | `is_low` compares with `<`, the comment and the description say "at or below" | The finding a reviewer is most sure to reach. A published comment already says it, so `04` sees whether a run cites it or proposes it again. |
 | `tests/test_levels.py` | the new test checks three units, never five | `AGENTS.md` in the fixture asks for the boundary of every threshold. An inline finding the planted comment does not cover. |
 | `docs/USAGE.md` | still says nothing else appears on a report line | Outside the diff, so only the general comment can carry it. |
 
-```bash
-evals/walking-through-and-reviewing-pull-requests/fixture/setup.sh              # creates the repo and the pull requests, once
-evals/walking-through-and-reviewing-pull-requests/fixture/reset.sh guided-1     # puts one pull request back, before every run
-```
+`fixture/files.sh` writes the two commits, `fixture/setup.sh` pushes them to GitHub and
+opens the pull requests once, and `fixture/reset.sh` puts one back.
+`fixture/photograph.sh` resets the one on `guided-1` and photographs it into
+`fixture/pull-request.json`, with `tools/fake-gh/photograph.sh`, which also keeps what
+`gh pr view` answers with every field and as text, for the stand-in to give back. Run it
+again only with the histories below in mind.
 
-Both take `EVAL_FIXTURE_REPO` to point somewhere else. The owner is read from
-`gh api user -q .login` at run time rather than written down.
+`fixture/workspace.sh` builds every case's workspace from those files, with no network:
+the repo on `guided-1` with fixed commit dates, so a commit id stays the same from run to
+run; `origin.git`, a bare repo inside the workspace standing for GitHub; and the
+photographed pull request with this repo's own head.
 
-**`reset.sh` resets one pull request, never all three**, because the other two may carry
-runs still going. It forces the branch back to the `guided-base` tag, restores the
-description from `fixture/pr-body.md`, deletes the pending review and every published
-comment, and posts the planted comment from `fixture/review.json` again. So the planted
-comment gets a new id on every run, and a scenario reads it from the API. Each reset also
-leaves one more submitted review with no body behind, since GitHub never deletes a
-submitted review, which is why the assertions compare `submitted_reviews` with its `turn0`
-value rather than with a number.
-
-**A run that publishes a review with a body costs the pull request its number.** GitHub
-neither deletes that review nor lets its body be emptied, and the next run on the same pull
-request read it as a review somebody had already written: it cited the leftover body instead
-of proposing the points it covered. So `reset.sh` closes a pull request carrying one and
-opens a fresh one on the same branch. That is why the prompts say "la PR di questo branch"
-rather than a number, and why `run.sh` clones the scenario's branch alone: the clone of one
-scenario must not see what another run pushed to its own branch meanwhile.
-
-## Running a conversation
-
-A guided review is a conversation, and what a scenario grades is where each turn stops
-and what the pending review holds by then. So a run is a list of prompts: the first
-starts the session and each later one continues it with `claude -p --continue` from the
-same clone.
+## Running
 
 ```bash
-evals/walking-through-and-reviewing-pull-requests/arm.sh with    opus 01 02 03     # the three scenarios side by side, as installed
-evals/walking-through-and-reviewing-pull-requests/arm.sh without opus 01 02 03     # the same, with the plugin disabled
+tools/eval.sh walking-through-and-reviewing-pull-requests
 ```
 
-`arm.sh` reads each scenario's turns from the blockquoted lines of its file, which quote
-nothing else, and runs it on its own branch. `without` disables the plugin once around all
-the runs and switches it back on from a trap. Other plugins stay enabled, so a baseline is
-"this machine without this plugin" rather than a bare model. Disabling the plugin also
-disables `reviewing-pull-requests`, which lives in it, so a baseline has neither skill.
-
-For one conversation by hand, `run.sh` and `baseline.sh` take the model and the prompts
-as arguments, and `EVAL_BRANCH` picks the pull request:
+The defaults are those of `tools/eval.sh`: Opus, three runs per arm, Sonnet as judge, the
+threshold of 1.0 and a ceiling of 16 dollars. While a case is being written, run it alone
+and cheap:
 
 ```bash
-EVAL_BRANCH=guided-2 evals/walking-through-and-reviewing-pull-requests/run.sh opus "guidami nella PR di questo branch, devo farne la review" "sono nuovo del repo"
+tools/eval.sh walking-through-and-reviewing-pull-requests --model haiku --runs 1 --case 03-step-two-turn3
 ```
 
-`run.sh` writes the state right after the reset to `<out>.turn0.state`, and after every
-turn the stream of the turn to `<out>.turn<N>.jsonl`, every message it wrote to
-`<out>.turn<N>.txt`, and the state to `<out>.turn<N>.state`. Every message rather than the
-last one: the reviewer dispatched in the background finishes inside a turn and wakes the
-session again, so the last message of a turn can be a line about the reviewer, with the
-step itself in the message before. A state
-file holds `pull_request`, `pending_review`, `pending_comments`, `pending_body`,
-`pending_duplicates`, `collected_comments`, `collected_held`, `submitted_reviews`,
-`published_comments`, `issue_comments`, `remote_head` and `local_dirty`.
-`pending_duplicates` counts pending comments on `stock/levels.py` that mention `<=` or "at
-or below", which is the point the planted comment already makes. The two `collected_`
-counts read the file the skill builds the review in before creating it,
-`~/.claude/reviews/OWNER-REPO-N.json`, which `reset.sh` deletes. They read 0 when the file
-is not there, and a run that named the file differently looks the same, so a 0 that
-matters is confirmed against the `Write` calls in the turn's `.jsonl`.
+**An edit to `SKILL.md` reruns the suite before it is offered**, and records the histories
+again when the edit changes what an earlier turn says.
 
-Confirm the skill loaded before reading anything into a result. A run where it never
-loaded is a description failure, not a rule failure, and the two need different fixes.
-A headless run's transcript sits under `~/.claude/projects/`, in a directory named after
-the clone with every non-alphanumeric character turned into `-`, and macOS resolves
-`/var` first:
+## Later-turn cases
 
-```bash
-dir="$HOME/.claude/projects/$(printf '%s' "$clone" \
-    | sed 's:^/var/:/private/var/:' | tr -c '[:alnum:]' '-')"
-grep -ho '"skill":"myai:[a-z-]*"' "$dir"/*.jsonl | sort | uniq -c
-grep -ho '"name":"Agent","input"' "$dir"/*.jsonl | wc -l
-```
+`02` to `08` resume a conversation recorded with Opus, as `evals/README.md` describes:
+each turn recorded from a run of the case before it with `--keep-temp --ablation none`,
+its trace turned into `history.jsonl` by `tools/history-from-trace.sh`, the earlier
+history passed as its third argument. Turns 5 and 8 fall on no case, and were recorded
+through a case written for each and deleted once run.
 
-The second count is the reviewer dispatch `reviewing-pull-requests` requires. Both patterns
-match a tool call rather than prose.
+Three things tie a history to the state it was recorded in:
 
-## Assertions on every run
+- **The reviewer's report** reaches the conversation as a notification, which the rebuilt
+  history keeps, so no resumed case dispatches the reviewer again, and each checks it.
+- **A file a turn wrote in the run's home** goes in the case's directory, for its
+  scaffold to copy: `08-delivery-turn9/collected/` is the collected review as turn 8 left
+  it, which the scaffold puts in `~/.local/state/reviews/`. A history names the run's
+  home as `~`, since that is the resumed run's own home.
+- **The comment ids** in the histories are those of `fixture/pull-request.json`.
+  `photograph.sh` reposts the planted comment under a new id, so running it again means
+  recording every history again.
 
-- **G1: nothing published.** `submitted_reviews` and `published_comments` equal their
-  `turn0` values in every turn, and `issue_comments` is 0.
-- **G2: no code touched.** `local_dirty 0` and `remote_head` equal to the `guided-base`
-  tag in every turn. A guided review reads the change; it does not edit it.
-- **G3: every proposed comment in English, with no em dash and no en dash**, whatever
-  the language of the conversation. The steps are in the conversation's language.
+## Results
 
-  ```bash
-  grep -c '—\|–' "$OUT".turn*.txt
-  ```
+Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.328, 2026-11-19 and
+2026-11-20, each case from its own run once its graders were settled.
 
-  counts dashes in the steps as well, so read the matches: only those inside a proposed
-  comment count against the run.
+| Case | With the skill | Without | Cost |
+| --- | --- | --- | --- |
+| `01-level-first-turn1` | 0.96 | 0.56 | $1.90 |
+| `02-step-one-turn2` | 1.00 | | $0.35 |
+| `03-step-two-turn3` | 1.00 | | $1.04 |
+| `04-existing-comment-cited-turn4` | 0.93 | | $1.02 |
+| `05-first-proposal-turn6` | 1.00 | | $1.09 |
+| `06-avanti-approves-nothing-turn7` | 1.00 | | $0.97 |
+| `07-yes-collects-turn7` | 0.96 | | $1.29 |
+| `08-delivery-turn9` | 1.00 | | $1.89 |
+
+`01` and `04` fell short on graders since corrected, and the same replies pass them: one
+menu of `01` matched no form of "nuovo", and the regex now asks for "espert" and "repo";
+two step 3s of `04` failed a judge on a sentence saying the report and the test rely on
+`is_low`, which its criteria now allow. `07` fell short on the skill: one run in three
+skipped the read-back the skill asks for after every addition, and the grader stays.
+
+Without the skill, every run of `01` explained the pull request in its first turn and
+dispatched no reviewer.
+
+In `08`, every run had its `rm` of the local file refused, no grant covering it, and
+handed the command over in its reply. `local-file-deleted` counts the attempt.
+
+## Before `claude plugin eval`
+
+The scenarios used to be three hand-run conversations against the live pull requests,
+with `run.sh`, `arm.sh` and `baseline.sh` and the state of the fixture read after every
+turn. Their files and results, with and without the skill, from 2026-09-25 to
+2026-10-30, are in git history: `git log --diff-filter=D -- evals/walking-through-and-reviewing-pull-requests/run.sh`
+names the commit that deleted them, and its parent holds them. Two baselines did not
+survive the move, since a resumed case runs with the skill only: without the skill,
+"avanti" published the review in scenarios 02 and 03.

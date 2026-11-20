@@ -82,7 +82,11 @@ results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # too, where a skill keeps what it writes outside the working tree, since a command
 # naming a file there, such as `gh pr edit --body-file`, is refused otherwise. Agent is
 # granted because a skill may dispatch a reviewer, as `addressing-pull-request-reviews`
-# does before publishing.
+# does before publishing. Read and Edit are granted on the collected reviews under each
+# run's home, where `walking-through-and-reviewing-pull-requests` keeps the review it
+# builds; outside the workspace, a run refuses both otherwise.
+run_home='//private/tmp/e-*/home'
+collected="$run_home/.local/state/reviews/**"
 claude plugin eval "$copy" \
     --output-dir "$results" \
     --report "$results/report.html" \
@@ -92,6 +96,6 @@ claude plugin eval "$copy" \
     --model opus \
     --judge-model sonnet \
     --max-cost-usd 16 \
-    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' "Read(/$copy/**)" 'Read(//private/tmp/e-*/tmp/**)' \
+    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' "Read(/$copy/**)" 'Read(//private/tmp/e-*/tmp/**)' "Read($collected)" "Edit($collected)" \
     --tag "$skill" \
     "$@"
