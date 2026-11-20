@@ -26,7 +26,7 @@ trunk runs to the first step that proposes a comment, where two branches part: o
 | `04-existing-comment-cited-turn4` | "avanti" | step `3/7` reaches `is_low`, cites the published comment on `<` against "at or below", and proposes no duplicate |
 | `05-first-proposal-turn6` | "avanti" | step `5/7` proposes the boundary test on `tests/test_levels.py` in full, with a closed menu, nothing collected |
 | `06-avanti-approves-nothing-turn7` | "avanti" | a word that moves on approves nothing: no step 6, nothing written, the comment asked about again |
-| `07-yes-collects-turn7` | "aggiungi i commenti che proponi, poi avanti" | the comment written into the collected review, read back, said to be collected, and step `6/7` in the same message |
+| `07-yes-collects-turn7` | "aggiungi i commenti che proponi, poi avanti" | the comment written into the collected review, read back, said to be collected, and the next step in the same message, on a conversation of its own, below |
 | `08-delivery-turn9` | "a" | one `POST` creating the pending review with the comment and the general comment, nothing submitted, the local file deleted |
 
 Every case also checks that no call was unhandled, and each turn before the last that
@@ -95,14 +95,22 @@ Three things tie a history to the state it was recorded in:
   scaffold to copy: `08-delivery-turn9/collected/` is the collected review as turn 8 left
   it, which the scaffold puts in `~/.local/state/reviews/`. A history names the run's
   home as `~`, since that is the resumed run's own home.
+- **The skill as it was.** A history carries the `SKILL.md` its first turn loaded, so an
+  edit reaches a resumed case only once its turns are recorded again. After the read-back
+  after every addition was strengthened, on 2026-11-20, turns 1 to 6 were recorded again
+  for `07` alone, and that conversation went its own way: six steps rather than seven, the
+  first proposal at step 4, on `docs/USAGE.md`, left undecided by an "avanti" and asked
+  again. So `07` collects that finding under `held` and moves on to step `5/6`, while
+  `02` to `06` and `08` keep the conversation recorded before the edit, which the
+  strengthened sentence does not touch.
 - **The comment ids** in the histories are those of `fixture/pull-request.json`.
   `photograph.sh` reposts the planted comment under a new id, so running it again means
   recording every history again.
 
 ## Results
 
-Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.328, 2026-11-19 and
-2026-11-20, each case from its own run once its graders were settled.
+Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.328, and 2.1.329 for `07`,
+2026-11-19 and 2026-11-20, each case from its own run once its graders were settled.
 
 | Case | With the skill | Without | Cost |
 | --- | --- | --- | --- |
@@ -112,20 +120,25 @@ Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.328, 2026-11-19 and
 | `04-existing-comment-cited-turn4` | 0.93 | | $1.02 |
 | `05-first-proposal-turn6` | 1.00 | | $1.09 |
 | `06-avanti-approves-nothing-turn7` | 1.00 | | $0.97 |
-| `07-yes-collects-turn7` | 0.96 | | $1.29 |
+| `07-yes-collects-turn7` | 1.00 | | $1.32 |
 | `08-delivery-turn9` | 1.00 | | $1.89 |
 
 `01` and `04` fell short on graders since corrected, and the same replies pass them: one
 menu of `01` matched no form of "nuovo", and the regex now asks for "espert" and "repo";
 two step 3s of `04` failed a judge on a sentence saying the report and the test rely on
-`is_low`, which its criteria now allow. `07` fell short on the skill: one run in three
-skipped the read-back the skill asks for after every addition, and the grader stays.
+`is_low`, which its criteria now allow. `07` first scored 0.96, one run in three
+skipping the read-back the skill asks for after every addition. After that sentence of
+`SKILL.md` was strengthened and the conversation recorded again, the read-back held in 9
+runs of 9, over three runs of three on 2026-11-20; the last scored 1.00, and one run of
+the one before failed `says-it-is-collected` on a reply whose trace was not kept.
 
 Without the skill, every run of `01` explained the pull request in its first turn and
 dispatched no reviewer.
 
 In `08`, every run had its `rm` of the local file refused, no grant covering it, and
-handed the command over in its reply. `local-file-deleted` counts the attempt.
+handed the command over in its reply. `local-file-deleted` counts the attempt, by `rm`
+or by `find -delete`, which `tools/eval.sh` now grants as `find` and the sandbox refuses
+just the same.
 
 ## Before `claude plugin eval`
 

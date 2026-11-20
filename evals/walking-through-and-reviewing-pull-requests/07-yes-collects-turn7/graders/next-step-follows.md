@@ -1,6 +1,7 @@
 ---
 type: regex
 flags: m
-# Once the step's one comment has its answer, step 6 comes in the same message.
-pattern: '^\*\*6\s*/\s*7'
+# Once the step's one comment has its answer, step 5 of the recorded six comes in the same
+# message, its header bold or a heading.
+pattern: '^(?:\*\*|#+\s*)5\s*/\s*6'
 ---

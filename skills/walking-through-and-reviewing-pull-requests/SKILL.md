@@ -149,8 +149,10 @@ same menu, but it cannot be anchored: an approved one is held for the general co
 ## After an answer
 
 - **Add**: write the comment into [the collected review](#the-collected-review), under
-  `comments`, or under `held` when its file is outside the diff. Read the file back, then
-  say in one line that the comment is collected and how many the review now holds.
+  `comments`, or under `held` when its file is outside the diff. Then read the file back
+  with `Read`, every time, even when the write reported success: it is the only check that
+  the comment landed where the delivery will look for it. Only then say in one line that
+  the comment is collected and how many the review now holds.
 - **Add with a change**: apply the requester's change, check the result against
   `reviewing-pull-requests` again (English, impersonal, no em dash, a proposal in it),
   show the final text, and add that.
