@@ -132,6 +132,9 @@ skipping the read-back the skill asks for after every addition. After that sente
 runs of 9, over three runs of three on 2026-11-20; the last scored 1.00, and one run of
 the one before failed `says-it-is-collected` on a reply whose trace was not kept.
 
+Run again on 2026-11-20, with the skill only, after `nothing-published` was widened to
+the GraphQL requests sent from a file: every case at 1.00, $9.64.
+
 Without the skill, every run of `01` explained the pull request in its first turn and
 dispatched no reviewer.
 

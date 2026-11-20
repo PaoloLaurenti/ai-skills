@@ -108,6 +108,14 @@ what its judge fails; the other graders pass, the baseline publishing nothing on
 turn either. Before the stand-in answered `files`, one run in three of `01` asked for it
 and failed on the unhandled call.
 
+**Run again on 2026-11-20**, with the skill only, CLI 2.1.329, after `nothing-published`
+was widened to the GraphQL requests sent from a file: `01`, `03` and `04` at 1.00, `02`
+at 0.93, $3.62. One run of `02` failed `second-comment-only` three votes of three; the
+same reply, replayed from a file, passed it three of three, and split by condition only
+"asks for permission to publish instead of presenting the second comment" failed, two
+votes of three, on a reply that presents it and closes by asking to approve the change
+and the reply.
+
 ## Before `claude plugin eval`
 
 The scenarios used to be hand-run conversations against the live pull request, with

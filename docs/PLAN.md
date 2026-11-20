@@ -891,6 +891,13 @@ The three GitHub suites, rebuilt around a fake `gh`:
         grants reach every suite; after them every case of the three suites ran once on
         haiku, $0.81, which proves the cases load and the scaffolds build, not the
         scores. Only the recording of `07` and the cases of this suite ran on Opus since.
+
+        *Done, 2026-11-20*, with the requester's go, skill only: the walkthrough suite at
+        1.00 on every case, $9.64; the addressing suite at 1.00 but `02`, 0.93, $3.62,
+        one judge failing a reply its replay passes, as that suite's `README.md` records.
+        Twice today a judge failed a reply three votes of three in the run and passed
+        the same reply three of three replayed from a file, here and in
+        `reviewing-pull-requests`' `10`; why the two disagree is not known yet.
 - [x] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
       *Done 2026-11-20.* `evals/README.md` has a section on the stand-in: what it reads
