@@ -887,6 +887,14 @@ The three GitHub suites, rebuilt around a fake `gh`:
         which reads the addressing suite's only.
       - The rewritten `setup.sh` has not run, since the fixture repo exists; the trees
         `files.sh` writes match GitHub's, which is what it relies on.
+
+        *Done, 2026-11-21*, with the requester's go: run with `EVAL_FIXTURE_REPO` naming
+        a throwaway private repo, it built every branch with the tree of the real
+        fixture's, `main` and the `follow-up-base` tag included, and opened the nine pull
+        requests with the real ones' titles and descriptions. Only `follow-up`'s head
+        differs, as it should: the real one carries the author's fix that
+        `seed-submitted-review.sh` pushes. The token `gh` holds has no `delete_repo`
+        scope, so the requester deletes the throwaway repo by hand.
       - A change to the stand-in's log, the payload as `input`, and the `find` and `jq`
         grants reach every suite; after them every case of the three suites ran once on
         haiku, $0.81, which proves the cases load and the scaffolds build, not the
