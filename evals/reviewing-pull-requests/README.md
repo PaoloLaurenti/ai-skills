@@ -39,13 +39,13 @@ The later turns, each resuming the conversation recorded up to it:
 | `09-follow-up-final-turn-turn3` | "sì" | the second thread resolved, then the final turn: the untouched two-decimals thread, `app/currency.py` changed by no thread, and the question whether to review the new commits |
 | `09-follow-up-delivery-turn4` | "no, niente review dei nuovi commit…", with a reply to add | one pending draft holding the reply on the two-decimals thread, by GraphQL, nothing published or submitted, the submit command given |
 | `10-one-at-a-time-turn2` | "uno alla volta" | point 1 of 3 alone, its comment in a fenced block, why it matters in plain words and two sentences at most, one question, nothing written anywhere |
-| `10-drop-collects-nothing-turn3` | "scarta" | nothing collected, point 2 of 3 in the same message |
-| `10-add-with-a-change-turn4` | "aggiungilo, ma togli l'ultima frase" | the comment collected in `~/.local/state/reviews/` without its last sentence, never sent to GitHub, point 3 of 3 next |
+| `10-drop-collects-nothing-turn3` | "scarta" | nothing collected, point 2 of 3 in the same message, its why in two sentences at most |
+| `10-add-with-a-change-turn4` | "aggiungilo, ma togli l'ultima frase" | the comment collected in `~/.local/state/reviews/` without its last sentence, never sent to GitHub, point 3 of 3 next, its why in two sentences at most |
 | `10-delivery-turn5` | "aggiungi" | one `POST` creating the draft with the two comments added, nothing submitted, the submit command given, the local file deleted |
 
 Every case that delivers a review also checks, over the payload in the log, what the
 hand-run suite checked on every review: one `POST` and no `event`, nothing published, no
-em dash, no first or second person, every repo file linked outside a `suggestion` block,
+em dash, no first or second person, every repo file linked outside a `suggestion` block or a quote of proposed wording,
 every permalink at the workspace's head, no inline comment's prose past 80 words before
 its block, English, and the reviewer dispatched before anything was written.
 

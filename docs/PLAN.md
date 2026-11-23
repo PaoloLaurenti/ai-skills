@@ -34,8 +34,8 @@ but not everything the hand-built suite does, as the probes below show.
       printed the full option list. Open at 2.1.322, on 2026-11-11, in a throwaway plugin
       holding one skill: `init --bare probe` wrote `evals/probe/prompt.md` and
       `evals/probe/graders/criteria.md`, and a one-case run with `--runs 1 --ablation none
-      --model haiku --no-publish --max-cost-usd 0.5` scored 1.00. Not yet run on this
-      repo.
+      --model haiku --no-publish --max-cost-usd 0.5` scored 1.00. Every suite of this
+      repo has run on it since.
 
 ### What the command can and cannot do, probed on 2026-11-11
 
@@ -1566,6 +1566,15 @@ comment explaining how a finding was reached rather than what to do about it".
   2026-11-23*, one run each with the skill only, since that wording reaches them only
   through the condition that skips the question: every case at 1.00, $4.95, 13
   minutes, weekly usage unchanged at 24%, the session's 1% to 6%.
+- *Two residues closed, 2026-11-23.* `every-file-linked`, in `01` to `08`, no longer
+  reads a file named on a line opening with `>`, the form a run gave proposed README
+  wording in `06`; checked against six sample bodies and the logs of the eight runs
+  kept that day, which it reads as before. `10`'s turns 3 and 4 get
+  `why-in-two-sentences`, as turn 2 has: replayed from files on haiku, it failed a
+  recorded turn 3 whose why ran to five sentences and passed one of two, three votes
+  each. On Opus, three runs each, $2.06: turn 3 at 0.94, one run's why at five
+  sentences, a fair fail; turn 4 at 1.00. Weekly usage stayed at 25%, the session went
+  from 8% to 10%.
 
 - [x] Settle the three points above with the requester.
 - [x] Write the rule, keeping the body within 500 lines.
