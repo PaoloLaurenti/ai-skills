@@ -8,7 +8,7 @@
       "start_side": "RIGHT",
       "line": 6,
       "side": "RIGHT",
-      "body": "The previous `COPY --chmod=755` set the mode in the same instruction, with no extra layer, and kept it even from a checkout that drops the executable bit.\n\n```suggestion\nCOPY --chmod=755 docker-entrypoint.sh ./\n```"
+      "body": "The `COPY --chmod=755` this replaces set the mode in the same step.\n\n```suggestion\nCOPY --chmod=755 docker-entrypoint.sh ./\n```"
     }
   ]
 }

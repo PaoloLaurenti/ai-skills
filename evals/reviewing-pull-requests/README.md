@@ -29,7 +29,7 @@ conversation.
 | `07-append-to-open-draft-turn1` | `#7`, `open-draft` | non-negotiable 2: an open draft is appended to, its comments and general comment kept word for word, and the one breaking the conventions named in the reply |
 | `08-values-in-docs-turn1` | `#8`, `values-in-docs` | the doc section copying two values is answered inline with prose that carries no number and names `app/limits.py` |
 | `09-follow-up-first-thread-turn1` | `#13`, `follow-up` | a follow-up counts two threads, presents the first alone, proposes resolving it and asks, with nothing written to GitHub |
-| `10-asks-how-to-build-turn1` | `#4`, `suggestions` | a request naming no approach gets one question, after the reviewer, between the draft now and one point at a time |
+| `10-asks-how-to-build-turn1` | `#4`, `suggestions` | a request naming no approach gets one question, after the reviewer, between the draft now and one point at a time, after one plain line per point |
 
 The later turns, each resuming the conversation recorded up to it:
 
@@ -38,7 +38,7 @@ The later turns, each resuming the conversation recorded up to it:
 | `09-follow-up-resolve-turn2` | "sì" | the yes resolves the first thread at once and nothing else, and thread 2 of 2 follows in the same message |
 | `09-follow-up-final-turn-turn3` | "sì" | the second thread resolved, then the final turn: the untouched two-decimals thread, `app/currency.py` changed by no thread, and the question whether to review the new commits |
 | `09-follow-up-delivery-turn4` | "no, niente review dei nuovi commit…", with a reply to add | one pending draft holding the reply on the two-decimals thread, by GraphQL, nothing published or submitted, the submit command given |
-| `10-one-at-a-time-turn2` | "uno alla volta" | point 1 of 3 alone, its comment in a fenced block, one question, nothing written anywhere |
+| `10-one-at-a-time-turn2` | "uno alla volta" | point 1 of 3 alone, its comment in a fenced block, why it matters in plain words and two sentences at most, one question, nothing written anywhere |
 | `10-drop-collects-nothing-turn3` | "scarta" | nothing collected, point 2 of 3 in the same message |
 | `10-add-with-a-change-turn4` | "aggiungilo, ma togli l'ultima frase" | the comment collected in `~/.local/state/reviews/` without its last sentence, never sent to GitHub, point 3 of 3 next |
 | `10-delivery-turn5` | "aggiungi" | one `POST` creating the draft with the two comments added, nothing submitted, the submit command given, the local file deleted |
@@ -97,6 +97,12 @@ The later turns of `09` and `10` resume a conversation recorded with Opus, as
 passing run of the case before it, kept with `--keep-temp`, the earlier history passed as
 its third argument. `10`'s first turn was recorded from a run whose reviewer left three
 points, the chown with no `USER`, the `COPY` and `chmod` pair, and the debug line.
+
+**A history carries the skill as it was when recorded**, since the loaded `SKILL.md` is
+part of the conversation: a later turn tests that text, not the current one. An edit a
+later turn should see means recording its history again. `10`'s were recorded again on
+2026-11-21 from a first turn that passed everything but `one-line-per-point`, since no
+run of it passes that judge; `09`'s still carry the skill of 2026-11-20.
 
 Three things tie a history to the state it was recorded in:
 
@@ -174,6 +180,17 @@ while the same replies replayed from a file passed it three votes of three. Spli
 condition each, the replay failed "names the weightiest point" on both: the replies list
 every point in detail and ask, without saying which point weighs most, which `SKILL.md`
 asks for. The baseline arm, which the change does not touch, was not run again.
+
+**After the points were asked to be simple and brief**, 2026-11-21, three runs per case
+with the skill only, $23.85: every case at 1.00 but `08`, at 0.98 on a file named bare in
+a proposed sentence, and `10`'s first two turns. The first turn stays at 0.83 through five
+wordings of the message before the question: each point keeps a sentence or two of why
+after its one line, and `one-line-per-point` fails every run. Its later turns, recorded
+again on the current text, scored 0.92, 1.00, 1.00 and 1.00. A judge asking every review
+comment to be understood at first read was tried on `01` to `08` and removed: replayed
+from files, it failed reviews Opus had rewritten as simply as asked, `docs/PLAN.md` has
+the detail. After the last wording of that message, `01` to `08`, run once each on
+2026-11-23, all scored 1.00.
 
 Without the skill, every run of `01` tried to submit its review, with an `event` or
 `gh pr review`, no run of `07` appended to the open draft, and no run of any case

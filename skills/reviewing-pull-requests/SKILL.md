@@ -20,17 +20,16 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
 
 ## Non-negotiables
 
-1. **ALWAYS create the review in PENDING state. Never submit it.** The general
-   comment and every inline comment stay pending, visible only to the account
-   that created the review, until it gets submitted by hand. Create it pending,
-   then state the command to submit. The only thing that changes this is an
-   explicit request to submit or publish the review; a request to write, prepare,
-   add, or leave a review is not that, and neither is a review that reads as
-   ready to go. A follow-up on a review already submitted holds to the same rule:
-   each reply to one of its threads goes into a pending draft, never through the
-   endpoint that answers a comment directly, which publishes at once. Resolving a
-   thread is the one change made on GitHub straight away, and only after an
-   explicit yes to that thread's question.
+1. **ALWAYS create the review in PENDING state. Never submit it.** The general comment
+   and every inline comment stay pending, visible only to the account that created the
+   review, until it gets submitted by hand. Create it pending, then state the command to
+   submit. The only thing that changes this is an explicit request to submit or publish
+   the review; a request to write, prepare, add, or leave a review is not that, and
+   neither is a review that reads as ready to go. A follow-up on a review already
+   submitted holds to the same rule: each reply to one of its threads goes into a
+   pending draft, never through the endpoint that answers a comment directly, which
+   publishes at once. Resolving a thread is the one change made on GitHub straight away,
+   and only after an explicit yes to that thread's question.
 2. **Never delete or rewrite a draft this run did not create.** A pending review
    already open on the pull request is appended to, never replaced. A comment
    already in it that breaks these conventions stays exactly as written: leave it
@@ -45,9 +44,8 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
    constructions instead. This holds even where a first-person plural would sound
    collegial: "we are in good shape today" becomes "today's position is fine",
    and "gives us a way in" becomes "leaves a way in".
-6. **Be short and direct.** No filler, and every comment stays as short and as
-   plainly worded as it can be while still being actionable. See One point per
-   comment for the shape that takes.
+6. **Be short, direct and easy to understand.** No filler: every point, in the review
+   and in the conversation, as short and plain as it can be while still actionable.
 7. **The findings come back from a dispatched reviewer subagent**, through
    superpowers' `requesting-code-review`, run first. Loading that skill is not the
    requirement, dispatching is, and nothing gets written before the subagent
@@ -56,23 +54,31 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
 
 ## Tone
 
-Cordial, warm, and constructive throughout, in the general comment and in every
-inline comment alike. The reader is a colleague who did real work. The review
-should sound like a helpful colleague thinking out loud, never like a verdict
-being handed down.
+Cordial, warm, and constructive throughout, in the general comment and in every inline
+comment alike. The reader is a colleague who did real work. The review should sound like
+a helpful colleague thinking out loud, never like a verdict being handed down.
 
 - Frame a finding as something to update, not as a mistake someone made. "This
   section is ready for a refresh" rather than "this is wrong".
 - Prefer "worth doing" and "might be" over "must" and "this fails".
 - Headings name the topic kindly, not the fault. "Docs to refresh" rather than
   "Docs this change makes wrong".
-- Where the change gets something genuinely right, say so on the line that does
-  it.
+- Where the change gets something genuinely right, say so on the line that does it.
 - Drop blunt superlatives and flat verdicts. "The worst is", "nobody wrote this
   down" and "crash loop with no way in" all say it more coldly than needed.
 
 Warmth never costs precision or adds padding: it comes from word choice, not from
 added praise or hedging.
+
+## Understood at once
+
+Every point, in a comment or in the conversation, is understood at first read by the
+one who reads it: the pull request's author in a comment, the requester in the
+conversation. Neither did the review, and what is simple depends on what they know.
+
+So before anything is sent, rewrite each comment, and each point before it reaches the
+requester, as simply as it can be said to that reader, keeping what it asks, its links
+and its `suggestion` block. Send the simpler version.
 
 ## One point per comment
 
@@ -80,10 +86,9 @@ A review is scanned between other work, not read through. Every comment is
 written for a colleague giving it a few seconds, so it says one thing, in the
 plainest words that still carry it.
 
-**Keep an inline comment's prose under 80 words, and most of them well under 50.**
-Code inside a `suggestion` block does not count: it is the fix, not the
-explaining. Going over is the signal to cut, and there are only three things a
-comment needs:
+**Keep an inline comment's prose under 80 words, and most of them well under 50.** Code
+inside a `suggestion` block does not count: it is the fix, not the explaining. Going
+over is the signal to cut, and there are only three things a comment needs:
 
 1. what is wrong, on the line it is wrong on;
 2. why it matters, in one sentence, only where it is not obvious;
@@ -96,18 +101,14 @@ what stays out of the comment is the working, not the work.
 
 - **One comment makes one point.** A comment carrying two findings is two
   comments, each on the line it belongs to.
-- **Short sentences, ordinary words.** No nested clauses, no sentence that has to
-  be read twice. Prefer the word a colleague would say out loud.
 - **Say the thing, then stop.** A comment that has already given the fix does not
   also need a summary of itself.
 - **The alternative is not a comment.** Where a point genuinely needs several
   paragraphs, it is a design discussion, and it belongs in the general comment or
   in an issue rather than anchored to a line.
 
-**The general comment is measured per finding, not as a whole.** It legitimately
-carries several, so a total word count would only force one of them out. Each
-finding in it gets the same 80 words and the same three parts as an inline
-comment, and the prose introducing the sections stays to a sentence or two.
+**The general comment is measured per finding**, never as a whole: each gets the same
+80 words and three parts, and the prose introducing its sections a sentence or two.
 
 ## Pragmatic and concrete
 
@@ -120,8 +121,7 @@ code, in words the reader can act on without translating them first.
   something violates DRY, separation of concerns, or single responsibility.
 - **The value, the setting, the call, the replacement wording.** "Cache the
   compiled regex in a `OnceLock`", never "this could be more efficient".
-- **Nothing hypothetical.** What someone might one day do to this code is not a
-  finding.
+- **Nothing hypothetical.** What someone might one day do to this code is not a finding.
 
 ## Where the findings come from
 
@@ -135,11 +135,10 @@ diff does, `PLAN_OR_REQUIREMENTS` the pull request body plus anything it links.
 Everything it returns then passes through the rest of this file, and none of the
 shape it arrives in survives:
 
-- **Its output format is not this review's.** Strengths, Recommendations,
-  Assessment and the Critical, Important and Minor headings organise a report to
-  whoever asked for it. None becomes a body section or a comment. Where a strength
-  names something on a line in the diff, it may survive as a short inline note,
-  per Tone.
+- **Its output format is not this review's.** Strengths, Recommendations, Assessment and
+  the Critical, Important and Minor headings organise a report to whoever asked for it.
+  None becomes a body section or a comment. Where a strength names something on a line
+  in the diff, it may survive as a short inline note, per Tone.
 - **Filter first, rewrite second.** A finding resolving to nothing to change, or a
   nit too small to earn attention, comes out here rather than getting reworded.
   What survives is rewritten to these conventions: impersonal, one point per comment,
@@ -153,17 +152,23 @@ the system fits together is verified here rather than trusted.
 
 ## Choosing how the review is built
 
-Once the subagent's findings are filtered, ask the requester how to build the review,
-naming how many points survived and the weightiest of them: create the pending draft now
-with all of them, or go through them one at a time before it is created. Skip the
-question, and create the draft, when the request already says which or when a single
-point survived.
+Once the subagent's findings are filtered, ask the requester how to build the review:
+create the pending draft now with all of them, or go through them one at a time first,
+unless the request already says which, or a single point survived and goes straight to
+the draft. Before the question, one line per point, the weightiest first, and one
+counting what was set aside, in the conversation's language and nothing else:
+
+```text
+1. [Dockerfile:7](…): drop the `chown`, the container runs as root so it changes nothing.
+2 more set aside, detail on request.
+```
 
 - **One at a time**: one point per turn, in this order, and nothing about any other:
   1. `Point n of N`, with the file and the line linked at the head SHA.
   2. The comment exactly as the draft would carry it, in a fenced block, its `suggestion`
      included.
-  3. Why it matters and an opinion, in two or three lines in the conversation's language.
+  3. Why it matters and an opinion, in one or two short sentences of plain words, in
+     the conversation's language.
   4. One question: add, add with a change, or drop.
 - **After an answer**, the comment goes into `~/.local/state/reviews/OWNER-REPO-N.json`,
   the collected review `walking-through-and-reviewing-pull-requests` keeps, in its shape:
@@ -244,12 +249,11 @@ finding as something to verify and name where to look, rather than stating it as
 A finding that only names a problem hands the work back to the reader. Say what
 to do about it in the same breath, every time.
 
-The strongest form is a committable `suggestion` block, so reach for that
-whenever the fix is a concrete edit to lines in the diff (see the next section).
-When a suggestion is not possible, the proposal is still explicit: the
-replacement wording for a doc, the setting to look up and how to choose its
-value, the code change the real fix needs, the alternative approach worth
-weighing.
+The strongest form is a committable `suggestion` block, so reach for that whenever the
+fix is a concrete edit to lines in the diff (see the next section). When a suggestion is
+not possible, the proposal is still explicit: the replacement wording for a doc, the
+setting to look up and how to choose its value, the code change the real fix needs, the
+alternative approach worth weighing.
 
 **Trace the proposed fix against the mechanism before claiming what it buys.**
 A fix that sounds like it solves the problem often does not. Walk the code path:
@@ -258,11 +262,10 @@ then adding a `CMD` cannot give anyone a way past a failed migration, however
 plausible that reads. Claiming a benefit the change does not deliver is worse
 than raising nothing, because the author acts on it and the problem stays.
 
-Check the direction of a robustness claim too, since it inverts easily. A relative
-path follows `WORKDIR` and an absolute one pins a location, so proposing
-`/app/bin/x` over `./bin/x` "so it does not depend on WORKDIR" gets it backwards.
-Name the scenario the change protects against, then check whether anything
-produces it.
+Check the direction of a robustness claim too, since it inverts easily. A relative path
+follows `WORKDIR` and an absolute one pins a location, so proposing `/app/bin/x` over
+`./bin/x` "so it does not depend on WORKDIR" gets it backwards. Name the scenario the
+change protects against, then check whether anything produces it.
 
 Where two edits only work as a pair, say so in both comments. A suggestion that
 breaks the build when committed on its own is worse than no suggestion.
@@ -338,12 +341,11 @@ before writing. Say it in prose instead.
 Exactly one thing: the findings whose file does not appear in the diff. Nothing
 about the diff itself, which is what the inline comments are for.
 
-**Write it as prose a person reads top to bottom.** Short and concrete, but
-connected. Each finding is a sentence or two saying what is wrong, where, and
-what it should say instead, and consecutive findings about the same thing belong
-in the same paragraph rather than in separate items. Open a group with one
-sentence telling the reader what kind of trouble it is about, then give the
-detail.
+**Write it as prose a person reads top to bottom.** Short and concrete, but connected.
+Each finding is a sentence or two saying what is wrong, where, and what it should say
+instead, and consecutive findings about the same thing belong in the same paragraph
+rather than in separate items. Open a group with one sentence telling the reader what
+kind of trouble it is about, then give the detail.
 
 **Keep it to something a reader takes in at a glance.** Four short paragraphs is
 plenty. A body long enough to make the reader flinch before reading it has
@@ -376,11 +378,10 @@ The body never contains:
 
 - A preamble describing what was reviewed. "Reviewed the diff plus X and Y's
   internals" is banned.
-- A verdict, summary, or overall assessment of the approach. Praise for a
-  concrete choice belongs on the line that makes it. If the observation names
-  `exec`, `set -eu`, a specific call, or any other thing that lives on a line in
-  the diff, it is an inline comment, not a verdict. There is no PR-level
-  paragraph that survives this test.
+- A verdict, summary, or overall assessment of the approach. Praise for a concrete
+  choice belongs on the line that makes it. If the observation names `exec`, `set -eu`,
+  a specific call, or any other thing that lives on a line in the diff, it is an inline
+  comment, not a verdict. There is no PR-level paragraph that survives this test.
 - Any pointer to the inline comments, such as "inline comments cover the diff"
   or "see the inline comment on the runtime stage".
 - Any bullet restating something already said inline. If an inline comment
@@ -503,8 +504,7 @@ Any of these means the review is not ready:
   whose proposal stops at "worth checking" without naming where and what.
 - An inline comment whose prose runs past 80 words, or one carrying two findings
   where two comments were wanted.
-- A sentence that has to be read twice, or a word chosen over the plainer one a
-  colleague would have said.
+- A point, in a comment or in the conversation, that cannot be understood at first read.
 - No subagent dispatched, a comment written before it returned, or a review carrying
   its Strengths, Recommendations, Assessment or severity headings.
 - Points walked one at a time unasked, or a draft created before the requester chose.

@@ -6,8 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Three things are open: entry 7, a new skill, and entries 8 and 9, two changes to
-`reviewing-pull-requests`. Entry 1, the move onto `claude plugin eval`, was completed on
+One thing is open: entry 7, a new skill. Entries 8 and 9, two changes to
+`reviewing-pull-requests`, shipped together as 1.1.0 on 2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
 2026-11-20.
 
 Already in line, so absent from this plan: the `description` field states
@@ -1435,8 +1435,8 @@ in the same comment" beside every occurrence; the red flag names the same two.
       both. The replies list every point in detail before the question, which is what
       entry 9 is about, so it is taken up there.
 - [x] Record the results in `evals/reviewing-pull-requests/README.md`.
-- [ ] Bump the patch version, or ship with entry 9 under one version, whichever is
-      merged first.
+- [x] Bump the patch version, or ship with entry 9 under one version, whichever is
+      merged first. *Shipped with entry 9 as 1.1.0, 2026-11-23.*
 
 ## 9. Explain every point a review raises as simply and briefly as possible
 
@@ -1452,18 +1452,125 @@ comment explaining how a finding was reached rather than what to do about it".
 *Open, to settle with the requester before writing.*
 
 - Where the rule applies: the comments written into the review, the points shown to the
-  requester one at a time and in the summary before the draft, or both.
+  requester one at a time and in the summary before the draft, or both. *Decided,
+  2026-11-21: both.*
 - What it adds to the rules above, and which of them it replaces, since the body has no
-  line to spare.
+  line to spare. *Decided, 2026-11-21*: in the comments, a rule that each is understood
+  at first read, what happens said before the technical cause, since a single point is
+  often explained in a complicated way; before the question on how to build the review,
+  one plain line per point and one counting what was set aside, nothing else; one at a
+  time, the why and the opinion in one or two short sentences. The requester then
+  asked for more than brevity: what is explained has to be easy, immediate and clear.
+  So a section of its own, "Understood at once", for every point in a comment or in the
+  conversation: what happens first in everyday words, the technical cause after; one
+  idea per sentence with the "so" and the "because" written; an unfamiliar term made
+  plainer or explained; read back as the reader. Non-negotiable 6 names it. Room comes
+  from the paragraph on measuring the general comment, said again in fewer lines, from
+  merging the red flag on sentences read twice into one on any point, and from
+  rewrapping to the file's width the paragraphs that come out shorter, every word kept.
 - How a case grades it: a judge reading for plain words, a word ceiling, or both.
+  *Decided, 2026-11-21, as case design*: judges, one concern each. `10`'s first turn
+  gets `points-in-plain-words` and `one-line-per-point`; its second turn
+  `why-in-plain-words` and `why-in-two-sentences`. A `comments-in-plain-words` judge on
+  `01` to `08` was tried and removed, see the replay below. No new word ceiling: the comments
+  already have one at 80 words, and a line or a sentence in the conversation has no
+  boundary a regex reads reliably.
 - Whether the question on how to build the review should carry the points at all: the
-  rule asks for their count and the weightiest, and the runs of entry 8 listed every
-  point in detail instead, which failed `10`'s judge in two runs of three.
+  rule asked for their count and the weightiest, and the runs of entry 8 listed every
+  point in detail instead, which failed `10`'s judge in two runs of three. *Decided with
+  the wording, 2026-11-21*: one plain line per point, the weightiest first, and one line
+  counting what was set aside; `10`'s judge `one-question-on-the-approach` no longer
+  asks for the count and the weightiest.
+- *Trial, 2026-11-21, haiku, one run.* A throwaway case replaying a jargon version and a
+  plain version of the same points and of the same comment: the plain-words judges
+  failed both jargon versions and passed both plain ones, three votes each. `03` scored
+  1.00; `10`'s second turn failed only `why-in-plain-words`, on a reply opening with the
+  missing `USER` directive rather than with what it means; its first turn never
+  dispatched the reviewer, a haiku run that tested nothing.
+- *Opus, `01` to `08`, three runs each, skill only, 2026-11-21*: $14.87, 40 minutes,
+  the subscription's weekly usage from 18% to 19% and the five-hour session's from 4% to
+  18%. `comments-in-plain-words` failed 7 runs of 24, in `04`, `05`, `06` and `07`, and
+  the failing reviews seemed to bear it out: a comment opening with its cause ("The image sets no
+  `USER`, so..."), or a general comment on what lies outside the diff reading like
+  "Kubernetes does not read a Dockerfile `HEALTHCHECK`. So nothing restarts a hung
+  container", the very order the new section warns against. Like the linking rule
+  before its reread, the section alone is not applied every time. Outside this entry:
+  `every-file-linked` failed `06` once on a file named in a `>` quote of proposed README
+  wording, which the grader reads as prose though the skill exempts proposed wording,
+  and `08` once on `app/limits.py` named bare in a proposed sentence; `08` once ran
+  past 80 words; `04` once left out the `suggestion` collapsing the `COPY`.
+- *Rewritten, 2026-11-21.* The requester's reading: what is simple depends on the
+  reader, so a recipe for writing simply (what happens first, one idea per sentence)
+  fits one case and not the next, while a model simplifies well when asked to outright.
+  "Understood at once" now names the reader, the author in a comment and the requester
+  in the conversation, and asks for each comment and point to be rewritten as simply as
+  it can be said to them before it is sent, keeping what it asks, its links and its
+  `suggestion` block. A reread before sending is what made the linking rule hold.
+- *Opus, `04` to `07` again after the rewrite, 2026-11-21*: $7.60, 21 minutes, weekly
+  usage from 19% to 20%, the session's from 0% to 9%. `comments-in-plain-words` failed 7
+  runs of 12, against 6 of 12 on the same cases before. Replayed from files, the judge
+  failed the reviews of those runs again, and failed them as well after Opus, asked
+  outright to rewrite each comment as simply as it can be said to the author, had done
+  so; a version naming the author's knowledge of the stack failed them too. It passes a
+  one-line plain comment and fails anything carrying the stack's own terms, a bar no
+  review of a Dockerfile or a deploy reaches, so it measured the judge rather than the
+  skill, and the reading that the failures bore the rule out was wrong. It is gone from
+  `01` to `08`; `claude plugin eval` refuses a grader of weight 0, so it cannot stay as
+  an indicator. Whether the rewrite before sending makes comments simpler is left to
+  reading reviews, not to a grader.
+- *Opus, the whole suite, three runs each, skill only, 2026-11-21*: $23.85, 51 minutes,
+  weekly usage from 20% to 23%, the session's from 11% to 33%. Every case at 1.00 but
+  three. `08` once named `app/limits.py` bare in a proposed sentence. `10`'s first turn,
+  at 0.83, failed `one-line-per-point` in every run: each point ran to two to four
+  sentences, and the message carried more besides, a verdict on the whole, a problem on
+  `main` outside the pull request, why each point was set aside; `points-in-plain-words`
+  failed once. `10`'s second turn, at 0.75, failed both of its new judges in every run,
+  the why running to four or five sentences, but it tested the old rule: every later
+  turn of `09` and `10` resumes a history whose loaded skill is the text as it was when
+  recorded, "Be short and direct" included. `10`'s histories have to be recorded again
+  from a passing first turn before its later turns say anything about this entry.
+- *`10`'s first turn, after "Before sending, cut everything else: a verdict on the
+  whole, what lies outside the pull request and why a point was set aside wait until
+  asked", 2026-11-21*: $1.40, 4 minutes, 0.79. What was set aside shrank to one line in
+  every run, the verdict stayed in two of three, and each point still ran to two or
+  three sentences, or to a sub-list, in every run: `one-line-per-point` failed three of
+  three. The histories were not recorded again.
+- *Again, with "cut each point to its one line and everything else", 2026-11-21*:
+  $1.42, 4 minutes, 0.83. `one-line-per-point` failed three of three: each point opens
+  with what to change and where, then adds one or two sentences of why, and in one run a
+  sub-list of two ways forward. A line on `AGENTS.md` and `README.md` needing nothing
+  stayed in two runs. Three wordings in, the one line per point is not what Opus writes:
+  it keeps the why. Not recorded again.
+- *Again, with "each point in one or two short sentences: what to change and where,
+  then why", and `short-points` allowing three, 2026-11-21*: $1.35, 4 minutes, 0.75.
+  Each point grew instead, a bold headline and then three or four sentences, ways
+  forward and README notes included, and what was set aside went back to a list with
+  reasons; `short-points` failed three of three and `points-in-plain-words` three of
+  three. Of four wordings, the one line per point with an explicit cut before sending
+  came closest, at 0.83. Not recorded again.
+- *Again, with the shape shown, 2026-11-21*: one line per point and one counting what
+  was set aside, "in the conversation's language and nothing else", followed by a
+  two-line example in a fenced block. $1.37, 4 minutes, 0.83. One run copied the set-
+  aside line word for word and kept every other line out; in every run each point
+  opened with the example's shape and then added one or two sentences of why, so
+  `one-line-per-point` failed three of three. Five wordings, none past 0.83: Opus keeps
+  a point's why whatever the wording. The shape shown stays, since it is shorter and
+  came closest on the rest.
+- *`10`'s later turns recorded again, 2026-11-21*, from the first turn's third run,
+  three points and every judge passed but `one-line-per-point`: turn 2 at 0.92, one run
+  failing `why-in-plain-words` and one `why-in-two-sentences`, turns 3, 4 and 5 at 1.00;
+  $4.06, 5 minutes of runs, weekly usage 23% to 24%, the session's 39% to 43%. Turns 3
+  and 4 still give four or five sentences of why, which no grader of theirs reads.
+  `09`'s histories still carry the skill of 2026-11-20; their turns passed.
+- *`01` to `08` after the last wording of the message before the question,
+  2026-11-23*, one run each with the skill only, since that wording reaches them only
+  through the condition that skips the question: every case at 1.00, $4.95, 13
+  minutes, weekly usage unchanged at 24%, the session's 1% to 6%.
 
-- [ ] Settle the three points above with the requester.
-- [ ] Write the rule, keeping the body within 500 lines.
-- [ ] Write or extend the cases that grade it, and run the suite on Opus.
-- [ ] Bump the version as entry 8 says.
+- [x] Settle the three points above with the requester.
+- [x] Write the rule, keeping the body within 500 lines.
+- [x] Write or extend the cases that grade it, and run the suite on Opus.
+- [x] Bump the version as entry 8 says: 1.1.0, a new rule in a skill, with entry 8 in it.
 
 ## Completed
 
