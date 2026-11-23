@@ -906,6 +906,17 @@ The three GitHub suites, rebuilt around a fake `gh`:
         Twice today a judge failed a reply three votes of three in the run and passed
         the same reply three of three replayed from a file, here and in
         `reviewing-pull-requests`' `10`; why the two disagree is not known yet.
+
+        *Found, 2026-11-23.* The CLI builds the judge's prompt from the criterion, a
+        line "Agent output (<focus>):", the text and "Respond with exactly one word:
+        PASS or FAIL.", and the report keeps the text as each grader's `evidence`: the
+        in-run and the replayed text of `10` were the same, so the label was the one
+        difference. Tested on haiku, four runs per reply, the last message made
+        identical to the file by asking for the file's exact contents, the criterion of
+        that day: the first reply passed 12 votes of 12 as a file and 4 of 12 as the
+        last message; the second, which fails "names the weightiest point" on any
+        reading, 2 of 12 and 3 of 12. The label tips a reply near the line, so a
+        replay keeps the grader's own focus, as `evals/README.md` now says. $0.17.
 - [x] **Update `AGENTS.md`, `README.md` and `evals/README.md`**: the fake, how to record
       its responses, and the hook's second step.
       *Done 2026-11-20.* `evals/README.md` has a section on the stand-in: what it reads

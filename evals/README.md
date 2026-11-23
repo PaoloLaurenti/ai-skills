@@ -69,11 +69,19 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   six parts and the absence of three faults failed nearly every correct reply, while ten
   judges asking one condition each passed all of them. Split a rubric into a few judges
   of one concern each, and replay to find which condition a failing one trips on.
-- **To find out why a judge failed a reply, replay it from a file.** A throwaway case,
-  on haiku with one run, whose scaffold writes the reply into `reply.txt`, graded by a
-  copy of the grader with `focus: { source: file, path: reply.txt }`. A `claude -p`
-  replay of the judge's prompt is no proxy, and asking haiku to repeat the reply word
-  for word sometimes alters it.
+- **The judge is told where the text came from**, as "Agent output (last_message)" or
+  "Agent output (file reply.txt)", and nothing else differs: the criterion, the text,
+  three votes. That label alone moves a reply near the criterion's line. The same reply,
+  identical to the character, passed twelve votes of twelve read from a file and four of
+  twelve read as the last message. A replay therefore keeps the grader's own focus.
+- **To find out why a judge failed a reply, replay it under the same focus.** A
+  throwaway case on haiku whose scaffold writes the reply into `reply.txt`. For a
+  `focus` on a file, a copy of the grader pointed at that file. For the last message,
+  a prompt asking to read `reply.txt` and answer with its exact contents, and a copy of
+  the grader as it is: every run of eight came back identical to the character, which
+  the report's `evidence`, the text each judge saw, confirms. Run it four times or so,
+  since one run's three votes can land either way. A `claude -p` replay of the judge's
+  prompt is no proxy.
 
 ## The sandbox
 
