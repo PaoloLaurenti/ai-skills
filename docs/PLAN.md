@@ -272,7 +272,12 @@ The `developing-with-tdd` suite:
       under the baseline arm a `Skill` grader is otherwise an indicator and not scored.
       Scenario 2's `last-test-run-is-green` reads the last `cargo test` with a lookahead
       allowing no later failure, not yet run against a trace holding a red and then a
-      green.
+      green. *Checked, 2026-11-23,* with JavaScript's regex, the engine the command's
+      lookbehinds need, on seven made-up traces: it passes a red then a green, a failed
+      build then a green, and a green alone; it fails a green then a red, a green then a
+      failed build, one `cargo test` whose unit tests pass and integration tests fail,
+      and a trace with no run. It would also fail a green followed by a message quoting
+      "could not compile", which no run has written.
 - [x] **Add the fixture states the later turns start from**, such as the crate with the
       plan of pending tests written, taken from a real run. `setup.sh` takes an optional
       directory copied over the state, and a case resuming after a turn that wrote files
