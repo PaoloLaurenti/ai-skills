@@ -74,6 +74,25 @@ find "$copy/evals" -name history.jsonl | while IFS= read -r history; do
     sed "s|<plugin-root>|$copy|g" "$history" >"$history.new"
     mv "$history.new" "$history"
 done
+# A case may load a plugin installed on this machine beside the one under test, such as
+# a skill `writing-cards` follows where it is installed, by naming
+# `.eval-plugins/<plugin-name>` in its `plugins`. The command loads plugins from inside
+# the one under test only, so the installed copy goes into the copy evaluated, at the
+# version this machine runs, and nothing of it is committed here.
+installed="$HOME/.claude/plugins/installed_plugins.json"
+grep -rhoE '\.eval-plugins/[A-Za-z0-9_-]+' "$copy/evals/$skill" 2>/dev/null |
+    sort -u | while IFS= read -r wanted; do
+    name="${wanted#.eval-plugins/}"
+    path="$(jq -r --arg name "$name" \
+        '.plugins | to_entries[] | select(.key | startswith($name + "@")) | .value[0].installPath' \
+        "$installed" 2>/dev/null | head -n 1)"
+    if [ -z "$path" ] || [ ! -d "$path" ]; then
+        echo "eval: plugin $name is not installed, so the cases loading it fail to load." >&2
+        continue
+    fi
+    mkdir -p "$copy/.eval-plugins"
+    cp -R "$path" "$copy/.eval-plugins/$name"
+done
 results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 
 # The target comes first: --allow-tools and --tag take several values, and would read

@@ -23,7 +23,16 @@ which the graders read.
 | `05-write-after-the-yes-turn3` | as the turn before, the cycle noted | after "sì", both new cards are created and no third, MOB-12 in scope is rewritten, no write names MOB-7 or MOB-9 outside the scope, MOB-9 is named by its plain title, the link and the "blocked by" to the first new card use the id its create returned, and the cards outside the scope are read again after a write |
 | `05-change-reported-turn3` | as the turn before, with a tracker automation | an automation nobody mentioned adds a label to MOB-9 right after the first create: the skill finds it, reports it, and does not write to MOB-9 to undo it |
 
-`01` to `04` also check that nothing was written, since each one ends before an answer.
+| `06-card-after-humanizer-turn1` | as `04`, with `humanizer` installed and a link to the design frame in `FEATURE.md` | the card goes through `humanizer`, and still passes every grader of `04`, which it shares through links, and keeps the design frame's link |
+| `07-one-question-with-grilling-turn1` | settings noted, scope and storage given, three open decisions, `grilling` installed | step 3 follows `grilling`, yet asks one open decision only, with its recommended answer, never a numbered round, and drafts no card |
+
+`01` to `04`, `06` and `07` also check that nothing was written, since each one ends
+before an answer.
+
+`06` and `07` load a second plugin beside this one through their `plugins` key, the one
+installed on the machine that runs them, which `tools/eval.sh` copies in; on a machine
+without it they fail to load, as `evals/README.md` explains. `04` is the path without
+`humanizer`; no case asks the open decisions without `grilling`.
 
 ## The fixture
 
@@ -37,6 +46,12 @@ settings, `~/.local/state/writing-cards/linear-mobile.md`, in the run's home.
 of MOB-12, approved one at a time, with the scope, the label `reset-password`, and the
 decisions behind them, one of which, the cycle, is left to the requester. It names MOB-9
 by id among the decisions, and by title only in the cards' text.
+
+`06` and `07` change `FEATURE.md` in their own scaffold after it, leaving the shared
+fixture as `05`'s histories saw it: `06` turns the design line into a link to a frame,
+which the fixture otherwise lacks, and `07` adds two open decisions that do not depend
+on the link's validity, since a round of one question passes "one per message" whatever
+the rule says.
 
 The tracker is `fixture/mocks/linear/`, an agent mock: `_server.md` tells the judge model
 to play the tracker's API, with three cards to start from and the earlier calls of the
@@ -72,15 +87,32 @@ $0.49 were the tracker's answers, 7 minutes.
 | `01-asks-the-settings-turn1` | 1.00 |
 | `02-summarises-the-settings-turn1` | 1.00 |
 | `03-slices-checked-turn1` | 1.00 |
-| `04-card-follows-the-definition-of-ready-turn1` | 0.95 |
+| `04-card-follows-the-definition-of-ready-turn1` | 1.00 |
 | `05-write-plan-turn1` | 1.00 |
 | `05-option-is-not-the-yes-turn2` | 1.00 |
 | `05-write-after-the-yes-turn3` | 1.00 |
 | `05-change-reported-turn3` | 1.00 |
+| `06-card-after-humanizer-turn1` | 1.00 |
+| `07-one-question-with-grilling-turn1` | 1.00 |
+
+`06` and `07` ran on CLI 2.1.332 the same day, with `humanizer` 4.0.0 and
+`mattpocock-skills` 1.3.1. Every run of `06` passed the card to `humanizer`, telling it
+to keep the sections, links and criteria's form, and showed the rewritten card, $1.03;
+a trial on haiku did not call it, saying the card was plain enough already. `07` first
+scored 0.86: no run loaded `grilling`, listed in all of them, while step 3 said to
+"follow it" where installed, and a throwaway copy asking for it by name did load it and
+still asked one decision. Step 3 now says to load it before the first question, and
+`07` scored 1.00, $0.63, with `01` to `04` rerun on the new text, all at 1.00, $3.21.
+An earlier version of `07`, with the fixture's design line, had one run ask for the
+design file's link first, a missing source rather than an open decision, so the case's
+`FEATURE.md` now says there is no design. `one-question` was made to fail first, on a
+replayed reply asking two decisions: four runs, FAIL every vote.
 
 `04` fell short once on `fits-on-one-screen`, which then measured the whole reply: the
 card took 31 lines and the settings summary and notes around it took the rest. It now
-measures the stretch between `---` rules, and all three replies pass it. A first run of
+measures the stretch between horizontal rules. Its first version of that failed every
+run unnoticed, since a comment naming the rule held three dashes, which end a grader's
+frontmatter; rewritten, `04` scored 1.00 again on Opus, three runs, $0.59. A first run of
 `04` asked an open decision before drafting, as step 3 says, so its prompt now leaves
 the missing decisions to the card's open points; that run also showed a sentence naming
 the Definition of Ready's sections satisfying the section grader, which now asks for
