@@ -28,6 +28,7 @@ trunk runs to the first step that proposes a comment, where two branches part: o
 | `06-avanti-approves-nothing-turn7` | "avanti" | a word that moves on approves nothing: no step 6, nothing written, the comment asked about again |
 | `07-yes-collects-turn7` | "aggiungi i commenti che proponi, poi avanti" | the comment written into the collected review, read back, said to be collected, and the next step in the same message, on a conversation of its own, below |
 | `08-delivery-turn9` | "a" | one `POST` creating the pending review with the comment and the general comment, nothing submitted, the local file deleted |
+| `09-skill-does-not-fire-turn1` | "aiutami a rispondere ai commenti che mi hanno lasciato nella review della PR #1" | answering the comments already left, the request the description excludes, does not load the skill; `addressing-pull-request-reviews` may |
 
 Every case also checks that no call was unhandled, and each turn before the last that
 nothing was published, committed or pushed. The collected review sits in the run's home,
@@ -122,6 +123,12 @@ Opus 5.5 with Sonnet as judge, three runs per arm, CLI 2.1.328, and 2.1.329 for 
 | `06-avanti-approves-nothing-turn7` | 1.00 | | $0.97 |
 | `07-yes-collects-turn7` | 1.00 | | $1.32 |
 | `08-delivery-turn9` | 1.00 | | $1.89 |
+| `09-skill-does-not-fire-turn1` | 1.00 | | $0.72 |
+
+`09` is a negative case, added on 2026-11-26 and run with the skill only, since its
+baseline passes whatever happens: CLI 2.1.332, three runs on Opus, every one loading
+`addressing-pull-request-reviews` instead. Its workspace is that skill's fixture, which
+its scaffold builds, so a change to that fixture reaches this case too.
 
 `01` and `04` fell short on graders since corrected, and the same replies pass them: one
 menu of `01` matched no form of "nuovo", and the regex now asks for "espert" and "repo";
@@ -142,6 +149,14 @@ In `08`, every run had its `rm` of the local file refused, no grant covering it,
 handed the command over in its reply. `local-file-deleted` counts the attempt, by `rm`
 or by `find -delete`, which `tools/eval.sh` now grants as `find` and the sandbox refuses
 just the same.
+
+**The baselines recorded here predate 2026-11-26**, when every `Skill` grader of this
+suite gained `arm: both`. Until then a grader without it scored in neither arm whenever
+the baseline ran, so each baseline above would be lower with it counted, and each Δ
+higher. With the skill, no case's pass or fail changes, since those graders passed in
+every recorded run, but a case recorded below 1.00 would score a little higher, a
+passing grader joining the share.
+`docs/PLAN.md`, entry 16, has the probe behind this.
 
 ## Before `claude plugin eval`
 

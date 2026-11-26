@@ -196,6 +196,14 @@ Without the skill, every run of `01` tried to submit its review, with an `event`
 `gh pr review`, no run of `07` appended to the open draft, and no run of any case
 dispatched a reviewer.
 
+**The baselines recorded here predate 2026-11-26**, when every `Skill` grader of this
+suite gained `arm: both`. Until then a grader without it scored in neither arm whenever
+the baseline ran, so each baseline above would be lower with it counted, and each Δ
+higher. With the skill, no case's pass or fail changes, since those graders passed in
+every recorded run, but a case recorded below 1.00 would score a little higher, a
+passing grader joining the share.
+`docs/PLAN.md`, entry 16, has the probe behind this.
+
 ## Before `claude plugin eval`
 
 The scenarios used to be run by hand against the live pull requests, with `run.sh` and

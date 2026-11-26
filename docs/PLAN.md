@@ -6,8 +6,9 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Entries 11 to 15 are open, in order of priority: the limits the earlier entries left,
-recorded on 2026-11-26. Entry 10, a stand-in tracker for `writing-cards`, was completed
+Entries 13 to 15 are open, in order of priority: the limits the earlier entries left,
+recorded on 2026-11-26. Entries 11, 12 and 16, the last measuring the graders and the
+descriptions, were completed the same day. Entry 10, a stand-in tracker for `writing-cards`, was completed
 on 2026-11-26. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
 entries 8 and 9, two changes to `reviewing-pull-requests`, shipped together as 1.1.0 on
 2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
@@ -1874,8 +1875,10 @@ bullet was measured on a run, unless it says otherwise.
 *Where it comes from.* The suite ran with the skill only, so nothing says how much each
 rule adds over what Opus does unprompted, the Δ every other suite records.
 
-- [ ] Run the suite with the baseline arm, three runs per case, and record the Δ in its
-      `README.md`.
+- [x] Run the suite with the baseline arm, three runs per case, and record the Δ in its
+      `README.md`. *Done, 2026-11-26*, as part of entry 16, whose replies without the
+      skill are the wrong answers its judges are measured on: the first turns only, since
+      a later turn runs one arm, a mean Δ of +0.52 and $10.68 for both arms.
 
 ## 13. Record `09`'s histories again on the current `reviewing-pull-requests`
 
@@ -1920,21 +1923,147 @@ apply, the answer was: the skill is no classifier, so none of the first four app
 it; they apply to the two classifiers the suites rely on, the graders, PASS or FAIL on a
 reply, and each skill's description, loading the skill or not.
 
-- [ ] **Precision and recall of the `llm` graders**, on replies already kept from runs:
+- [x] **Precision and recall of the `llm` graders**, on replies already kept from runs:
       about ten per grader, some correct and some wrong, labelled by the requester.
       Recall on wrong replies says how many errors a grader catches; precision of its
       FAILs says how many are errors. Record, for each grader, the agreement between
       the judge and the requester, and where they disagree, the reply. Start with
       `writing-cards`, whose `llm` graders are the newest.
-- [ ] **A negative case per skill**: a request its description excludes, such as
+      *Done for `writing-cards`, 2026-11-26, with a change of labeller decided by the
+      requester*: after two replies the requester handed the labelling over, for lack
+      of time, so the labels come from fresh Claude agents, one per case, given only the
+      context, the reply and each grader's criterion, never the judge's verdict or where
+      the reply came from. What the numbers measure is the agreement between the judge,
+      Sonnet answering in one word, and a second agent reasoning before it labels, not
+      the requester's truth. The requester's four labels on the first reply agree with
+      both. The table and findings are in the section below; the data, which git
+      ignores, in `evals/results/judge-labels/`.
+- [x] **A negative case per skill**: a request its description excludes, such as
       "implementa la card MOB-12" for `writing-cards`, graded on the skill *not*
-      loading. Today every `skill-loaded` grader measures recall only, whether the
-      skill fires when it should; nothing measures whether it stays quiet when it
-      should not.
-- [ ] **Say in `evals/README.md` how a score reads**: the score as the share of graders
+      loading. Every `skill-loaded` grader measures recall only, whether the skill
+      fires when it should. *Corrected, 2026-11-26*: one case already measures whether a
+      skill stays quiet, `developing-with-tdd`'s `06-skill-does-not-fire-turn1`, a
+      rename, with the grader the probe below confirms; the other four skills have
+      none. *`writing-cards` done, 2026-11-26*: `08-skill-does-not-fire-turn1`, "implementa
+      la card MOB-12" with the tracker and no `cards.md`, 1.00 on Opus over three runs,
+      $0.50 with the haiku trial; `evals/writing-cards/README.md` says what it grades.
+      *Decided with the requester, the same day*, to be done after the bullet on the
+      `llm` graders: one negative case for `addressing-pull-request-reviews`, on a
+      follow-up of a review the requester wrote, and one for
+      `walking-through-and-reviewing-pull-requests`, on answering the comments already
+      left, the two requests their descriptions exclude, each the work of a neighbour.
+      None for `reviewing-pull-requests`, whose description excludes nothing and which
+      the walkthrough loads on purpose. About 1 to 2 dollars a case on Opus, since a run
+      goes on to work the pull request through the stand-in for `gh`. *Done, 2026-11-26*:
+      `addressing-pull-request-reviews`' `05-skill-does-not-fire-turn1`, on
+      `reviewing-pull-requests`' follow-up of `#13`, and
+      `walking-through-and-reviewing-pull-requests`' `09-skill-does-not-fire-turn1`, on
+      `addressing-pull-request-reviews`' pull request, each building the neighbour's
+      workspace from its fixture. 1.00 on Opus over three runs each, every run loading
+      the neighbour, $1.55 with the haiku trials.
+- [x] **Say in `evals/README.md` how a score reads**: the score as the share of graders
       passed, the report's PASS% as the share of runs passing all of them, and that 3
       runs out of 3 is compatible, at 95% confidence, with a true success rate as low
-      as 29%.
+      as 29%. *Done, 2026-11-26*: the section "Reading a score", every number read off
+      two kept reports and the terminal tables of their runs. Two things the reading
+      found that the bullet did not say: the terminal's table shows PASS% only when no
+      case of the run had a baseline arm, every row taking `WITH W/OUT Δ` otherwise,
+      and at the default threshold of 1.0 a case passes exactly when its PASS% is 100%.
+
+### A grader proving a skill did not load, probed on 2026-11-26
+
+A throwaway plugin with one skill, `writing-haiku`, whose description excludes
+translating a haiku; a case asking for one and a case asking to translate one, each
+graded three ways; haiku, one run per arm, CLI 2.1.332, $0.008 in all.
+
+- **`tool_used: Skill` with the skill's `input_match`, `min: 0`, `max: 0` and
+  `arm: both` does the job.** It failed the run that loaded the skill, "Skill called 1x
+  (expected 0..0)", and passed the run that did not. A `regex` on the `trace` with
+  `not_contains` on `Launching skill: (?:[\w-]+:)?writing-haiku` gave the same verdicts.
+- **Without `arm: both` it scores nothing once the baseline arm runs**, in the arm with
+  the skill too: the report marks it "with-only, not scored" there and leaves it out of
+  the baseline. With `--ablation none` the same grader was scored.
+- **In the baseline arm it passes whatever happens**, since no plugin is loaded, so a
+  negative case's Δ is 0 or below and says nothing; the threshold reads the arm with
+  the skill only, as for every case.
+- **Haiku kept quiet on the translation request**, and loaded the skill on the request
+  for a haiku.
+
+**Found while writing the negative cases, 2026-11-26, and fixed the same day with the
+requester's approval**: 17 `Skill`
+graders lacked `arm: both`, nine of `reviewing-pull-requests`' ten first turns, five of
+`developing-with-tdd`'s, `addressing-pull-request-reviews`' `01` and both of
+`walking-through-and-reviewing-pull-requests`' `01`. Whenever the baseline arm runs, the
+default of `tools/eval.sh`, the probe above shows they score in neither arm: the report
+for `addressing-pull-request-reviews`' `01` on 2026-11-19 marks its `skill-loaded`
+"with-only, not scored". So in every suite run with the baseline, whether the
+description fired was shown and never counted, and a run that never loaded the skill
+lost no score for it. All 17 now say `arm: both`, and a haiku run of
+`developing-with-tdd`'s `04` scored the grader in both arms, failing it in both, since
+haiku did not load the skill there. In the reports kept, the 95 verdicts of those graders
+in the arm with the skill, 78 on Opus, were all PASS, so no case's pass or fail changes,
+though a case recorded below 1.00 would score a little higher; the baselines and Δ
+recorded before the fix would be lower and higher, which each of the four suites'
+READMEs now says. Each grader gained that one line and nothing else; the suites were
+not rerun, beyond the haiku run above and one haiku run of a case of each pull request
+suite, which loaded.
+
+### The `llm` graders of `writing-cards`, measured on 2026-11-26
+
+65 replies, 135 labels: about ten replies per case, each labelled on every `llm` grader
+of its case. The sample keeps every reply a judge failed, every reply from a haiku trial,
+and the three replies per first-turn case from the run without the skill, entry 12's,
+the wrong answers occurring on their own. Eleven wrong answers were edited by hand,
+each from a real reply by breaking the rule its grader reads, and judged by a replay
+under the same focus: three for each of the later turns, which run with the skill only,
+three for the slicing judge and two for the write-plan judge, which no real Opus reply
+failed. The
+rest are passing replies from runs with the skill. So the share of FAILs here is far
+above a real suite's, and the counts below are small: 3 out of 3 caught carries the
+same floor of 29% as 3 runs out of 3.
+
+| Grader | Agreement | Errors caught (recall) | FAILs that are errors (precision) |
+| --- | --- | --- | --- |
+| `asks-for-the-definitions` | 9 of 10 | 3 of 3 | 3 of 4 |
+| `asks-the-language` | 10 of 10 | 3 of 3 | 3 of 3 |
+| `asks-the-not-ready-status` | 10 of 10 | 3 of 3 | 3 of 3 |
+| `no-card-drafted`, in `01` | 10 of 10 | 3 of 3 | 3 of 3 |
+| `summarises-the-settings` | 10 of 10 | 5 of 5 | 5 of 5 |
+| `no-card-drafted`, in `03` | 10 of 10 | 2 of 2 | 2 of 2 |
+| `slices-are-behaviours` | 10 of 10 | 3 of 3, all edited | 3 of 3 |
+| `asks-an-explicit-yes`, both turns | 17 of 17 | 7 of 7 | 7 of 7 |
+| `shows-the-write-plan` | 10 of 10 | 3 of 3 | 3 of 3 |
+| `reports-the-change` | 8 of 8 | 3 of 3, all edited | 3 of 3 |
+| `no-card-drafted`, in `07` | 10 of 10 | 2 of 2 | 2 of 2 |
+| `one-question` | 10 of 10 | 3 of 3 | 3 of 3 |
+| `recommended-answer` | 10 of 10 | 3 of 3 | 3 of 3 |
+
+- **134 labels of 135 agree.** No grader missed an error: 43 labels said wrong, on 28
+  replies, 32 of them on real replies and 11 on edited ones, and the judges failed every
+  one. Of 44 FAILs, 43 were errors. The labels are not independent, a reply carrying up
+  to four of them, so no pooled bound is drawn from them.
+- **The one disagreement is a FAIL on a correct reply**, from a haiku trial of `01`:
+  "non so se il team ha una Definition of Done, una Definition of Ready, una lingua per
+  le card e uno stato 'non pronta'. Se mi confermi quei quattro punti, o dai il permesso
+  di lettura al file, li uso." The criterion passes a reply naming the Definition of Done
+  "among what it still needs", which this one does, framed as a settings file it could
+  not read; replayed four times, the judge failed it in 11 votes of 12. No Opus reply
+  has asked the settings this way, so the criterion stays as it is, agreed with the
+  requester.
+- **Two replies had been judged under an older criterion.** The first two haiku trials of
+  `01`, run before its three `asks-` criteria were rewritten to accept a setting named
+  among what the reply still needs, carried three FAILs on correct replies. Rejudged
+  under the current text, four replays each, two of them pass; the third is the
+  disagreement above. A measurement of a judge compares it with the criterion as it is
+  now, so each verdict is checked against the grader's text in the report's `config`.
+- **Where the second model was unsure, seven labels, the judge agreed with it**: drafts
+  saved to a file with only their titles and criteria in the reply, slices carrying
+  several criteria-like bullets, a settings summary naming `dor.md` only as a file read.
+  These are the edges of `no-card-drafted` and `summarises-the-settings`, worth a line in
+  their criteria if a real run lands there.
+- **For `summarises-the-settings` the two read different things**: the judge the whole
+  trace, its focus, and the second model the agent's messages alone, which is what the
+  criterion asks about.
 
 *Left out on purpose.* Accuracy and F1 of the skill itself, which has no right answer
 to compare against, and the agreement between a judge's three votes, which the report

@@ -35,8 +35,9 @@ not in the body. The description carries English phrasings only, and `01`'s firs
 is the evidence that it fires on an Italian request; if that grader fails, put the
 Italian phrasings back and rerun before reading anything else.
 
-**`04` and `06` pass without the skill too**, so their Δ near 0 is expected. They stay
-as guards: `04` of the rule on bugs, which a change to the skill could break, and `06` of
+**`04` and `06` pass without the skill too**, so their Δ near 0 is expected, though since
+2026-11-26 `04`'s baseline misses its `skill-loaded`, which now counts in both arms, and
+its Δ is one grader's share above 0. They stay as guards: `04` of the rule on bugs, which a change to the skill could break, and `06` of
 the description, which must not fire on a refactoring.
 
 ## The fixture
@@ -107,6 +108,14 @@ longer shows what the skill would say, so record it again:
 Why histories are rebuilt this way, and what else a case author needs to know about the
 command, such as the line on shell loops every `case.yaml` repeats and how to replay a
 judge, is in [`evals/README.md`](../README.md).
+
+**The baselines recorded here predate 2026-11-26**, when every `Skill` grader of this
+suite gained `arm: both`. Until then a grader without it scored in neither arm whenever
+the baseline ran, so each baseline above would be lower with it counted, and each Δ
+higher. With the skill, no case's pass or fail changes, since those graders passed in
+every recorded run, but a case recorded below 1.00 would score a little higher, a
+passing grader joining the share.
+`docs/PLAN.md`, entry 16, has the probe behind this.
 
 ## Before `claude plugin eval`
 

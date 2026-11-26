@@ -25,6 +25,7 @@ which the graders read.
 
 | `06-card-after-humanizer-turn1` | as `04`, with `humanizer` installed and a link to the design frame in `FEATURE.md` | the card goes through `humanizer`, and still passes every grader of `04`, which it shares through links, and keeps the design frame's link |
 | `07-one-question-with-grilling-turn1` | settings noted, scope and storage given, three open decisions, `grilling` installed | step 3 follows `grilling`, yet asks one open decision only, with its recommended answer, never a numbered round, and drafts no card |
+| `08-skill-does-not-fire-turn1` | no team settings noted, the tracker | "implementa la card MOB-12" asks to build what a card describes, which the description excludes, so the skill does not load; another skill of the plugin may |
 
 `01` to `04`, `06` and `07` also check that nothing was written, since each one ends
 before an answer.
@@ -82,18 +83,36 @@ Opus 5.5 with Sonnet as judge, three runs per case, skill only. `01` to `04` on 
 2.1.330, 2026-11-26: $3.07, 8 minutes. `05` on CLI 2.1.332, the same day: $3.60, of which
 $0.49 were the tracker's answers, 7 minutes.
 
-| Case | With the skill |
-| --- | --- |
-| `01-asks-the-settings-turn1` | 1.00 |
-| `02-summarises-the-settings-turn1` | 1.00 |
-| `03-slices-checked-turn1` | 1.00 |
-| `04-card-follows-the-definition-of-ready-turn1` | 1.00 |
-| `05-write-plan-turn1` | 1.00 |
-| `05-option-is-not-the-yes-turn2` | 1.00 |
-| `05-write-after-the-yes-turn3` | 1.00 |
-| `05-change-reported-turn3` | 1.00 |
-| `06-card-after-humanizer-turn1` | 1.00 |
-| `07-one-question-with-grilling-turn1` | 1.00 |
+| Case | With the skill | Baseline, 2026-11-26 | Δ |
+| --- | --- | --- | --- |
+| `01-asks-the-settings-turn1` | 1.00 | 0.06 | +0.94 |
+| `02-summarises-the-settings-turn1` | 1.00 | 0.00 | +1.00 |
+| `03-slices-checked-turn1` | 1.00 | 0.47 | +0.53 |
+| `04-card-follows-the-definition-of-ready-turn1` | 1.00 | 0.71 | +0.24 |
+| `05-write-plan-turn1` | 1.00 | 0.50 | +0.50 |
+| `05-option-is-not-the-yes-turn2` | 1.00 | | |
+| `05-write-after-the-yes-turn3` | 1.00 | | |
+| `05-change-reported-turn3` | 1.00 | | |
+| `06-card-after-humanizer-turn1` | 1.00 | 0.67 | +0.33 |
+| `07-one-question-with-grilling-turn1` | 1.00 | 0.43 | +0.57 |
+| `08-skill-does-not-fire-turn1` | 1.00 | 1.00 | 0.00 |
+
+The baseline arm ran on CLI 2.1.332 on 2026-11-26, the first turns only, since a later
+turn runs with the skill alone: three runs per arm, $10.68 for both arms, 12 minutes with
+`-j 2`, a mean Δ of +0.52. The Δ is a share of graders, so it counts the `skill-loaded`
+grader too, which no baseline run can pass. By its graders, without the skill Opus
+drafted cards in `01` and asked none of the team's settings, read no noted settings in
+`02`, dispatched no subagent in `03`, wrote criteria in a form of its own in `04` and
+`06`, and asked no explicit yes in `05`; in `07` two runs asked the open decisions as a
+round, and one asked a single decision. `08` passes in both arms, as a negative case
+must. Those are the graders' verdicts, which entry 16 of `docs/PLAN.md` measures against
+the requester's.
+
+In the same run, with the skill, one run of `04` scored 0.86, and the fault was the
+grader's: `no-default-sections` matched "**Why it's in To refine:**", a note after the
+card, as the default section "Why". It now counts only a heading or a bold label naming
+the section alone, and on a replay passed that reply and failed a copy with "**Why**:"
+in it.
 
 `06` and `07` ran on CLI 2.1.332 the same day, with `humanizer` 4.0.0 and
 `mattpocock-skills` 1.3.1. Every run of `06` passed the card to `humanizer`, telling it
@@ -120,7 +139,7 @@ headings or bold labels.
 
 In `03` every run of both passes dispatched the subagent; in one of the first it found a split, the rule refusing
 the current password carved out of setting a new one, put to the requester as a
-question. The baseline arm was not run.
+question. The baseline arm's runs of `03`, on 2026-11-26, are in the table above.
 
 In the first trial of `05`'s first turn, Opus asked the cycle first and said a yes would
 follow, which the yes grader then failed; the rule allows it, since choosing the cycle
@@ -131,6 +150,15 @@ graders of a complete batch: hence two third turns, one per mock. In the suite's
 `05-change-reported-turn3`, all three completed the batch and reported the change at the
 end. The plain mock first answered with no cycle and with a relation on one card only,
 which a run reported as a fault of the tracker, so it now gives both.
+
+`08` is the suite's one negative case: it guards the description against firing where it
+should not, and its baseline arm passes whatever happens, so it runs with the skill only.
+Its workspace leaves out `cards.md`, where MOB-12 is a card to rewrite and the request
+would be ambiguous. A trial on haiku and three runs on Opus, CLI 2.1.332, 2026-11-26,
+$0.50: 1.00, and every run read MOB-12 from the tracker, found no code to build it in,
+and asked where the code is. The haiku run offered to rewrite the card with this skill,
+without loading it. Its grader was made to fail first, in a throwaway plugin, as
+`docs/PLAN.md`, entry 16, records.
 
 The graders that pass only by finding nothing were made to fail once, on haiku with a
 fixed mock, two runs each, $0.02: `no-write-outside-the-scope` failed on a save whose
