@@ -59,8 +59,14 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **A refused command can stop a run from testing.** A run refused one Bash command took
   it as all of Bash and closed without testing. Where the rule under test does not ask
   for a test run, read the outcome from the files instead.
-- **A `Skill` grader is an indicator under the baseline arm**, unscored, unless it says
-  `arm: both`. A case testing whether the description fires needs it.
+- **A `Skill` grader without `arm: both` scores nothing once the baseline arm runs**:
+  the report marks it "with-only, not scored" in the arm with the skill too, and leaves
+  it out of the baseline. Only `--ablation none` scores it. So a case testing whether
+  the description fires needs `arm: both`, and so does one testing that it stays quiet,
+  with `min: 0` and `max: 0` and the skill's own `input_match`, never "no `Skill` call
+  at all", since the plugin's other skills may rightly fire. That grader fails on a
+  load, and passes in the baseline arm whatever happens, as no plugin is loaded there,
+  so a negative case's Δ says nothing. Measured at CLI 2.1.332.
 
 ## The judge
 
@@ -231,6 +237,45 @@ histories, passes the fixed options, and writes the report to `evals/results/`.
 - **`--case` takes a glob without character classes**: `0[345]-*` matches nothing.
 - **The threshold reads the arm with the skill only.** A case whose baseline scores 0.2
   still passes, so a rule the model follows unaided does not fail the suite.
+
+## Reading a score
+
+Each point was read off the reports of real runs, at CLI 2.1.327 and 2.1.328: the
+`aggregate-result.json`, the HTML report and the table the command prints at the end.
+
+- **A run's score is the share of its graders that passed**, each counted by its
+  `weight`, 1 unless the grader sets one. `walking-through-and-reviewing-pull-requests`'
+  `02-step-one-turn2`, on 2026-11-19, has eight graders; each of its three runs failed
+  `step-one-only` alone, and scored 7 of 8, 0.875.
+- **A case's score is the mean of its runs' scores**: 0.88 for that case.
+- **PASS% is the share of runs that passed every grader**, the "perfect runs" of the
+  HTML report: 0% for that case, since no run passed all eight. The two numbers tell
+  different things. `developing-with-tdd`'s `01-opening-questions-turn1`, on 2026-11-18,
+  scored 0.87 with runs of 1.0, 0.8 and 0.8, a PASS% of 33%: a score near 0.9 can mean
+  that every run fell short or that one run in three was perfect, and only PASS% tells
+  them apart.
+- **The terminal's table shows PASS% only when no case of the run had a baseline arm**,
+  in the columns `SCORE PASS% RUNS`. As soon as one case had it, every row takes
+  `WITH W/OUT Δ RUNS` instead, a later turn run with one arm included, with dashes for
+  the baseline and Δ: the score of each arm, their difference, and the runs of both arms
+  together, 6 for three runs per arm. The HTML report shows the share of perfect runs
+  for every arm.
+- **A case passes when its score reaches the threshold, 1.0 by default**, which
+  `tools/eval.sh` leaves as it is. At 1.0 a case passes only if every run passed every
+  grader, so passing the threshold and a PASS% of 100% are the same thing.
+- **The suite's numbers sum up its cases.** The HTML report's suite score is the mean of
+  the cases' scores, its "perfect runs" the runs where every grader passed, and the mean
+  Δ covers only the cases that ran a baseline arm. The TDD suite on 2026-11-18: twelve
+  cases of three runs each, nine at 1.0, a suite score of 97.6%, perfect runs 86.1%, 31
+  runs of 36, and a mean Δ of +0.39 over seven cases, since the five later turns run one
+  arm.
+- **Three runs out of three proves less than it seems.** The runs are a sample of what
+  the skill does, and a perfect sample of three is compatible, at 95% confidence, with a
+  true rate of perfect runs as low as 29%; ten out of ten raises that floor to 69%. The
+  floor for n out of n is 0.025 raised to 1/n, the exact two-sided interval. So a case at
+  1.00 over three runs says the rule usually holds, not that it always does.
+- **A score is only as true as its graders.** Each of them is a classifier, PASS or FAIL
+  on a reply, and can be wrong both ways; `docs/PLAN.md`, entry 16, measures how often.
 
 ## Later-turn cases
 

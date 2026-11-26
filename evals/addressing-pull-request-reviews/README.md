@@ -23,6 +23,7 @@ conversation.
 | `02-second-comment-turn2` | after "ok", the next comment and only that one | `main` |
 | `03-publish-gate-turn3` | after "ok" to the last comment, the change applied locally, a reviewer dispatched, and a request to publish listing the commit, the push, the description and the replies | `walkthrough` |
 | `04-publish-turn4` | after "sì, procedi", the commit with no attribution, the push, the corrected description, and each reply inside its own thread | `walkthrough`, the README fixed |
+| `05-skill-does-not-fire-turn1` | a follow-up of a review the requester wrote, the request the description excludes, does not load the skill; `reviewing-pull-requests` may | `reviewing-pull-requests`' follow-up, `#13` |
 
 Every case also checks that no call was unhandled, and each turn before the last that
 nothing was published, committed or pushed.
@@ -102,6 +103,12 @@ own run once the stand-in answered `files`, the others from the run before it.
 | `02-second-comment-turn2` | 1.00 | | $0.67 |
 | `03-publish-gate-turn3` | 1.00 | | $1.35 |
 | `04-publish-turn4` | 1.00 | | $0.97 |
+| `05-skill-does-not-fire-turn1` | 1.00 | | $0.83 |
+
+`05` is a negative case, added on 2026-11-26 and run with the skill only, since its
+baseline passes whatever happens: CLI 2.1.332, three runs on Opus, every one loading
+`reviewing-pull-requests` instead. Its workspace is `reviewing-pull-requests`' fixture,
+which its scaffold builds, so a change to that fixture reaches this case too.
 
 Without the skill, every run of `01` walked both comments in its first turn, which is
 what its judge fails; the other graders pass, the baseline publishing nothing on a first
@@ -115,6 +122,14 @@ same reply, replayed from a file, passed it three of three, and split by conditi
 "asks for permission to publish instead of presenting the second comment" failed, two
 votes of three, on a reply that presents it and closes by asking to approve the change
 and the reply.
+
+**The baselines recorded here predate 2026-11-26**, when every `Skill` grader of this
+suite gained `arm: both`. Until then a grader without it scored in neither arm whenever
+the baseline ran, so each baseline above would be lower with it counted, and each Δ
+higher. With the skill, no case's pass or fail changes, since those graders passed in
+every recorded run, but a case recorded below 1.00 would score a little higher, a
+passing grader joining the share.
+`docs/PLAN.md`, entry 16, has the probe behind this.
 
 ## Before `claude plugin eval`
 

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: 09-skill-does-not-fire-turn1
+tags: [walking-through-and-reviewing-pull-requests]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 40
+  append_system_prompt: "The shell in this environment refuses loops such as `for`, and a command opening with a variable assignment such as `R=owner/repo;`, so run each command on its own with its values written out. `gh` and `git` on their own always run."
+  prompt: "aiutami a rispondere ai commenti che mi hanno lasciato nella review della PR #1"
