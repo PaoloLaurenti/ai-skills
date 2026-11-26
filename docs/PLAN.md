@@ -6,8 +6,9 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-One thing is open: entry 7, a new skill. Entries 8 and 9, two changes to
-`reviewing-pull-requests`, shipped together as 1.1.0 on 2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
+Nothing is open. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
+entries 8 and 9, two changes to `reviewing-pull-requests`, shipped together as 1.1.0 on
+2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
 2026-11-20.
 
 Already in line, so absent from this plan: the `description` field states
@@ -1231,7 +1232,21 @@ was later deleted. They belong in a skill, so that the next session starts from 
 - **The team's Definition of Ready wins.** The skill reads the team's Definition of Ready
   when one exists, and where the two differ, the Definition of Ready wins. The rules of
   the skill are the default for a team that has none. A team that wrote its standard down
-  keeps it in one place, and the skill does not copy it.
+  keeps it in one place, and the skill does not copy it. *Refined, 2026-11-26*: the
+  card's sections come from the Definition of Ready when it sets them, the default
+  structure otherwise; a section the two share follows the default instructions where
+  the Definition of Ready gives none; and where the two definitions live is noted in a
+  user cache, `~/.local/state/writing-cards/`, never in the project, so it is asked
+  once. The same cache keeps the cards' language and the not-ready status, and a
+  session that finds it opens by summarising it.
+- **`humanizer` is optional.** *Decided, 2026-11-26*: where blader's `humanizer` plugin
+  is installed, a card and every message drafted for the team pass through it after
+  the skill's own rewrite, keeping sections, links and the criteria's form; without it,
+  the skill's rewrite alone. The eval sandbox loads no other plugin, so the cases see
+  only the second path.
+- **`grilling` is optional too.** *Decided, 2026-11-26*: where Matt Pocock's `grilling`
+  is installed, step 3 follows it to find and order the questions, one per message with
+  its recommended answer, never its rounds of several.
 - **No hook.** A `PreToolUse` hook that blocks card ids in descriptions was considered, to
   stop the tracker from turning a link into a relation on a card outside the scope. It was
   rejected: it would also block the links between cards in scope, which the requester
@@ -1247,7 +1262,9 @@ inside backticks; the API cannot set the manual order of a list; and `labels` on
 replaces the whole set. Worth adding only when a second session on Linear needs it.
 
 *The draft.* The requester approved its rules one by one, but has not yet read the full
-text end to end.
+text end to end. *Reading it, 2026-11-26*, the requester added two rules: every
+slice is the smallest possible, checked by a subagent for thinner cuts, and a card is
+short and plain, rewritten before it is shown, never a wall of text.
 
 ````markdown
 ---
@@ -1269,15 +1286,29 @@ need to decide how. Two words carry the rules: a card is a **slice**, a thin
 piece of the product that a person can watch working in a demo, and every fact
 in it is **sourced**.
 
+## The team's settings
+
+Four things are asked once per team, and kept in
+`~/.local/state/writing-cards/<tracker>-<team>.md`, never in the project:
+
+- where the team's Definition of Done lives, or that it has none;
+- where its Definition of Ready lives, or that it has none;
+- the language the cards are written in;
+- the status a card goes in while it is not ready.
+
+When the file exists, the first message summarises it, so the requester can
+correct what changed. Whatever it lacks is asked, and the answer added to it.
+
 ## A set of cards
 
-- **Each card is a slice.** Once done, it adds one feature that a person can see
-  working on the product, on top of the slices before it. A technical card is an
-  exception, and its Why states the strong reason for it.
+- **Each card is the smallest slice possible.** Once done, it adds one feature
+  that a person can see working on the product, on top of the slices before it,
+  and nothing that could ship as a slice of its own. A technical card is an
+  exception, and the card says why it is needed.
 - **A card holds all the work its slice needs**, in every part of the system:
   app, backend, configuration. Cut cards by behaviour, never by component or team.
 - **Keep dependencies few**, so that several cards can be worked at the same time.
-- **Order lives in the tracker's own means**: "blocked by" relations, and the
+- **Order lives in the tracker's own tools**: "blocked by" relations, and the
   position in the list, most important at the top. Titles carry only the name of
   the slice.
 - **Every scenario has a home** somewhere in the set: happy path, errors,
@@ -1285,16 +1316,32 @@ in it is **sourced**.
 
 ## One card
 
-When the team has a Definition of Ready, its sections, criteria form and wording
-rules replace the ones below wherever the two differ.
+**A card is short and plain**: it fits on one screen, and a person who did not
+plan it understands it at first read. No wall of text: detail the engineers can
+open lives in the linked sources, not in the card. Before showing a card, rewrite
+it as short and as simple as it can be said to the engineers who will read it.
+Where blader's `humanizer` is installed, pass the card and every message drafted for
+the team through it too, keeping the card's sections, links and the form of its
+acceptance criteria as they are.
 
-The sections, in this order:
+### Its structure
 
-1. **What**: what a person can do once the card is done, told as they live it.
+- **The team's Definition of Ready decides it, when it sets one**: its sections,
+  in its order. A section matching one of the defaults below is filled by the
+  Definition of Ready's instructions, and by the default ones where it gives none.
+  A section with no default and no instructions is a question to the requester.
+  A default section the Definition of Ready leaves out stays out.
+- **Otherwise, the default structure below**: when the team has no Definition of
+  Ready, or one that says nothing on how a card is built.
+
+The default sections, in this order:
+
+1. **What**: what a person can do once the card is done, told as they experience it.
 2. **Why**: the reason for the slice.
-3. **How <mechanism> works**: only when the card rests on a mechanism that no
-   other document explains, such as how a session stays alive. Plain words, placed
-   before the criteria because they build on it.
+3. **How <mechanism> works**: only when the card rests on a mechanism the engineers
+   need explained, such as how a session stays alive: a link to the document that
+   explains it, rather than a copy, or plain words where none does. Placed before
+   the criteria because they build on it.
 4. **Acceptance criteria**.
 5. **Open points**: only on a skeleton card, see below.
 6. **Notes**: design references, architecture constraints, links to sources.
@@ -1308,11 +1355,10 @@ The sections, in this order:
   what they see, never the internals. A check that nobody can show in a demo, such
   as data staying out of a phone backup, moves to Notes as something the code
   review verifies.
-- **The team's Definition of Done holds for every card, so the card leaves it
-  out**, together with the automated tests, reviews and checks it asks for.
-  Non-functional requirements appear only when they are specific to this card.
-  A card names a point of the Definition of Done only to skip it, saying which
-  one and why, when the Definition of Done allows that.
+- **Leave out what the team's Definition of Done already asks for**, such as
+  automated tests and reviews. A non-functional requirement appears only when
+  it is specific to this card. A card names a point of the Definition of Done
+  only to skip it, saying which and why, where the Definition of Done allows it.
 
 ### Words
 
@@ -1324,9 +1370,8 @@ The sections, in this order:
 - **State the what and the why; the engineers own the how.** Name a constraint when
   it binds, such as a security rule or an existing endpoint, and leave out the
   implementation step that satisfies it.
-- **Plain English at B2 level**: short, grammatical sentences, one term per concept.
-- **The best trade-off between brevity and completeness**: every line carries
-  something an engineer needs.
+- **Plain language at B2 level, in the cards' language from the team's settings**:
+  short, grammatical sentences, one term per concept.
 - **A reference to another card is a link whose text is that card's title.**
 - **A reference to a card outside the scope is its plain title**, with no link
   and no id: some trackers turn a link or an id into a change on the card it
@@ -1334,9 +1379,10 @@ The sections, in this order:
 
 ### Skeleton card
 
-When decisions are missing, write a skeleton: What, Why, the criteria known so far,
-and an Open points table with the columns `#`, `Question`, `Who decides`. Its Notes
-say what moves it to ready. It goes in the requester's "to refine" status.
+When decisions are missing, write a skeleton: the sections of the card's structure
+that can be filled so far, and an Open points table with the columns `#`,
+`Question`, `Who decides`. Its Notes say what moves it to ready. It goes in the
+not-ready status from the team's settings.
 
 ## Sourced facts
 
@@ -1345,29 +1391,39 @@ say what moves it to ready. It goes in the requester's "to refine" status.
   the latest decision, and some tools return them only through a separate call.
 - **Every fact traces to a source**, in a card and in every message drafted for
   the team: a design file, a document, the code, or a decision the requester
-  made in the conversation. A fact with no source becomes a
-  question to the requester. An open gap is always better than a guess.
-- **When two sources disagree, ask which one wins**, and write the answer down.
+  made in the conversation. A fact with no source becomes a question to the
+  requester. An open gap is always better than a guess.
+- **When two sources disagree, ask which one wins**, and note the answer with the
+  decisions behind the card.
 
 ## Steps
 
-1. **Read the sources and the current cards.** Read the team's Definition of Done
-   and Definition of Ready too, and ask where they are when nobody has named them;
-   a team may have no Definition of Ready. Read the heavy sources, such
-   as design files and long lists of cards, through a subagent that returns text
-   only, and ask for an image at the smallest size that is still readable. Done
-   when every source the
-   requester named has been read and every card of the project that is not done is
-   listed.
-2. **Agree the scope.** Ask which cards the work may change, for example those with
-   a given label. Changes reach only cards in scope that are not done. Done when the
-   scope is a rule you can check card by card.
-3. **Grill the open decisions**, one question per message. Done when every decision
-   has an answer or is an open point of a card.
-4. **Propose the slices, in order**, then go through the existing cards one at a
-   time: keep, rewrite, absorb into a slice, move to backlog, or cancel. A cancelled
-   card gets a comment naming the card that absorbed it. Done when every existing
-   card has an approved fate.
+1. **Read the sources and the current cards.** Find the team's Definition of Done
+   and Definition of Ready through the team's settings, and read both whole, every
+   time. Read the heavy sources, such as design files and long lists of cards,
+   through a subagent that returns text only, and ask for an image at the smallest
+   size that is still readable. Done when every source the requester named has been
+   read and every card of the project that is not done is listed.
+2. **Agree the scope, and where approved cards are kept.** Ask which cards the work
+   may change, for example those with a given label. Changes reach only cards in
+   scope that are not done. Ask too where the approved cards and the decisions
+   behind them are saved until they reach the tracker, such as a page or a file the
+   requester names. Done when the scope is a rule you can check card by card, and
+   that place is named.
+3. **Ask about the open decisions**, one question per message. Where Matt Pocock's
+   `grilling` is installed, follow it to find the questions and their order, with one
+   change: a single question per message, with its recommended answer, never a round
+   of several. Done when every decision has an answer or is an open point of a card.
+4. **Propose the slices, in order, then have them checked for thinner cuts.**
+   Hand the slices and the sources to a subagent, asking of each one whether it
+   splits into smaller slices that a person can still see working, and how.
+   Bring each split it finds to the requester, one per message, and send the
+   slices that result back to the same check. Then go through the existing cards
+   one at a time: keep, rewrite, absorb into a slice, move to backlog, or cancel;
+   a kept or rewritten card goes through the same check. A cancelled card gets a
+   comment naming the card that absorbed it. Done when the check finds no
+   further split the requester accepts, and every existing card has an approved
+   fate.
 5. **Draft one card per message**, and wait for approval. Once a card is approved,
    save its text and the decisions behind it in the durable place the requester
    chose, then move on. Done when every approved card is saved there.
@@ -1383,21 +1439,29 @@ say what moves it to ready. It goes in the requester's "to refine" status.
    list for the requester.
 ````
 
-- [ ] Read the draft end to end with the requester, and fix what reads badly.
-- [ ] Create `skills/writing-cards/SKILL.md` from it. The plugin loads the skill in every
+- [x] Read the draft end to end with the requester, and fix what reads badly.
+      *Done, 2026-11-26*, section by section: the smallest slice checked by a
+      subagent, the short card rewritten before it is shown, the structure from the
+      Definition of Ready, the team's settings in a user cache, and wording fixes.
+- [x] Create `skills/writing-cards/SKILL.md` from it. The plugin loads the skill in every
       session as soon as the file exists, which is why this comes after the read.
-- [ ] Add its row to the skills table in `README.md`, since `tools/check.sh` fails on a
+- [x] Add its row to the skills table in `README.md`, since `tools/check.sh` fails on a
       skill with no row.
-- [ ] Write the scenarios in `evals/writing-cards/`, one file each with a `README.md` for
-      the procedure, and run them before the change is offered. Candidates: an Italian
-      request to split a feature into cards fires the skill; a drafted card follows the
-      section order and the "As a <actor>, when I <action>, I <outcome>" form; a fact with
-      no source becomes a question; nothing reaches the tracker before an explicit yes.
-- [ ] Bump the minor version in `.claude-plugin/plugin.json`, since a new skill breaks
-      nothing.
-- [ ] Link the skill into `~/.agents/skills/` with `tools/link-skills.sh`, for Codex and
+- [x] Write the scenarios in `evals/writing-cards/`, one file each with a `README.md` for
+      the procedure, and run them before the change is offered. *Done, 2026-11-26*:
+      four cases, the settings asked, the settings summarised, the slices checked by a
+      subagent, and a card following the Definition of Ready, short, with no validity
+      made up; Opus at 1.00, 1.00, 1.00 and 0.95, $3.07, the shortfall a grader
+      measuring the whole reply, since fixed. Two runs on haiku first, $0.38, found
+      that a run could not read the settings in its home, which `tools/eval.sh` now
+      grants. Not covered: nothing reaching the tracker before a yes, which needs a
+      stand-in for a tracker, and `humanizer` and `grilling`, which the sandbox does
+      not load.
+- [x] Bump the minor version in `.claude-plugin/plugin.json`, since a new skill breaks
+      nothing: 1.2.0.
+- [x] Link the skill into `~/.agents/skills/` with `tools/link-skills.sh`, for Codex and
       GitHub Copilot.
-- [ ] Run `tools/check.sh`.
+- [x] Run `tools/check.sh`.
 
 ## 8. Link every file a review names, a second mention included
 

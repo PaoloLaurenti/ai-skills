@@ -84,13 +84,15 @@ results="$repo/evals/results/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # granted because a skill may dispatch a reviewer, as `addressing-pull-request-reviews`
 # does before publishing. Read and Edit are granted on the collected reviews under each
 # run's home, where `walking-through-and-reviewing-pull-requests` keeps the review it
-# builds; outside the workspace, a run refuses both otherwise. `find` and `jq` are granted
+# builds, and Read, Edit and Write on the team's settings `writing-cards` notes there;
+# outside the workspace, a run refuses them otherwise. `find` and `jq` are granted
 # because `reviewing-pull-requests` names them, to look for the repo's docs and to read
 # what `gh` answers. --keep-temp leaves each run's directory under /private/tmp/e-*, its
 # workspace and trace included, since a grader's failure is explained only by reading
 # what the run wrote, and a run cleaned up has to be paid for again; macOS clears it.
 run_home='//private/tmp/e-*/home'
 collected="$run_home/.local/state/reviews/**"
+settings="$run_home/.local/state/writing-cards/**"
 claude plugin eval "$copy" \
     --output-dir "$results" \
     --report "$results/report.html" \
@@ -101,6 +103,6 @@ claude plugin eval "$copy" \
     --model opus \
     --judge-model sonnet \
     --max-cost-usd 16 \
-    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' 'Bash(find:*)' 'Bash(jq:*)' "Read(/$copy/**)" 'Read(//private/tmp/e-*/tmp/**)' "Read($collected)" "Edit($collected)" \
+    --allow-tools Edit Write Agent 'Bash(cargo:*)' 'Bash(git:*)' 'Bash(gh:*)' 'Bash(find:*)' 'Bash(jq:*)' "Read(/$copy/**)" 'Read(//private/tmp/e-*/tmp/**)' "Read($collected)" "Edit($collected)" "Read($settings)" "Edit($settings)" "Write($settings)" \
     --tag "$skill" \
     "$@"

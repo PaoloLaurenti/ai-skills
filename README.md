@@ -17,6 +17,7 @@ each one stops and asks you before any step that is yours to decide.
 | [`walking-through-and-reviewing-pull-requests`](skills/walking-through-and-reviewing-pull-requests/SKILL.md) | When **you** have to review someone else's pull request and want to understand it first. The agent explains the change one concept at a time, at the level of detail you choose, and suggests review comments along the way. You approve each one; at the end they are saved on GitHub as a draft review that only you can publish. | "walk me through PR 94, I have to review it" |
 | [`addressing-pull-request-reviews`](skills/addressing-pull-request-reviews/SKILL.md) | When your own pull request has been reviewed and you have to answer. The agent goes through the comments one at a time, checks each one against the code, tells you whether it agrees, and drafts a reply and the change. Nothing is posted until you say so. | "help me address the feedback on PR 82" |
 | [`developing-with-tdd`](skills/developing-with-tdd/SKILL.md) | When you develop code with Test-Driven Development, the tests driving the design. The agent first proposes the list of behaviours to test and waits for your approval, then builds them one at a time: a failing test, the least code that makes it pass, a refactoring. It stops and asks whenever a decision about the design is yours. | "let's TDD this". Asked to add a feature or fix a bug without a word about TDD, it first asks whether you want to work in TDD, and does nothing else until you answer. |
+| [`writing-cards`](skills/writing-cards/SKILL.md) | When a feature has to become cards in a tracker such as Linear, Jira or GitHub Issues, or existing cards need rewriting. The agent cuts the feature into the smallest slices a person can see working, has a second agent check whether any can be cut thinner, and drafts one short card at a time for your approval, following your team's Definition of Ready when there is one. Nothing reaches the tracker until you say yes. | "split this feature into cards on Linear"; "rewrite this card" |
 
 ## Using the skills
 
@@ -33,7 +34,12 @@ each one stops and asks you before any step that is yours to decide.
   [its installation guide](https://github.com/obra/superpowers#installation) explains
   for each one.
 
-`developing-with-tdd` needs nothing beyond the agent.
+`developing-with-tdd` needs nothing beyond the agent, and `writing-cards` nothing beyond
+the agent and your tracker's connection to it. Where they are installed, `writing-cards`
+also uses [humanizer](https://github.com/blader/humanizer) to make a card read as a
+person wrote it, and the `grilling` skill of
+[Matt Pocock's skills](https://github.com/mattpocock/skills) to find the questions to
+ask you; without them it does both on its own.
 
 ### Installing
 
@@ -61,6 +67,10 @@ as in `npx skills add https://github.com/PaoloLaurenti/ai-skills --skill develop
   commits, pushes and posts its replies only after a final yes to a list of exactly what
   it will do.
 - **In your code**, `developing-with-tdd` edits files but never commits on its own.
+- **In your tracker**, `writing-cards` creates or changes cards only after a yes to the
+  list of what it will write, and touches only the cards you agreed on. It remembers
+  your team's settings, such as where the Definition of Ready lives, in
+  `~/.local/state/writing-cards/`, outside your project.
 - **Language**: ask in any language and they answer in it; what they write on GitHub,
   comments and replies, is always in English.
 - **Tested** with Claude Code. Codex, GitHub Copilot and the other agents read the same
