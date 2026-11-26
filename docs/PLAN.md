@@ -1791,10 +1791,12 @@ or the form of its criteria.
       the skill list, rather than to "follow it" where installed. `07` at 1.00 on Opus,
       and `01` to `04` rerun at 1.00; `05` and `06` start past step 3 and were not
       rerun. A patch, 1.2.1, since the rule was already there and only now fires.
-- [ ] Find out why the interactive session that ran the probes was given a skill
+- [x] Find out why the interactive session that ran the probes was given a skill
       listing without `humanizer`, while `claude -p` on the same machine lists it. A
       case loading it passes whatever a real session sees, so the path could be dead
-      in the sessions that matter while the case is green.
+      in the sessions that matter while the case is green. *Done, 2026-11-26*: the
+      session's process was older than the install, as the last bullet below says. No
+      fault of the skill or of the plugin, and nothing for the skill to do.
 
 *Decided, 2026-11-26.*
 
@@ -1856,8 +1858,16 @@ bullet was measured on a run, unless it says otherwise.
   `humanizer`, while `mattpocock-skills:grilling` was there. `claude -p --model haiku`
   asked for its listing, from outside the repo and from inside it, named
   `humanizer:humanizer`, `mattpocock-skills:grilling` and `myai:writing-cards` both
-  times. The cause is not known; where the listing leaves `humanizer` out,
-  `writing-cards` takes the path without it.
+  times. *The cause, found the same day from timestamps and confirmed by reloading*: that
+  session ran in a Claude Code process started with `claude --continue` at 08:48 local
+  time, while `humanizer` was installed at 09:34 by another process, the one its cache
+  directory's `.in_use/` names. The conversation began later, at 11:17, after a
+  `/clear`, which starts a new conversation but keeps the plugins the process loaded at
+  launch. A process sees a plugin installed after it started only once restarted, or
+  after `/reload-plugins`, as `AGENTS.md` says of a new skill directory. So a session
+  started before `humanizer` or `grilling` is installed takes the path without them,
+  with nothing wrong in the skill. After `/reload-plugins` in that same session,
+  `humanizer:humanizer` joined its skill listing.
 
 ## 12. Run `writing-cards`' baseline arm
 
