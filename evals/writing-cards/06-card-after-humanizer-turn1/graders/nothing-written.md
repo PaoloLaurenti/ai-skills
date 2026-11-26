@@ -1,0 +1,1 @@
+../../04-card-follows-the-definition-of-ready-turn1/graders/nothing-written.md

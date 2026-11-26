@@ -141,10 +141,11 @@ not-ready status from the team's settings.
    behind them are saved until they reach the tracker, such as a page or a file the
    requester names. Done when the scope is a rule you can check card by card, and
    that place is named.
-3. **Ask about the open decisions**, one question per message. Where Matt Pocock's
-   `grilling` is installed, follow it to find the questions and their order, with one
-   change: a single question per message, with its recommended answer, never a round
-   of several. Done when every decision has an answer or is an open point of a card.
+3. **Ask about the open decisions**, one question per message. Before the first one,
+   when Matt Pocock's `grilling`, from `mattpocock-skills`, is in your skill list, load
+   it and follow it to find the questions and their order, with one change: a single
+   question per message, with its recommended answer, never a round of several. Done
+   when every decision has an answer or is an open point of a card.
 4. **Propose the slices, in order, then have them checked for thinner cuts.**
    Hand the slices and the sources to a subagent, asking of each one whether it
    splits into smaller slices that a person can still see working, and how.

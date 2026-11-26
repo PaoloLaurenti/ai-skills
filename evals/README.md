@@ -47,6 +47,12 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **A regex on the reply matches the words Claude uses to report a failure too.** One
   looking for a commit message matched the sentence explaining why the commit failed.
   Look for something only success prints.
+- **A grader's frontmatter ends at the first three dashes anywhere in the file**, in a
+  comment or inside a pattern too. Inside a pattern, the case fails to load with
+  "invalid YAML frontmatter". In a comment, it loads and the lines after the comment
+  are dropped: a `not_contains` grader then fails every run with "pattern not found",
+  which is how `writing-cards`' `fits-on-one-screen` failed unnoticed. Write three dashes
+  in a pattern as `-{3}`, and never in a comment, at CLI 2.1.332.
 - **A regex minds case unless the grader says `flags: i`**, which CLI 2.1.328 honours
   and earlier versions lacked, and an inline `(?i)` is not, by the docs. The patterns
   written before it name both cases of each letter instead, which works as well.
@@ -87,8 +93,8 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 ## The sandbox
 
 - **Every run is isolated**: a temporary home, and no user settings, hooks,
-  `CLAUDE.md`, memory or other plugins. The baseline arm runs the same way without the
-  skill.
+  `CLAUDE.md`, memory or other plugins, unless the case loads one, as below. The
+  baseline arm runs the same way without the skill.
 - **Bash reaches no network but granted domains**, and the credentials in the real home
   are out of reach, which is why a suite driving a pull request through `gh` runs against
   `tools/fake-gh` instead, put first on `PATH` by `tools/eval.sh`.
@@ -119,6 +125,26 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **A skill's reference files are refused unless `Read` is granted on the plugin**, as
   they sit beside the skill, outside the workspace. `tools/eval.sh` grants it on the copy
   it evaluates.
+
+## A second plugin beside the skill
+
+A skill that follows another plugin's skill where it is installed, such as
+`writing-cards` with `humanizer` and `grilling`, is tested on that path by a case loading
+both. `docs/PLAN.md`, entry 11, records the probes behind each point, at CLI 2.1.332.
+
+- **A case's `plugins` key loads several plugins**, paths relative to the case
+  directory: `plugins: ["../../..", "../../../.eval-plugins/humanizer"]`, the first entry
+  naming the plugin under test.
+- **Only from inside the plugin under test**: an entry outside it, the installed copy
+  under `~/.claude/plugins/` included, fails the case at load. So a case names
+  `.eval-plugins/<plugin-name>`, and `tools/eval.sh` copies the plugin of that name
+  installed on this machine there, inside the copy it evaluates, at the version
+  installed. Nothing of it is committed.
+- **A plugin that is not installed fails the cases naming it at load**, and the command
+  exits 1; the cases of other skills are not affected.
+- **The baseline arm loads no plugin at all**, the second one included.
+- **Prove the second skill ran from the trace**, `Launching skill: <plugin>:<skill>`,
+  which only a successful call prints: `tool_used` passes on `Unknown skill` too.
 
 ## Mocks of an MCP server
 

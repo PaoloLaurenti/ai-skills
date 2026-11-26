@@ -318,4 +318,7 @@ again and what that costs.
 `writing-cards` writes to a tracker through MCP, and its cases run against a mock of the
 tracker's server that `claude plugin eval` starts from a case's `mocks/` directory: an
 agent mock, the judge model playing the tracker and remembering the run's calls, which
-the graders read as `mock_calls`.
+the graders read as `mock_calls`. Two of its cases also load another plugin beside it,
+`humanizer` and the one shipping `grilling`, which `tools/eval.sh` copies in from the
+plugins installed on the machine running it, since the command loads none from outside
+the plugin under test; `evals/README.md` says how.

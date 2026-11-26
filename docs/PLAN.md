@@ -1774,10 +1774,90 @@ questions, one per message. The eval sandbox loads no plugin but the one under t
 no case has seen either path, and a rewrite by `humanizer` could break a card's sections
 or the form of its criteria.
 
-- [ ] Find out whether `claude plugin eval` can load a second plugin beside the one
-      under test. If it can, add a case for each path: a card keeping its sections and
-      criteria after `humanizer`, and `grilling`'s questions coming one per message.
-- [ ] If it cannot, check both by hand in a real session, and write down what was seen.
+- [x] Find out whether `claude plugin eval` can load a second plugin beside the one
+      under test. *Done, 2026-11-26*: it can, through a case's `plugins` key, from inside
+      the plugin under test only. The findings below.
+- [x] Add a case for each path: a card keeping its sections, links and criteria after
+      `humanizer`, and `grilling`'s questions coming one per message. *Done,
+      2026-11-26*: `06-card-after-humanizer-turn1` and
+      `07-one-question-with-grilling-turn1`, run on Opus, three runs each: `06` at
+      1.00, `07` at 0.86 before the fix below. `evals/writing-cards/README.md` says
+      what each grades.
+- [x] Make step 3 follow `grilling` where it is installed. No Opus run of `07` loaded
+      it, six in all across two versions of the case, though every one had it listed;
+      a copy of `07` asking for `grilling` by name loaded it and still asked one
+      decision with its recommended answer. *Done, 2026-11-26*, approved by the
+      requester: step 3 now says to load it before the first question when it is in
+      the skill list, rather than to "follow it" where installed. `07` at 1.00 on Opus,
+      and `01` to `04` rerun at 1.00; `05` and `06` start past step 3 and were not
+      rerun. A patch, 1.2.1, since the rule was already there and only now fires.
+- [ ] Find out why the interactive session that ran the probes was given a skill
+      listing without `humanizer`, while `claude -p` on the same machine lists it. A
+      case loading it passes whatever a real session sees, so the path could be dead
+      in the sessions that matter while the case is green.
+
+*Decided, 2026-11-26.*
+
+- **`tools/eval.sh` copies the two plugins in from the ones installed**, chosen by the
+  requester over vendoring them: a case names `.eval-plugins/<plugin-name>`, and the
+  script copies the installed plugin of that name into the copy it evaluates. Nothing
+  third-party is committed, no `SKILL.md` of theirs reaches `skill-check` or
+  `npx skills`, and the cases test the version the machine runs.
+- **`06` is `04` with `humanizer`**: the same prompt, and `04`'s graders through links,
+  so `04` is the path without it. Its scaffold turns `FEATURE.md`'s design line into a
+  link, which the shared fixture lacks and `05`'s histories were recorded without.
+- **`07` adds two open decisions in its scaffold**, since a round of one question
+  passes "one per message" whatever the rule says, and says there is no design, since
+  the first Opus run asked for the design file's link before any decision.
+- **Whether each skill ran is read from the trace**, `Launching skill: …`, since
+  `tool_used` passes on a failed call.
+- **`04`'s `fits-on-one-screen` was broken and is fixed**: a comment holding three
+  dashes ended its frontmatter, so it failed every run since it was rewritten. Found
+  because `06` shares it. `evals/README.md` now warns of it.
+
+### Loading a second plugin in a case, probed on 2026-11-26
+
+A throwaway plugin with one skill, and copies of the two installed plugins,
+`humanizer@humanizer` 4.0.0 and `mattpocock-skills@claude-plugins-official` 1.3.1, the
+plugin `grilling` ships in; haiku, one run per arm, CLI 2.1.332, $0.015 in all. Each
+bullet was measured on a run, unless it says otherwise.
+
+- **A case's `plugins` key loads several plugins.** The docs describe it as "plugin
+  directories under test, relative to the case directory", and give one example only;
+  `plugins: ["../..", "<path to humanizer>", "<path to mattpocock-skills>"]` loaded all
+  three, listed in the report's `suite.plugins` and in the run's `init` event as
+  `<name>@inline`. The run's skill listing held `humanizer:humanizer` and
+  `mattpocock-skills:grilling` beside the plugin's own, and asked to use `humanizer`,
+  the run called `Skill` with `humanizer:humanizer` and got `Launching skill`.
+- **Only from inside the plugin under test.** An entry outside it fails the case at
+  load: "resolves to …, outside the containment root … (the enclosing plugin for a
+  target inside one you control, else the directory you ran 'claude plugin eval'
+  against). Only plugins under it can be loaded from case.yaml." So neither the
+  installed copy under `~/.claude/plugins/cache/` nor an absolute path can be named:
+  the second plugin has to sit inside the directory `tools/eval.sh` evaluates.
+- **An entry that does not exist fails that case at load**, "plugins entry … does not
+  exist", and the other cases still run, but the command exits 1. A case of another
+  tag is not loaded at all: with `--tag` excluding the broken case, the run exited 0.
+  So a machine without the second plugin breaks `writing-cards`' suite only, not the
+  other skills' sharing `evals/`.
+- **The baseline arm loads none of them**, neither the plugin under test nor the extra
+  ones: its `init` event lists the built-in plugins only, and a run asked to use
+  `humanizer` got `Unknown skill: humanizer`. That failed call still passed a
+  `tool_used` grader on `humanizer`, as `evals/README.md` says of attempts. A grader
+  proving the second plugin's skill ran reads the trace instead, for `Launching skill:
+  humanizer:humanizer`, which only a successful call prints.
+- **The installed plugins' skill names**: `humanizer:humanizer` and
+  `mattpocock-skills:grilling`, which a `Skill` grader matches as
+  `(?:[\w-]+:)?humanizer` and `(?:[\w-]+:)?grilling`. `mattpocock-skills` brings 26
+  other skills with it, among them `to-tickets` and `grill-me`, which a real session
+  on this machine has too.
+- **Seen in passing**: the interactive session that ran these probes, on the machine
+  where `humanizer` is installed and enabled, was given a skill listing without
+  `humanizer`, while `mattpocock-skills:grilling` was there. `claude -p --model haiku`
+  asked for its listing, from outside the repo and from inside it, named
+  `humanizer:humanizer`, `mattpocock-skills:grilling` and `myai:writing-cards` both
+  times. The cause is not known; where the listing leaves `humanizer` out,
+  `writing-cards` takes the path without it.
 
 ## 12. Run `writing-cards`' baseline arm
 
@@ -1816,6 +1896,39 @@ compile". No run has written one; the check on made-up traces is in entry 1.
 
 - [ ] Narrow the lookahead to `cargo` output, the tool results, rather than the whole
       trace, and check it on the same made-up traces.
+
+## 16. Measure the graders and the descriptions, not only the skills
+
+*Where it comes from.* A case's score is a pass rate: the share of its graders that
+passed, averaged over its runs. It is only as true as the graders, and two things say
+how far that goes. `writing-cards`' `fits-on-one-screen` failed every run from its rewrite
+on, and the suite's README recorded it as passing, since a comment's three dashes cut its frontmatter (entry 11).
+And a grader is trusted today once it fails on one made-up wrong reply, which shows it
+can catch an error, not how often it does, nor how often it fails a correct reply. Asked
+on 2026-11-26 which of accuracy, precision, recall, F1, pass rate and agreement rate
+apply, the answer was: the skill is no classifier, so none of the first four applies to
+it; they apply to the two classifiers the suites rely on, the graders, PASS or FAIL on a
+reply, and each skill's description, loading the skill or not.
+
+- [ ] **Precision and recall of the `llm` graders**, on replies already kept from runs:
+      about ten per grader, some correct and some wrong, labelled by the requester.
+      Recall on wrong replies says how many errors a grader catches; precision of its
+      FAILs says how many are errors. Record, for each grader, the agreement between
+      the judge and the requester, and where they disagree, the reply. Start with
+      `writing-cards`, whose `llm` graders are the newest.
+- [ ] **A negative case per skill**: a request its description excludes, such as
+      "implementa la card MOB-12" for `writing-cards`, graded on the skill *not*
+      loading. Today every `skill-loaded` grader measures recall only, whether the
+      skill fires when it should; nothing measures whether it stays quiet when it
+      should not.
+- [ ] **Say in `evals/README.md` how a score reads**: the score as the share of graders
+      passed, the report's PASS% as the share of runs passing all of them, and that 3
+      runs out of 3 is compatible, at 95% confidence, with a true success rate as low
+      as 29%.
+
+*Left out on purpose.* Accuracy and F1 of the skill itself, which has no right answer
+to compare against, and the agreement between a judge's three votes, which the report
+already shows and which would change no decision.
 
 ## Completed
 

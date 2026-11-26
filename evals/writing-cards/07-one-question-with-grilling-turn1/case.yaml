@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: 07-one-question-with-grilling-turn1
+tags: [writing-cards]
+# `grilling` installed beside the skill, which `tools/eval.sh` copies in from this
+# machine's plugins, with the plugin that ships it.
+plugins: ["../../..", "../../../.eval-plugins/mattpocock-skills"]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 40
+  append_system_prompt: "The shell in this environment refuses loops such as `for` and `while`, so run each command on its own. `find` on its own always runs; read a file with the Read tool."
+  prompt: "crea le card su Linear per il flusso descritto in FEATURE.md, team Mobile. Il progetto non ha altre card, lo scope sono solo le card nuove, e quelle approvate salvale in cards.md."
