@@ -33,7 +33,8 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 ## What a grader can read
 
 - **No grader runs a command.** A grader reads the final reply, the trace, the tools
-  called and their input, the files Claude created, or a file's contents after the run.
+  called and their input, the files Claude created, a file's contents after the run, or
+  the calls a mock received.
   The state a command would report after the run is out of reach.
 - **The trace holds what the tools printed**, so the outcome of a command Claude ran,
   such as a test run, is read from the `trace`, never from what Claude says about it. A
@@ -119,6 +120,34 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
   they sit beside the skill, outside the workspace. `tools/eval.sh` grants it on the copy
   it evaluates.
 
+## Mocks of an MCP server
+
+A skill that works through an MCP server, such as `writing-cards` with a tracker, runs
+against a mock of it that the command starts itself. `docs/PLAN.md`, entry 10, records
+the probes behind each point, at CLI 2.1.332.
+
+- **A case's own `mocks/<server>/` directory is enough, for a server the plugin does not
+  declare too.** The run sees its tools as `mcp__<server>__<tool>`, behind `ToolSearch`,
+  with no grant needed. Never use `evals/mocks/`, which the command would apply to every
+  case of every skill here.
+- **`mocks` must be a real directory**, which the command checks. Cases sharing a mock
+  link theirs to one under `fixture/`, and `tools/eval.sh` copies through the link.
+- **`_tools.json` gives the tools their description and schema**, as a saved
+  `tools/list` answer.
+- **A `type: agent` mock remembers the run.** The judge model plays the server from the
+  body's instructions, with every earlier call of the run in view, so a card created
+  shows up in a later read. Its answers vary in fields the body leaves open, so a grader
+  reads only the fields the body fixes, such as an id it numbers. A `_server.md` answering
+  several tools lists them in `tools: [...]`, or the case fails to load. A `fixed` mock
+  answers the same every time, templated from the call with `{{input.<field>}}`.
+- **A mock answers in the baseline arm too, and in a resumed case**, where `mock_calls`
+  holds the new turn's calls only.
+- **`mock_calls` is one JSON line per call**, `{"tool":"mcp__<server>__<tool>","input":{…},
+  "output":"…","verdict":"ok"}`, in the order made, and its graders score in both arms.
+  The tool is the full name. `not_contains` passes on a run with no call at all. To read
+  a write's input and not its answer, stop at `"output":`, as `writing-cards`' graders do
+  with `"input":\{(?:(?!"output":)[^\n])*`.
+
 ## The stand-in for `gh`
 
 The pull request suites run against `tools/fake-gh`, a Rust crate whose binary is named
@@ -160,7 +189,8 @@ that sees `fake-gh` in the path of the `gh` it calls takes itself to be in a tes
 `tools/eval.sh <skill-name> [options]` is the one way to launch. It evaluates a
 temporary copy of the files git sees, uncommitted edits included, since the command
 refuses a plugin holding a file with two names and cargo's build output is full of hard
-links. It puts the toolchain on `PATH`, fills in the plugin's directory in the
+links. The copy follows symbolic links, so a case's `mocks` linked to a
+shared one arrives as a real directory. It puts the toolchain on `PATH`, fills in the plugin's directory in the
 histories, passes the fixed options, and writes the report to `evals/results/`.
 
 - **Every run is kept**, as `--keep-temp` does, in `/private/tmp/e-XXXX/`: its home and

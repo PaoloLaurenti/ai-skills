@@ -57,14 +57,15 @@ export PATH
 
 # The command refuses a plugin holding a file with two names, which cargo's build output
 # is full of. So it evaluates a copy of what git sees, uncommitted edits included, and
-# the results come back here.
+# the results come back here. The copy follows symbolic links, since the command wants a
+# case's `mocks` to be a real directory, and the cases sharing one mock link it.
 copy="$(cd "$(mktemp -d)" && pwd -P)"
 trap 'rm -rf "$copy"' EXIT
 (
     cd "$repo"
     git ls-files -z --cached --others --exclude-standard |
         xargs -0 sh -c 'for f; do [ ! -e "$f" ] || printf "%s\0" "$f"; done' sh |
-        tar --null -T - -cf - |
+        tar -h --null -T - -cf - |
         tar -xf - -C "$copy"
 )
 # A later-turn case resumes a recorded conversation, where the loaded skill names its
