@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: 05-write-plan-turn1
+tags: [writing-cards]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 40
+  append_system_prompt: "The shell in this environment refuses loops such as `for` and `while`, so run each command on its own. `find` on its own always runs; read a file with the Read tool."
+  prompt: "le card del flusso di FEATURE.md sono approvate e salvate in cards.md, con lo scope e le decisioni: scrivile su Linear, team Mobile"

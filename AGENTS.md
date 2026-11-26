@@ -314,3 +314,8 @@ never from memory: each suite's `fixture/photograph.sh` takes its pull requests,
 `tools/fake-gh/record.sh` records the answers the stand-in must give as GitHub does, and
 the hook's second step checks them once a day. `evals/README.md` says when each is run
 again and what that costs.
+
+`writing-cards` writes to a tracker through MCP, and its cases run against a mock of the
+tracker's server that `claude plugin eval` starts from a case's `mocks/` directory: an
+agent mock, the judge model playing the tracker and remembering the run's calls, which
+the graders read as `mock_calls`.

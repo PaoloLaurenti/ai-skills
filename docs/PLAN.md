@@ -6,8 +6,9 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Entries 10 to 15 are open, in order of priority: the limits the earlier entries left,
-recorded on 2026-11-26. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
+Entries 11 to 15 are open, in order of priority: the limits the earlier entries left,
+recorded on 2026-11-26. Entry 10, a stand-in tracker for `writing-cards`, was completed
+on 2026-11-26. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
 entries 8 and 9, two changes to `reviewing-pull-requests`, shipped together as 1.1.0 on
 2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
 2026-11-20.
@@ -1675,13 +1676,95 @@ mock received, which a grader can read with `mock_calls`. Its help describes moc
 the servers a plugin ships; this plugin ships none, and the tracker a user reaches, such
 as Linear, is the user's own server.
 
-- [ ] Probe on haiku, in a throwaway case, whether a mock can stand in for a tracker
+- [x] Probe on haiku, in a throwaway case, whether a mock can stand in for a tracker
       server this plugin does not declare. If it cannot, propose a stand-in of the
-      `tools/fake-gh` kind, and its cost, before building it.
-- [ ] Cases: nothing written before the yes; after it, only the cards in scope; the cards
+      `tools/fake-gh` kind, and its cost, before building it. *Done, 2026-11-26*: it
+      can, so no stand-in of the `tools/fake-gh` kind is needed. The findings below.
+- [x] Cases: nothing written before the yes; after it, only the cards in scope; the cards
       outside the scope left as they were; links between new cards added after they
       exist; a card outside the scope named by its plain title, with no link or id.
-- [ ] Run them on Opus.
+      *Done, 2026-11-26*: scenario `05` of `evals/writing-cards/`, in four cases, the
+      write plan, the cycle chosen without a yes, the write after "sì", and a change the
+      tracker made by itself reported. Its README says what each grades.
+- [x] Run them on Opus. *Done, 2026-11-26*: all four at 1.00, three runs each, $3.60.
+
+*Decided, 2026-11-26.*
+
+- **An agent mock rather than a stand-in of the `tools/fake-gh` kind**, chosen by the
+  requester once the probe showed an agent mock remembering the run: no code to keep,
+  at the price of answers that vary in fields the graders do not read.
+- **The tracker's tools are written by hand**, three of them, generic, rather than
+  copied from Linear's server: the rules under test do not depend on its exact API, and
+  copying it would have meant calling the requester's own Linear.
+- **The second half of step 6 is tested too**, the tracker changing a card outside the
+  scope by itself: an automation in a second mock, `fixture/mocks-with-automation/`,
+  adds a label to MOB-9 after the first create. It needs its own case, since a run that
+  finds the change may stop the batch and ask, as one trial did, which the rule allows
+  and which the graders of a complete batch would fail.
+- **The cycle is the option the requester picks**, left open by `cards.md`, so the
+  second turn tests that choosing an option is not the yes; the first trial on Opus
+  asked it before asking for the yes, which the rule allows too.
+- **`tools/eval.sh` copies through symbolic links**, since the command refuses a
+  `mocks` that is a link, and the four cases share two mocks.
+
+### What the mocks can do, probed on 2026-11-26
+
+A throwaway plugin declaring no MCP server, with a case-level `mocks/tracker/` holding
+`_tools.json` and one fixed mock per tool, `list_issues` and `save_issue`; haiku, one run
+per case unless said otherwise, CLI 2.1.332, $0.038 in all. A control declaring the server in the plugin's
+`.mcp.json` was prepared and not needed, since the undeclared server worked on its own.
+Each bullet was measured on a run, unless it says it was read in the docs or in the
+CLI's own code.
+
+- **A mock stands in for a server the plugin does not declare.** The report lists it as
+  `"kind": "standalone"`, and the run sees its tools as `mcp__<server>__<tool>`, here
+  `mcp__tracker__list_issues`, deferred behind `ToolSearch` like any MCP tool. The
+  directory name is the server name, so `mocks/linear/` gives `mcp__linear__save_issue`.
+  No `--allow-tools` grant is needed, and no tool of the real home's servers appears.
+- **A case's own `mocks/` directory is enough**, with nothing under `evals/mocks/`. That
+  one matters here: `evals/mocks/` would apply to every case of every skill in this repo,
+  which share `evals/` as the suite.
+- **`_tools.json` gives the tools their description and schema**, as a saved
+  `tools/list` answer, `{"tools": [{"name", "description", "inputSchema"}]}`.
+- **A fixed mock templates its answer from the call**: `MOB-{{input.title}}` answered
+  `MOB-Alpha` and `MOB-Beta` to two creates, so each new card gets an id of its own,
+  which a later call can be checked for. A title of several words goes in as it is,
+  spaces included: `MOB-Request a reset link`, which the run then passed back as the
+  `id` of an update.
+- **An `expect:` on a field applies to every call of that tool.** A mock of a tool that
+  both creates and updates must not require `title`, or an update naming only the `id`
+  aborts the run. Read in the docs, not measured.
+- **`mock_calls` is one JSON line per call**, in the order made:
+  `{"tool":"mcp__tracker__list_issues","input":{"team":"MOB"},"output":"…","verdict":"ok"}`.
+  The tool is the full name, so a pattern on `"tool":"save_issue"` finds nothing.
+  `match: not_contains` and `count:0` pass on a run that called no tool at all, and
+  `count:N` counts matches. Read in the CLI's code, not measured: `"isError":true` on an
+  error, and the lines built from the run's tool calls rather than from the mock's log.
+- **The baseline arm gets the mocks too, and the `mock_calls` graders score in both
+  arms**, `scored: true` and `withOnly: false`, with no `arm: both`: the docs leave them
+  unscored only when every mocked server is one the plugin declares.
+- **`tool_used` and `tool_order` see the mocked tools** by their full name. That
+  `tool_order` compares first calls only was read in the CLI's code.
+- **A resumed case gets its mocks too**, and its `mock_calls` holds the new turn's calls
+  only: a history rebuilt with `tools/history-from-trace.sh` from a run that created two
+  cards, then a turn creating a third with a link to the first, showed one call, whose
+  description held the URL the first create had returned.
+- **A fixed mock keeps no state.** Every read answers the same, so step 6's comparison of
+  the record with the tracker always finds the cards unchanged, and a card created in the
+  run never shows up in a later list. What a case can grade with it is the calls: which
+  cards a write named, in what order, with what text.
+- **A `type: agent` mock keeps it**, being the judge model playing the server with the
+  earlier calls as history. A `_server.md` answering several tools needs `tools: [...]`
+  in its frontmatter, or the case fails to load. Its body described a tracker holding
+  one card, numbering new cards from `MOB-20`, and adding a `related` relation to any
+  card a saved description names, with a new `updatedAt`. Three runs of read, create
+  naming `MOB-9`, read again, with Sonnet as judge: all three answered `MOB-20` to the
+  create and showed the relation and the new `updatedAt` on the second read, $0.006 of
+  mock calls per run. The answers differed between runs only in fields beside the
+  point, one create echoing `team` and another not, so a grader reads the fields the
+  body fixes and nothing else.
+- **A mock answers only the tools it has a file for**: any other tool of the server is
+  missing from the run altogether. Read in the docs, not measured.
 
 ## 11. Check the optional `humanizer` and `grilling` path of `writing-cards`
 

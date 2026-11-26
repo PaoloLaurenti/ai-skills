@@ -1,0 +1,43 @@
+{
+  "tools": [
+    {
+      "name": "list_issues",
+      "description": "List the issues of a team, with their id, title, status, labels, relations and last update.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "team": { "type": "string", "description": "Team name or key" },
+          "label": { "type": "string", "description": "Only issues with this label" },
+          "status": { "type": "string", "description": "Only issues in this status" }
+        },
+        "required": ["team"]
+      }
+    },
+    {
+      "name": "get_issue",
+      "description": "Get one issue by id, with its description, status, labels, relations and last update.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "id": { "type": "string", "description": "Issue id, such as MOB-12" } },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "save_issue",
+      "description": "Create an issue, or update the issue named by id. On an update, only the fields given change. blockedBy replaces the issues blocking this one.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "The issue to update; omit to create one" },
+          "team": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string", "description": "Markdown" },
+          "status": { "type": "string" },
+          "labels": { "type": "array", "items": { "type": "string" } },
+          "cycle": { "type": "number" },
+          "blockedBy": { "type": "array", "items": { "type": "string" }, "description": "Ids of the issues blocking this one" }
+        }
+      }
+    }
+  ]
+}
