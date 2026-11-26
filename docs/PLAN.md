@@ -6,7 +6,8 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Nothing is open. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
+Entries 10 to 15 are open, in order of priority: the limits the earlier entries left,
+recorded on 2026-11-26. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
 entries 8 and 9, two changes to `reviewing-pull-requests`, shipped together as 1.1.0 on
 2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
 2026-11-20.
@@ -1660,6 +1661,78 @@ comment explaining how a finding was reached rather than what to do about it".
 - [x] Write the rule, keeping the body within 500 lines.
 - [x] Write or extend the cases that grade it, and run the suite on Opus.
 - [x] Bump the version as entry 8 says: 1.1.0, a new rule in a skill, with entry 8 in it.
+
+## 10. Give `writing-cards` a stand-in tracker
+
+*Where it comes from.* The skill's most delicate rule is that nothing reaches the tracker
+before an explicit yes to the write plan, and that only the cards in scope change. No
+case tests it: the eval sandbox reaches no tracker, so every case of
+`evals/writing-cards/` stops before a write.
+
+*What is known.* `claude plugin eval` stands in for MCP servers from the suite's
+`mocks/` directory (`--mocks record`, the default), and the report keeps every call a
+mock received, which a grader can read with `mock_calls`. Its help describes mocks for
+the servers a plugin ships; this plugin ships none, and the tracker a user reaches, such
+as Linear, is the user's own server.
+
+- [ ] Probe on haiku, in a throwaway case, whether a mock can stand in for a tracker
+      server this plugin does not declare. If it cannot, propose a stand-in of the
+      `tools/fake-gh` kind, and its cost, before building it.
+- [ ] Cases: nothing written before the yes; after it, only the cards in scope; the cards
+      outside the scope left as they were; links between new cards added after they
+      exist; a card outside the scope named by its plain title, with no link or id.
+- [ ] Run them on Opus.
+
+## 11. Check the optional `humanizer` and `grilling` path of `writing-cards`
+
+*Where it comes from.* Where blader's `humanizer` and Matt Pocock's `grilling` are
+installed, `writing-cards` passes cards through the first and lets the second order its
+questions, one per message. The eval sandbox loads no plugin but the one under test, so
+no case has seen either path, and a rewrite by `humanizer` could break a card's sections
+or the form of its criteria.
+
+- [ ] Find out whether `claude plugin eval` can load a second plugin beside the one
+      under test. If it can, add a case for each path: a card keeping its sections and
+      criteria after `humanizer`, and `grilling`'s questions coming one per message.
+- [ ] If it cannot, check both by hand in a real session, and write down what was seen.
+
+## 12. Run `writing-cards`' baseline arm
+
+*Where it comes from.* The suite ran with the skill only, so nothing says how much each
+rule adds over what Opus does unprompted, the Δ every other suite records.
+
+- [ ] Run the suite with the baseline arm, three runs per case, and record the Δ in its
+      `README.md`.
+
+## 13. Record `09`'s histories again on the current `reviewing-pull-requests`
+
+*Where it comes from.* A later-turn case resumes a history whose loaded skill is the
+text as it was when recorded. `09`'s turns 2 to 4 still carry the skill of 2026-11-20,
+so the rules added since, every point understood at first read and the explicit cut
+before sending, are not tested in them. They pass today.
+
+- [ ] Record turns 2 to 4 again from a passing run of the turn before, as
+      `evals/reviewing-pull-requests/README.md` describes, and run them on Opus.
+
+## 14. Keep the conversation of `reviewing-pull-requests` brief
+
+*Where it comes from.* `10`'s first turn stays at 0.83 through five wordings of the
+message before the question: each point keeps a sentence or two of why after its one
+line. Its third turn reached 0.94, one run's why running to five sentences. Entry 9
+records every attempt.
+
+- [ ] Try a mechanism other than wording, such as a subagent cutting the message before
+      it is sent, the way a dispatched reviewer made findings reliable; or settle with
+      the requester that one or two sentences of why per point is the rule.
+
+## 15. Close the gap in the TDD last-run grader
+
+*Where it comes from.* `last-test-run-is-green` in `developing-with-tdd`'s `02` would fail
+a run whose last `cargo test` was green if a message after it quoted "could not
+compile". No run has written one; the check on made-up traces is in entry 1.
+
+- [ ] Narrow the lookahead to `cargo` output, the tool results, rather than the whole
+      trace, and check it on the same made-up traces.
 
 ## Completed
 
