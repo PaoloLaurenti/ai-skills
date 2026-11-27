@@ -8,7 +8,7 @@
       "start_side": "RIGHT",
       "line": 6,
       "side": "RIGHT",
-      "body": "The `COPY --chmod=755` this replaces set the mode in the same step.\n\n```suggestion\nCOPY --chmod=755 docker-entrypoint.sh ./\n```"
+      "body": "The previous `COPY --chmod=755` set the exact mode in a single step. `RUN chmod +x` only adds the execute bit to whatever mode the file already had in the build context, and adds a layer.\n\n```suggestion\nCOPY --chmod=755 docker-entrypoint.sh ./\n```"
     }
   ]
 }

@@ -35,7 +35,8 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
    already in it that breaks these conventions stays exactly as written: leave it
    untouched, and say in the reply which comment it is and which rule it breaks.
    That decision belongs to whoever asked for the review, not to the review.
-3. **Write the review in English**, even when the conversation is in Italian.
+3. **Write the review in English**, even when the conversation is in Italian. Every
+   message to the requester stays in the conversation's language, turn after turn.
 4. **Never use em dashes** (the `—` character) anywhere in the review: not in the
    general comment, not in inline comments. Restructure the sentence instead.
    Commas, colons, parentheses, or two shorter sentences all work.
@@ -365,9 +366,8 @@ Group under plain descriptive section titles when there is more than one kind of
 finding, for example "Docs to refresh" or "Two database users rather than one".
 Prefer a title that says something over a one-word label.
 
-**Set those titles in bold, `**Like this**`, not as `###` markdown headings.**
-Bold reads as a section title without the visual weight a heading carries inside
-a review comment.
+**Set those titles in bold, `**Like this**`, not as `###` markdown headings.** Bold reads
+as a section title without the visual weight a heading carries inside a review comment.
 
 Bullets are welcome where the content really is a list: parallel findings, the steps of
 a proposal, options side by side. They save scanning, not words, and a body of bold

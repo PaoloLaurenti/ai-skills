@@ -6,9 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Entries 13 to 15 are open, in order of priority: the limits the earlier entries left,
+Entries 14 and 15 are open, in order of priority: the limits the earlier entries left,
 recorded on 2026-11-26. Entries 11, 12 and 16, the last measuring the graders and the
-descriptions, were completed the same day. Entry 10, a stand-in tracker for `writing-cards`, was completed
+descriptions, were completed the same day, and entry 13 on 2026-11-27, with the language
+rule it led to, for 1.3.0. Entry 10, a stand-in tracker for `writing-cards`, was completed
 on 2026-11-26. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
 entries 8 and 9, two changes to `reviewing-pull-requests`, shipped together as 1.1.0 on
 2026-11-23. Entry 1, the move onto `claude plugin eval`, was completed on
@@ -1887,8 +1888,112 @@ text as it was when recorded. `09`'s turns 2 to 4 still carry the skill of 2026-
 so the rules added since, every point understood at first read and the explicit cut
 before sending, are not tested in them. They pass today.
 
-- [ ] Record turns 2 to 4 again from a passing run of the turn before, as
+- [x] Record turns 2 to 4 again from a passing run of the turn before, as
       `evals/reviewing-pull-requests/README.md` describes, and run them on Opus.
+      *Done, 2026-11-26*, CLI 2.1.332, Opus with Sonnet as judge, every run with the
+      skill only, against the stand-in for `gh`, nothing on GitHub. Each case had a haiku
+      trial of one run first, each later turn on its new history; all four scored 1.00,
+      $0.05 in all.
+
+### Results and decisions, 2026-11-26
+
+| Case | Score, three runs | Cost |
+| --- | --- | --- |
+| `09-follow-up-first-thread-turn1` | 0.95, after a single run at 0.86 | $1.18 |
+| `09-follow-up-resolve-turn2` | 1.00 | $0.71 |
+| `09-follow-up-final-turn-turn3` | 1.00 | $0.75 |
+| `09-follow-up-delivery-turn4` | 1.00 | $1.13 |
+
+$3.82 in all, with the haiku trials, and $1.04 more for the rerun of turn 1 below.
+
+- **Decided: the three runs of each later turn are also the run its next history comes
+  from**, rather than one run to record and three more to score. A history depends only
+  on the turns before it, so each turn's three runs ran on its final history, and one of
+  them passing every grader was recorded for the turn after. This halves the Opus runs.
+- **Which run was recorded**, superseded on 2026-11-27 by the recording on 1.3.0
+  below. Turn 1 from the third of three runs, the second turn from
+  the first, the third turn from the second. Each resolved the same thread as the old
+  recording, `PRRT_4640020626` then `PRRT_4640020638`, which the scaffolds of turns 3
+  and 4 replay, and the fixture was not photographed again, so every id holds.
+- **Checked by hand, since no grader can**: each new history holds "first read", a phrase
+  `SKILL.md` gained on 2026-11-23 and the old histories lacked; its entries have the same
+  shape as the old one's; each opens with the history before it unchanged; no
+  machine-local path is left, and `tools/check.sh` passes.
+- **Found, left open for the requester**: every one of the first turn's four runs opened
+  with a line on the thread left out of the count, saying it has neither a reply nor a
+  change, and `first-thread-only` failed two of them, three votes and two, while passing
+  two worded nearly the same. The skill says "nothing about any other thread" and also
+  sends that thread to the final turn, and the line sits between the two. The run
+  recorded on 2026-11-20 opened with the same line, naming the thread's topic too, and
+  passed, as did every run on 2026-11-20 and 2026-11-21: the behaviour has not moved,
+  the judge's verdict on that line has. *Decided with the requester, the same day*: the
+  criterion, not the skill, since the line explains the count to its reader. It now says
+  a line keeping a thread out of the count for having neither a reply nor a change is no
+  reason to fail, as a count already was not. Replayed on haiku under the same focus,
+  four runs each, the two failed replies passed 12 votes of 12, and one of them with a
+  sentence added judging the line 14 thread failed 12 of 12. Turn 1 then scored 1.00 on
+  Opus over three runs, $0.91, $0.13 with the replays and the haiku trial, every run
+  opening with that line again. One of them said the two counted threads were "sistemati",
+  fixed, ahead of the second one's turn, and passed: a line to watch if it recurs.
+- **Found, left open**: one run of three of the third turn answered in English in an
+  Italian conversation, and another closed on two questions, whether to review the new
+  commits and whether to add a reply, where the skill asks the first alone. The follow-up
+  section states no language, and no grader reads either. Neither run was recorded.
+
+### The conversation's language, a rule added on 2026-11-26
+
+*Decided with the requester*: the English reply is the skill's gap, so non-negotiable 3
+now adds "Every message to the requester stays in the conversation's language, turn after
+turn", worded as approved. The body was at its 500-line limit, so the paragraph on bold
+titles was reflowed, its words unchanged, to free the line. A judge,
+`answers-in-the-conversations-language`, joins every later turn of `09` and `10`: it
+passes the requester's own sentences in Italian and lets English stand in quoted
+comments, a comment or reply shown for GitHub, code, commands and file names. Replayed
+on haiku before its last widening, it failed the English reply of turn 3 in 12 votes of
+12 and passed an Italian one and a turn 4 reply carrying English for GitHub, 12 of 12
+each. A spend of about $27 was approved for the steps below. Interrupted at the
+requester's request the same evening, resumed and completed on 2026-11-27: $26.16 in all,
+and $1.71 more for a rerun of `04` approved on the way,
+$23.80 of it the suite's three runs per case, the rest extra runs, haiku trials and
+replays. The scores are in the suite's README.
+
+- [x] Haiku trial of the ten first turns, one run each, $0.29: every case loaded and
+      ran; haiku's shortfalls, such as calls the stand-in does not know, are its own.
+- [x] Opus, the ten first turns, three runs each, skill only (`--ablation none`).
+      `01` to `07` done: 1.00, 1.00, 0.96, 0.96, 1.00, 1.00, 1.00, $12.40. Stopped
+      during `08`, whose first two runs scored 1.00 and whose third was cut off, $1.44;
+      the report the stop still wrote is `evals/results/2026-11-26T17-17-59Z/`, and the
+      terminal's output is in `evals/results/2026-11-26-first-turns-log/`. `03` and `04`
+      each had graders fail, `03` on a bare file name and a `Dockerfile` anchor, `04` on
+      the `suggestion` collapsing the `COPY` twice; their runs were cleared overnight
+      before they were read. `04` run again with the requester's approval, $1.71: 1.00,
+      the `COPY` comment and its `suggestion` in all three reviews. The third run of `08`, 1.00, and `09`'s and `10`'s first
+      turns ran on 2026-11-27: 0.95 and 0.88. `09`'s one failure, `first-thread-only` on
+      two votes of three, was replayed four times and passed twelve votes of twelve, so
+      it stays a judge's noise rather than a reason to touch the criterion again.
+- [x] Replay the widened language judge once on haiku, the English reply of turn 3 and a
+      reply of `10`'s second turn, since its wording changed after the replay above.
+      Four runs each: 12 FAIL votes of 12 on the first, 12 PASS of 12 on the second.
+- [x] Record `09`'s turns 2 to 4 again on the new text, as above: one Opus run of turn
+      1 passing everything, then for each later turn a haiku trial and three Opus runs,
+      one of them passing everything becoming the next history. The kept traces under
+      `/private/tmp/e-*` may be gone by then; a turn 1 run costs about $0.30. *Done*:
+      every history from a run passing every grader, each holding "turn after turn";
+      turns 2 to 4 scored 1.00 each.
+- [x] Record `10`'s turns 2 to 5 the same way. Its turn 1 run must have surfaced the
+      three points in the recorded order, the chown with no `USER`, the `COPY` and
+      `chmod` pair, the debug line, since the later prompts drop point 1 and add point 2
+      with its last sentence removed: point 2's comment needs two prose sentences or
+      more. `10-add-with-a-change-turn4`'s `change-applied` quotes point 2's text and is
+      rewritten from the new recording; `10-delivery-turn5/collected/` is replaced with
+      the file the recorded turn 4 left in its run's home, `.local/state/reviews/`.
+      *Done*: of six first-turn runs, two kept that order and one of them failed only
+      `one-line-per-point`, the one recorded; three more runs cost $1.38. No run of the
+      second turn passed every grader, so the one failing only `why-in-plain-words`, on two
+      votes of three, the weakest failure of the three, was recorded. Turns
+      2 to 5 scored 0.89, 0.95, 1.00 and 1.00.
+- [x] Bump the minor version, 1.2.1 to 1.3.0, a new rule; record the results in the
+      suite's README and here.
 
 ## 14. Keep the conversation of `reviewing-pull-requests` brief
 
