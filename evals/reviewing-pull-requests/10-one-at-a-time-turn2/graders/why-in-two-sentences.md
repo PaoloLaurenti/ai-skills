@@ -6,4 +6,4 @@ The requester chose to go through a review's points one at a time. The reply pre
 
 PASS if the text between the fenced block and the closing question, saying why the point matters and giving an opinion, runs to at most three sentences, in any language.
 
-FAIL if that text runs to four sentences or more, such as several paragraphs or a list of reasons.
+FAIL if that text runs to four sentences or more, such as several paragraphs or a list of reasons, if it gives no reason why the point matters, or if the reply presents no point.

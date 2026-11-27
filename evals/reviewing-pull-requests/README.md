@@ -29,7 +29,7 @@ conversation.
 | `07-append-to-open-draft-turn1` | `#7`, `open-draft` | non-negotiable 2: an open draft is appended to, its comments and general comment kept word for word, and the one breaking the conventions named in the reply |
 | `08-values-in-docs-turn1` | `#8`, `values-in-docs` | the doc section copying two values is answered inline with prose that carries no number and names `app/limits.py` |
 | `09-follow-up-first-thread-turn1` | `#13`, `follow-up` | a follow-up counts two threads, presents the first alone, proposes resolving it and asks, with nothing written to GitHub |
-| `10-asks-how-to-build-turn1` | `#4`, `suggestions` | a request naming no approach gets one question, after the reviewer, between the draft now and one point at a time, after one plain line per point |
+| `10-asks-how-to-build-turn1` | `#4`, `suggestions` | a request naming no approach gets one question, after the reviewer, between the draft now and one point at a time, after one sentence per point cut by a second subagent |
 
 The later turns, each resuming the conversation recorded up to it:
 
@@ -38,7 +38,7 @@ The later turns, each resuming the conversation recorded up to it:
 | `09-follow-up-resolve-turn2` | "sì" | the yes resolves the first thread at once and nothing else, and thread 2 of 2 follows in the same message |
 | `09-follow-up-final-turn-turn3` | "sì" | the second thread resolved, then the final turn: the untouched two-decimals thread, `app/currency.py` changed by no thread, and the question whether to review the new commits |
 | `09-follow-up-delivery-turn4` | "no, niente review dei nuovi commit…", with a reply to add | one pending draft holding the reply on the two-decimals thread, by GraphQL, nothing published or submitted, the submit command given |
-| `10-one-at-a-time-turn2` | "uno alla volta" | point 1 of 3 alone, its comment in a fenced block, why it matters in plain words and two sentences at most, one question, nothing written anywhere |
+| `10-one-at-a-time-turn2` | "uno alla volta" | point 1 of 3 alone, its comment in a fenced block, why it matters in two sentences at most, one question, nothing written anywhere |
 | `10-drop-collects-nothing-turn3` | "scarta" | nothing collected, point 2 of 3 in the same message, its why in two sentences at most |
 | `10-add-with-a-change-turn4` | "aggiungilo, ma togli l'ultima frase" | the comment collected in `~/.local/state/reviews/` without its last sentence, never sent to GitHub, point 3 of 3 next, its why in two sentences at most |
 | `10-delivery-turn5` | "aggiungi" | one `POST` creating the draft with the two comments added, nothing submitted, the submit command given, the local file deleted |
@@ -242,6 +242,14 @@ failed `why-in-plain-words` twice and `why-in-two-sentences` once, its third
 `why-in-two-sentences` once, the judges on brevity that `docs/PLAN.md`, entry 14, is
 about. `08`'s three runs span the two days, the first two before a stop and the third
 after it.
+
+**After the cut of the list before the build question**, 2026-11-27, `10`'s first turn on
+Opus scored 0.96 and then 0.93 over three runs each, `one-line-per-point` passing every
+run, and `01` to `08` once each scored 1.00 but for `04` and `08` at 0.94, $8.39 in all.
+`docs/PLAN.md`, entry 14, has what each run missed. `why-in-plain-words` and
+`points-in-plain-words`, which failed replies a reader takes in at once, were removed from
+`10`'s second and first turns the same day, as `comments-in-plain-words` was from `01` to
+`08`.
 
 Without the skill, every run of `01` tried to submit its review, with an `event` or
 `gh pr review`, no run of `07` appended to the open draft, and no run of any case
