@@ -39,7 +39,10 @@ when a run contradicts one, probe it in a throwaway plugin, with haiku, one run 
 - **The trace holds what the tools printed**, so the outcome of a command Claude ran,
   such as a test run, is read from the `trace`, never from what Claude says about it. A
   `trace` regex matches anywhere in the run, though: to read the last run of a command,
-  add a lookahead allowing no later failure.
+  add a lookahead allowing no later failure. The trace is one JSON event a line, and
+  what a tool printed sits on a line opening with `{"type":"user"`, Claude's own words on
+  one opening with `{"type":"assistant"`, so a pattern reads tool output only by
+  anchoring there, as `developing-with-tdd`'s `last-test-run-is-green` does.
 - **`tool_used` counts attempts, not results.** A failed or refused call counts like a
   successful one. That proves "Claude tried to commit", never "a commit exists". It
   names one tool exactly, with no alternation: a check on `Write` or `Edit` is two

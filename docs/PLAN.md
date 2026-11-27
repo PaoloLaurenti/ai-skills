@@ -6,9 +6,10 @@ practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/ove
 the `superpowers:writing-skills` guidance, and the [Claude Code plugin
 docs](https://code.claude.com/docs/en/plugins).
 
-Entries 14 and 15 are open, in order of priority: the limits the earlier entries left,
-recorded on 2026-11-26. Entries 11, 12 and 16, the last measuring the graders and the
-descriptions, were completed the same day, and entry 13 on 2026-11-27, with the language
+Entries 17, 18 and 19 are open, in that order of priority: what entry 14 left, recorded
+on 2026-11-27. Entry 15, a gap in the TDD last-run grader, was closed the same day. Entry 14, the brief list before the build question, was completed on
+2026-11-27 for 1.4.0. Entries 11, 12 and 16, the last measuring the graders and the
+descriptions, were completed on 2026-11-26, and entry 13 on 2026-11-27, with the language
 rule it led to, for 1.3.0. Entry 10, a stand-in tracker for `writing-cards`, was completed
 on 2026-11-26. Entry 7, `writing-cards`, was completed on 2026-11-26 for 1.2.0;
 entries 8 and 9, two changes to `reviewing-pull-requests`, shipped together as 1.1.0 on
@@ -2136,8 +2137,18 @@ question to its shape, about $10 to $15 approved. `10`'s first turn, three Opus 
 a run whose last `cargo test` was green if a message after it quoted "could not
 compile". No run has written one; the check on made-up traces is in entry 1.
 
-- [ ] Narrow the lookahead to `cargo` output, the tool results, rather than the whole
-      trace, and check it on the same made-up traces.
+- [x] Narrow the lookahead to `cargo` output, the tool results, rather than the whole
+      trace, and check it on the same made-up traces. *Done, 2026-11-27.* Two haiku
+      probes, $0.01, showed what a `trace` regex reads: one JSON event a line, a tool's
+      output on a line opening with `{"type":"user"`. One printed a green result and
+      then answered "it could not compile": the old pattern failed it, the new passed.
+      The other printed a green result and then "could not compile" from a command: the
+      new pattern failed it. Both the green run and the later failure are now read on
+      those lines only, which also fails a green result Claude only claims. On the seven
+      made-up traces of entry 1, rebuilt one event a line, it gives the same verdicts,
+      and passes a green followed by a message quoting "could not compile" or "test
+      result: FAILED". A haiku run of `02` itself, $0.06, passed it on real `cargo
+      test` output.
 
 ## 16. Measure the graders and the descriptions, not only the skills
 
@@ -2297,6 +2308,41 @@ same floor of 29% as 3 runs out of 3.
 *Left out on purpose.* Accuracy and F1 of the skill itself, which has no right answer
 to compare against, and the agreement between a judge's three votes, which the report
 already shows and which would change no decision.
+
+## 17. Measure the `llm` graders of the other suites
+
+*Where it comes from.* Entry 16 measured the judges of `writing-cards`, and entry 14 the
+five of `10` on brevity and plain words: three held, and two failed what a reader takes
+in at once and were removed. The other suites carry 62 `llm` graders, none measured, so a
+score below 1.00 there may be the judge's. One already looks suspect:
+`one-question-on-the-approach`, in `10`'s first turn, failed three votes of three on
+2026-11-27 a reply ending on the very question it asks for (entry 14).
+
+- [ ] Measure them with entry 16's method, on replies already kept from runs, starting
+      with `one-question-on-the-approach`, then the suites of `reviewing-pull-requests`,
+      `addressing-pull-request-reviews`, `walking-through-and-reviewing-pull-requests` and
+      `developing-with-tdd`. Cents in replays a grader, plus the labelling agents' tokens.
+
+## 18. Watch three misses of `reviewing-pull-requests`
+
+*Where it comes from.* Runs of 2026-11-27, entry 14, each seen once, none caused by that
+entry's edits. Worth a change to the skill only if they come back.
+
+- [ ] The message before the build question is the cutter's return word for word: one
+      run of three added an opening line above it.
+- [ ] `04` sometimes sets aside the `COPY` and `chmod` pair as too small, leaving out the
+      `suggestion` collapsing them, a miss its suite's README records since 2026-11-21.
+- [ ] `08` once named `config/default.toml` in a code span of the general comment without
+      a link, against Code references.
+
+## 19. Record `10`'s later turns again
+
+*Where it comes from.* The histories turns 2 to 5 resume still open on a first turn of
+two to five sentences a point, the shape before 1.4.0. Each turn grades its own reply
+only, so recording them again, about $6, was put off on 2026-11-27 (entry 14).
+
+- [ ] Record them again at the next reason to, such as a reset of the fixture or a change
+      to the turns themselves, with `tools/history-from-trace.sh`.
 
 ## Completed
 
