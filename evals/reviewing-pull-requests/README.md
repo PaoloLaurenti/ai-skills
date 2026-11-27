@@ -43,6 +43,10 @@ The later turns, each resuming the conversation recorded up to it:
 | `10-add-with-a-change-turn4` | "aggiungilo, ma togli l'ultima frase" | the comment collected in `~/.local/state/reviews/` without its last sentence, never sent to GitHub, point 3 of 3 next, its why in two sentences at most |
 | `10-delivery-turn5` | "aggiungi" | one `POST` creating the draft with the two comments added, nothing submitted, the submit command given, the local file deleted |
 
+Each later turn also has `answers-in-the-conversations-language`, a judge passing a reply
+whose sentences to the requester stay in Italian, non-negotiable 3, English being
+expected only in what is quoted or shown for GitHub.
+
 Every case that delivers a review also checks, over the payload in the log, what the
 hand-run suite checked on every review: one `POST` and no `event`, nothing published, no
 em dash, no first or second person, every repo file linked outside a `suggestion` block or a quote of proposed wording,
@@ -100,9 +104,13 @@ points, the chown with no `USER`, the `COPY` and `chmod` pair, and the debug lin
 
 **A history carries the skill as it was when recorded**, since the loaded `SKILL.md` is
 part of the conversation: a later turn tests that text, not the current one. An edit a
-later turn should see means recording its history again. `10`'s were recorded again on
-2026-11-21 from a first turn that passed everything but `one-line-per-point`, since no
-run of it passes that judge; `09`'s still carry the skill of 2026-11-20.
+later turn should see means recording its history again. Both were last recorded on
+2026-11-27, on the text of 1.3.0, with the skill only, each turn from a run of the one
+before. `09`'s from runs passing every grader. `10`'s first turn from a run passing
+everything but `one-line-per-point`, since no run of it passes that judge, one of the two
+runs of six keeping the three points in the order its later turns expect; its second
+turn from a run failing `why-in-plain-words` on two votes of three, since none of three
+passed every grader; the third and fourth from runs passing every grader.
 
 Three things tie a history to the state it was recorded in:
 
@@ -191,6 +199,49 @@ comment to be understood at first read was tried on `01` to `08` and removed: re
 from files, it failed reviews Opus had rewritten as simply as asked, `docs/PLAN.md` has
 the detail. After the last wording of that message, `01` to `08`, run once each on
 2026-11-23, all scored 1.00.
+
+**`09`'s later turns on the text of 2026-11-23**, recorded again on 2026-11-26, CLI
+2.1.332, three runs each with the skill only: 1.00, 1.00 and 1.00, $0.71, $0.75 and
+$1.13. The first turn, run four times to find a run to record from, scored 0.86 alone and
+0.95 over the next three, $1.18. Every one of its four runs opened with a line on the
+thread left out of the count, saying it has neither a reply nor a change, and
+`first-thread-only` failed two of them and passed two worded nearly the same: that line
+sits on the edge of "nothing about any other thread". The run recorded on 2026-11-20
+opened with the same line, naming the thread's topic, and passed, as did every run on
+2026-11-20 and 2026-11-21, so the judge's verdict on that line is what moves, not the
+skill. The criterion now says such a line is no reason to fail; replayed, the two
+failed replies passed every vote and a wrong one failed every vote, and turn 1 scored
+1.00 over three runs, $0.91. One run of three of the third turn answered in English in
+an Italian conversation, which no grader read and the follow-up section did not rule on,
+and one closed on two questions, whether to review the new commits and whether to add a
+reply.
+
+**After the conversation's language became a rule**, non-negotiable 3 in 1.3.0, the
+histories of `09` and `10` recorded again and the whole suite run on 2026-11-26 and 27,
+CLI 2.1.332, three runs per case with the skill only, $23.80, with $2.36 more on extra
+runs of `10`'s first turn to find one to record from and on haiku trials and replays.
+
+| Case | Score | Cost |
+| --- | --- | --- |
+| `01` to `08` | 1.00, 1.00, 0.96, 0.96, 1.00, 1.00, 1.00, 1.00 | $14.29 |
+| `09`, turns 1 to 4 | 0.95, 1.00, 1.00, 1.00 | $3.65 |
+| `10`, turns 1 to 5 | 0.88, 0.89, 0.95, 1.00, 1.00 | $5.86 |
+
+Every later turn passed `answers-in-the-conversations-language`. `03` once named a file
+bare and once anchored a `Dockerfile` link off the timeout line; `04` twice left the
+`COPY` and `chmod` pair without the `suggestion` collapsing them, as it once did on
+2026-11-21. Their runs were cleared before they were read. Run again on 2026-11-27,
+$1.71, `04` scored 1.00, each of three reviews carrying the `COPY` comment with its
+`suggestion`: four runs of six then, and in one of `10`'s first turns on the same pull
+request Opus set that point aside as one more layer on a tiny file, which is the likely
+miss, the point dropped rather than the block malformed. `09`'s first turn failed
+`first-thread-only` once more, on a reply the same judge passed in twelve votes of twelve
+when replayed. `10`'s first turn failed `one-line-per-point` in every run, as since
+2026-11-21, and `points-in-plain-words` in two of the three extra runs; its second turn
+failed `why-in-plain-words` twice and `why-in-two-sentences` once, its third
+`why-in-two-sentences` once, the judges on brevity that `docs/PLAN.md`, entry 14, is
+about. `08`'s three runs span the two days, the first two before a stop and the third
+after it.
 
 Without the skill, every run of `01` tried to submit its review, with an `event` or
 `gh pr review`, no run of `07` appended to the open draft, and no run of any case
