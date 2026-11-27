@@ -2002,9 +2002,133 @@ message before the question: each point keeps a sentence or two of why after its
 line. Its third turn reached 0.94, one run's why running to five sentences. Entry 9
 records every attempt.
 
-- [ ] Try a mechanism other than wording, such as a subagent cutting the message before
+- [x] Measure `10`'s three brevity judges first, with entry 16's method, to know whether
+      the skill or the judge fails. *Done, 2026-11-27*, below.
+- [x] Try a mechanism other than wording, such as a subagent cutting the message before
       it is sent, the way a dispatched reviewer made findings reliable; or settle with
-      the requester that one or two sentences of why per point is the rule.
+      the requester that one or two sentences of why per point is the rule. *Done,
+      2026-11-27*: a second subagent cuts the list to one sentence a point, below.
+
+### The brevity judges, measured on 2026-11-27
+
+Every verdict the reports kept for `one-line-per-point`, `why-in-two-sentences` and
+`why-in-plain-words`: 56, on 46 replies, the criteria unchanged since they were written,
+the judge Sonnet throughout. The sample is 35 replies, 46 labels: every reply of turns 2
+to 4, and ten of turn 1's nineteen, across dates, wordings and models. Labelled as in
+entry 16, by one fresh agent per case given the context, the criterion and the replies
+shuffled, never the verdict, the date or the model; each label carries a count of
+sentences. The data, which git ignores, is in `evals/results/judge-labels-brevity/`.
+Agents' and judge's verdicts on the replies of haiku and of the old histories say
+something about the judge only; about the skill, only the Opus runs of 2026-11-27 do.
+
+| Grader | Agreement | Judge FAILs the label confirms | Label FAILs the judge caught |
+| --- | --- | --- | --- |
+| `one-line-per-point` | 10 of 10 | 10 of 10 | 10 of 10 |
+| `why-in-two-sentences`, turns 2 to 4 | 25 of 25 | 7 of 7 | 7 of 7 |
+| `why-in-plain-words` | 4 of 11 | 0 of 7 | none to catch |
+
+- **`one-line-per-point` is right: the skill fails.** Every reply it failed puts two to
+  five sentences in some point, and every one carries more besides: a verdict on the
+  whole, a set-aside point explained over several sentences, a line on `README.md`. The
+  three Opus runs of 2026-11-27 run to 2, 3 and 2, 5, 3 and 3, and 3, 3 and 3 sentences
+  per point. It had never passed a reply, so three edited from a real one of that day
+  were replayed, four runs each: one bare sentence per point passed 12 votes of 12, one
+  sentence per point carrying its "perché" passed 12 of 12, and those same points with
+  the verdict and the set-aside paragraph left in failed 12 of 12. It reads the rule's
+  "nothing else" too, which is the rule. One label was unsure, on its criterion: a point
+  of three sentences on one physical line passes "a single line" and fails "explained
+  over several sentences".
+- **`why-in-two-sentences` is right too.** Five of its seven FAILs are at exactly four
+  sentences, and in each the agent was unsure, since one of the four is a side remark,
+  such as "non serve un blocco `suggestion`" or which lines the comment is anchored to,
+  that it counted without knowing whether the criterion means to. On 2026-11-27 Opus failed it once in three runs on turns 2 and
+  3, and never on turn 4. It passed two haiku replies vacuously, one with no why at all
+  and one presenting no next point: its FAIL clause has no case for a missing why, as the
+  plain-words one has.
+- **`why-in-plain-words` is wrong: it fails replies a reader takes in at once.** All
+  seven disagreements are FAILs on replies labelled plain, and none of the seven was
+  marked unsure. Replayed four times each, two of 2026-11-27's: "Il `chown` non cambia
+  nulla a runtime e rende il file modificabile da un utente in più. Togliere la riga mi
+  sembra la scelta giusta..." failed 12 votes of 12; the other passed 4 of 12. This is
+  `comments-in-plain-words`' failure in entry 9 again, on the conversation instead of
+  the comments.
+
+$0.17 for the replays, haiku with Sonnet as judge, and the four labelling agents'
+tokens on the subscription.
+
+### A subagent cutting the list, tried on 2026-11-27
+
+*Decided with the requester*: the second road, a subagent cutting the message before the
+question to its shape, about $10 to $15 approved. `10`'s first turn, three Opus runs each:
+
+- *The cut asked for in the section, twice*: "a subagent asked only to cut the draft to
+  this shape... writes what is sent", then "dispatch a subagent to cut it". $1.44 and
+  $1.34, 0.83 and 0.88, `one-line-per-point` failing three of three each time. No run
+  dispatched the cutter: `Agent` was called once, the reviewer, in all six. A haiku trial
+  before them, $0.03, never reached the question.
+- *The cut done by hand*: the three drafts of the second attempt, each handed to a fresh
+  subagent with the paragraph and its example, and the three cuts replayed four times
+  each: `one-line-per-point` passed all 36 votes. One cut merged two points into one, a
+  risk to watch: the cutter can change what a point says.
+- *The cut given non-negotiable 7's weight*: a sentence in it saying the list is cut by a
+  second subagent and only its return sent, "Dispatch a subagent with the draft and this
+  paragraph" in the section, a red flag, and a grader, `list-cut-by-a-subagent`, a
+  `tool_used: Agent` with `min: 2`. $1.61, 0.85. The cutter ran in all three runs, and
+  every message lost what wording never removed: no verdict, no set-aside point
+  explained, no line on the docs, one line counting what was set aside. But in each run
+  the message sent was not the cutter's return: the run rewrote it, each point back to
+  two sentences, what to change then why, so `one-line-per-point` failed three of three.
+  In one run the cutter's own return was one sentence a point and the message sent
+  split each again.
+- *One sentence per point, decided with the requester* over two short ones: the section
+  asks for one sentence per point with no full stop inside it and the cutter's return
+  sent word for word, the example joins what and why in one sentence, and the red flag
+  names a point split again. `one-line-per-point`'s criterion now asks for a single
+  sentence, no longer "a single line or a single sentence". Three lines came from
+  reflowing paragraphs and two from shorter red flags, words unchanged in meaning, so
+  the body is back to 500 and `tools/check.sh` passes. $1.61, 0.96: the cutter ran and
+  `one-line-per-point` passed in all three runs, and no message was rewritten after the
+  cut. The one failure is `points-in-plain-words` in one run, whose first point packed the
+  `chown`, the `chmod` and the extra layers into one long sentence: the cutter merging two
+  points, seen once before, and the cost of one sentence, which can grow instead of split.
+- *No two points merged, decided with the requester*: the section's cut now keeps "no two
+  points merged into one", a line freed by reflowing one more bullet. $1.62, 0.93: the
+  cutter ran and `one-line-per-point` passed in all three runs. The trace of the run that
+  still joined the `chown` and the `chmod` shows the cutter obeyed: the draft handed to it
+  already held them as one point on lines 5 to 7, which one `suggestion` restoring the
+  original `COPY --chmod=755` would fix, so it reads as a review choice rather than a cut
+  gone wrong. That run sent the cutter's return with one opening line added, and
+  `one-question-on-the-approach` failed it three votes of three on a reply that ends on
+  the question, a judge not yet measured. `points-in-plain-words` failed another run, the
+  judge measured above as wrong on all seven of its FAILs.
+- *`01` to `08` once each on Opus*, after these edits, $5.16: 1.00 for six, 0.94 for `04`
+  and `08`. `04`'s review left the `COPY` and `chmod` pair without its collapsing
+  `suggestion`, keeping only the `chown` comment, the miss the suite's README already
+  records as a point dropped. `08`'s general comment named `config/default.toml` once in
+  a code span without a link, a miss of Code references, a section these edits left
+  alone. Neither reads as caused by them.
+- *`10`'s later turns not recorded again, decided with the requester*: their histories
+  still open on a first turn of two sentences a point, but each turn grades only its own
+  reply, so recording them again, about $6, waits for another reason to do it.
+- *`why-in-plain-words` removed from `10`'s second turn*, on the measurement above: it
+  failed seven replies a reader takes in at once and confirmed none, the failure that
+  removed `comments-in-plain-words` from `01` to `08` in entry 9. Whether the "why" is
+  plain is left to reading replies, as it is for comments.
+- *`points-in-plain-words` measured and removed from `10`'s first turn, the same day.*
+  Its 39 verdicts in the reports, on 39 replies, 36 of them Opus; the sample is its 12
+  FAILs and 8 PASSes drawn at random, shuffled and labelled by one fresh agent with the
+  context and the criterion only. Agreement 9 of 20; of its 12 FAILs the label confirms
+  1, on a point closing on a `runAsUser` caveat that says nothing about the change, and
+  that one marked unsure; the 8 PASSes all agree. It fails what a reader takes in at
+  once, as `why-in-plain-words` did, so it goes the same way; the length of a point stays
+  with `one-line-per-point`. The data, which git ignores, is in
+  `evals/results/judge-labels-brevity/plain-points/`.
+- *`why-in-two-sentences` fails a missing why, the same day.* Its FAIL clause, in turns 2
+  to 4, gained "if it gives no reason why the point matters, or if the reply presents no
+  (next) point", the case it passed vacuously in the measurement above. Replayed four
+  times each on haiku, $0.23, every echo identical to the character: the two haiku
+  replies it had passed, one with no why and one presenting no next point, failed 12
+  votes of 12 each, and three correct Opus replies, one per turn, passed 12 of 12 each.
 
 ## 15. Close the gap in the TDD last-run grader
 

@@ -6,4 +6,4 @@ The requester is going through a review's points one at a time and has just answ
 
 PASS if the text between the next point's fenced block and the closing question, saying why the point matters and giving an opinion, runs to at most three sentences, in any language. What comes before the fenced block, such as the acknowledgement of the previous answer, is not counted.
 
-FAIL if that text runs to four sentences or more, such as several paragraphs or a list of reasons.
+FAIL if that text runs to four sentences or more, such as several paragraphs or a list of reasons, if it gives no reason why the point matters, or if the reply presents no next point.

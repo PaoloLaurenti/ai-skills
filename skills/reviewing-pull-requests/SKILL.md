@@ -51,7 +51,9 @@ per non-negotiable 7, so what follows is what happens to what that step returns.
    superpowers' `requesting-code-review`, run first. Loading that skill is not the
    requirement, dispatching is, and nothing gets written before the subagent
    returns. An ask that already names the finding is the exception, since there is
-   nothing to go looking for. See Where the findings come from.
+   nothing to go looking for. See Where the findings come from. The same holds for the
+   list of points shown before asking how to build the review: written in one go it
+   keeps each point's why, so a second subagent cuts it, and only its return is sent.
 
 ## Tone
 
@@ -156,11 +158,14 @@ the system fits together is verified here rather than trusted.
 Once the subagent's findings are filtered, ask the requester how to build the review:
 create the pending draft now with all of them, or go through them one at a time first,
 unless the request already says which, or a single point survived and goes straight to
-the draft. Before the question, one line per point, the weightiest first, and one
-counting what was set aside, in the conversation's language and nothing else:
+the draft. Before the question, one sentence per point with no full stop inside it, the
+weightiest first, and a line counting what was set aside, in the conversation's language
+and nothing else. Dispatch a subagent with the draft and this paragraph, asking only to
+cut it to this shape, links and question kept and no two points merged into one, and
+send its return word for word:
 
 ```text
-1. [Dockerfile:7](…): drop the `chown`, the container runs as root so it changes nothing.
+1. [Dockerfile:7](…): drop the `chown`, which changes nothing as the container runs as root.
 2 more set aside, detail on request.
 ```
 
@@ -197,10 +202,9 @@ Look in both directions:
   say what it should say now.
 - **The diff adds behaviour, a convention, or an operational step the docs never
   mention.** Say what to add and where.
-- **The diff breaks a rule the repo sets for itself** in `AGENTS.md` or
-  `CLAUDE.md`. Those files bind the change, so a conflict is a finding even when
-  the code is fine on its own terms. If the change is right and the rule is what
-  should move, say that instead.
+- **The diff breaks a rule the repo sets for itself** in `AGENTS.md` or `CLAUDE.md`. Those
+  files bind the change, so a conflict is a finding even when the code is fine on its own
+  terms. If the change is right and the rule is what should move, say that instead.
 
 **Documentation does not carry values that live in the code.** A port, a coverage floor,
 a task name, a version, a count, a list of the places something appears: each is owned by
@@ -307,10 +311,9 @@ COPY --chmod=755 docker-entrypoint.sh ./
 ```
 ````
 
-The block replaces exactly the lines the comment is anchored to, so the anchor
-must cover every line being replaced. A suggestion that collapses three lines
-into one needs `start_line` and `line` spanning all three, even though the
-replacement is a single line.
+The block replaces exactly the lines the comment is anchored to, so the anchor must cover
+every line being replaced. A suggestion that collapses three lines into one needs
+`start_line` and `line` spanning all three, even though the replacement is a single line.
 
 **Narrow the anchor until the suggested change contains only real changes.**
 GitHub renders a suggestion as a diff of the anchored lines against the block, so
@@ -318,10 +321,9 @@ every unchanged line reproduced inside the block shows up as a removal plus an
 identical addition. A reader then sees "Suggested change" listing lines that are
 not changing at all, and stops trusting the suggestion.
 
-- **A pure deletion gets no suggestion block at all.** Anchor the comment to the
-  line and say it should go. There is no replacement text to hand over, and a
-  "Suggested change" showing a single struck-out line tells the reader nothing
-  the anchor already told them.
+- **A pure deletion gets no suggestion block at all.** Anchor the comment to the line and
+  say it should go. There is no replacement text to hand over, and a "Suggested change"
+  showing a single struck-out line tells the reader nothing the anchor already told them.
 - To insert a line, anchor the single neighbouring line the insertion attaches to
   and reproduce just that one. Two lines of noise beats five.
 - Only when no narrower anchor exists, and surrounding lines genuinely have to be
@@ -354,10 +356,9 @@ already failed, however good the content. The evidence lives in the permalinks,
 so state the finding and link the proof instead of walking through it: name the
 conclusion, not the chain that got you there.
 
-**Open with one sentence introducing the sections that follow.** Always, before
-the first section title. It tells the reader what the sections below cover and in
-what order, so the body reads as a whole rather than as loose blocks. One or two
-sentences, no more.
+**Open with one sentence introducing the sections that follow.** Always, before the first
+section title. It tells the reader what the sections below cover and in what order, so
+the body reads as a whole rather than as loose blocks. One or two sentences, no more.
 
 For example: "Everything below sits outside the diff: documentation the change has left
 behind, a suggestion on database credentials, and a couple of items for later".
@@ -486,8 +487,7 @@ Any of these means the review is not ready:
 - A verdict, a summary or a description of what was reviewed opening the body.
 - A line edit spelled out in prose where a `suggestion` block was committable.
 - A `suggestion` block whose anchor range does not cover every replaced line.
-- A body that jumps straight into its first section title with no sentence
-  introducing the sections.
+- A body opening on its first section title with no sentence introducing the sections.
 - A review submitted without an explicit request, an `event` field, or `gh pr review`.
 - A draft open before the review started deleted, rewritten or edited to fit these
   conventions, or a `DELETE` used to get past a `422`.
@@ -497,8 +497,7 @@ Any of these means the review is not ready:
 - A body made entirely of bold labels and terse bullets, with no prose framing it.
 - A blunt or judging phrase anywhere: "this is wrong", "the worst is", "nobody
   did X", or a heading that names a fault instead of a topic.
-- An architectural claim inferred from a name instead of read from the file that
-  defines it.
+- An architectural claim inferred from a name, not read from the file that defines it.
 - Any "I", "we", "us", "our", "you" or "your" in the review text.
 - An observation that names a problem without saying what to do about it, or one
   whose proposal stops at "worth checking" without naming where and what.
@@ -507,6 +506,7 @@ Any of these means the review is not ready:
 - A point, in a comment or in the conversation, that cannot be understood at first read.
 - No subagent dispatched, a comment written before it returned, or a review carrying
   its Strengths, Recommendations, Assessment or severity headings.
+- A list of points not cut by a subagent before the question, or a point split again.
 - Points walked one at a time unasked, or a draft created before the requester chose.
 - A comment that would read the same on another pull request, or one naming a
   principle where it could have named the change to make.
